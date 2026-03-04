@@ -1,0 +1,30 @@
+.weekWrap { padding: 18px; display: flex; flex-direction: column; gap: 14px; }
+.weekGrid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 8px; }
+.dayCol {
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--r);
+  padding: 11px 9px;
+  cursor: pointer;
+  min-height: 80px;
+  transition: border-color var(--tr);
+}
+.dayCol:hover { border-color: var(--b2); }
+.isToday { border-color: var(--gold); box-shadow: 0 0 14px rgba(240,176,48,.1); }
+.dropTgt { border-color: var(--gold); background: var(--gd2); }
+.dcWday { font-size: 9px; font-weight: 700; letter-spacing: 1.5px; text-transform: uppercase; color: var(--t3); font-family: var(--fd); }
+.dcNum { font-size: 18px; font-weight: 300; line-height: 1.2; margin: 1px 0 5px; font-family: var(--fd); }
+.dcNumToday { color: var(--gold); font-weight: 600; text-shadow: 0 0 8px rgba(240,176,48,.5); }
+.dcBarRow { display: flex; align-items: center; gap: 4px; margin-bottom: 5px; font-size: 10px; color: var(--t3); font-family: var(--fm); }
+.dcBar { flex: 1; height: 2px; background: var(--s3); border-radius: 1px; overflow: hidden; }
+.dcBarFill { height: 100%; background: var(--gold); border-radius: 1px; }
+.dcTask { font-size: 10px; color: var(--t2); padding: 1px 4px; background: var(--s2); border-radius: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-bottom: 2px; }
+.dcTaskDone { opacity: .38; text-decoration: line-through; }
+.dcTaskFrog { color: var(--grn); }
+.dcMore { font-size: 9px; color: var(--t3); padding: 1px 4px; }
+.dcDailies { font-size: 9px; color: var(--t3); margin-top: 3px; font-family: var(--fm); }
+.secLbl { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--t2); font-family: var(--fd); }
+
+@media(max-width: 680px) {
+  .weekGrid { grid-template-columns: repeat(7, minmax(68px, 1fr)); overflow-x: auto; }
+}

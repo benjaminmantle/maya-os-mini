@@ -1,0 +1,133 @@
+.taskCard {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--r);
+  padding: 8px 10px;
+  transition: border-color var(--tr), background var(--tr);
+  position: relative;
+  opacity: 0.82;
+}
+.taskCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: transparent;
+  border-radius: var(--r) 0 0 var(--r);
+  transition: background var(--tr), box-shadow var(--tr);
+}
+.taskCard:hover { border-color: var(--b2); }
+.isFrog { border-color: rgba(34,238,128,.3); opacity: 1; }
+.isFrog::before { background: var(--grn); box-shadow: 0 0 14px var(--grn); }
+.isFrog:hover { border-color: rgba(34,238,128,.52); }
+.isFrog:hover::before { background: var(--grn); box-shadow: 0 0 22px var(--grn); }
+.done { opacity: .28; }
+.doneName { text-decoration: line-through; }
+.draggable { cursor: grab; }
+.draggable:active { cursor: grabbing; }
+.dragging { opacity: .2; }
+.activeTask { background: rgba(34,238,128,.06); border-color: rgba(34,238,128,.4); opacity: 1; }
+.activeTask::before { background: var(--grn); box-shadow: 0 0 16px var(--grn); }
+.activeTask:hover { border-color: rgba(34,238,128,.62); }
+.activeTask:hover::before { background: var(--grn); box-shadow: 0 0 24px var(--grn); }
+.focusedTask { background: rgba(240,176,48,.1); border-color: rgba(240,176,48,.55); opacity: 1; }
+.focusedTask::before { background: var(--gold); box-shadow: 0 0 18px var(--gold); }
+.focusedTask:hover { border-color: rgba(240,176,48,.78); }
+.focusedTask:hover::before { background: var(--gold); box-shadow: 0 0 28px var(--gold); }
+.sidebarCard { border-radius: var(--rs); padding: 7px 9px; }
+
+.chk {
+  width: 15px;
+  height: 15px;
+  border-radius: 2px;
+  border: 1px solid var(--b2);
+  flex-shrink: 0;
+  margin-top: 2px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--tr);
+}
+.chk:hover { border-color: var(--grn); }
+.chkOn { background: var(--grn); border-color: var(--grn); box-shadow: 0 0 8px rgba(34,238,128,.45); }
+.chkOn::after { content: '✓'; font-size: 9px; color: #000; font-weight: 700; }
+
+.taskBody { flex: 1; min-width: 0; }
+.taskName { font-size: 14px; font-weight: 500; word-break: break-word; line-height: 1.35; }
+.taskMeta { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
+
+.timer {
+  font-family: var(--fm);
+  font-size: 11px;
+  color: var(--gold);
+  margin-top: 3px;
+  letter-spacing: .5px;
+}
+.over { color: var(--hot); }
+.open { color: var(--tel); }
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 5px;
+  user-select: none;
+  line-height: 1.4;
+  font-family: var(--fm);
+  letter-spacing: .5px;
+}
+.p0  { background: rgba(120,120,120,.10); color: var(--gry); border: 1px solid rgba(120,120,120,.2); }
+.p05 { background: rgba(144,152,184,.12); color: var(--slv); border: 1px solid rgba(144,152,184,.28); }
+.p1  { background: rgba(255,224,64,.10); color: var(--yel); border: 1px solid rgba(255,224,64,.22); }
+.p2  { background: rgba(255,112,48,.10); color: var(--ora); border: 1px solid rgba(255,112,48,.22); }
+.p3  { background: rgba(255,48,96,.10); color: var(--hot); border: 1px solid rgba(255,48,96,.22); }
+.bdur { background: var(--s2); color: var(--t2); border: 1px solid var(--b1); cursor: pointer; transition: opacity var(--tr); }
+.bdur:hover { opacity: .7; }
+.bdurSet { background: rgba(68,136,255,.10); color: var(--blu); border: 1px solid rgba(68,136,255,.25); cursor: pointer; transition: opacity var(--tr); }
+.bdurSet:hover { opacity: .7; }
+.bdim { background: var(--s2); color: var(--t2); border: 1px solid var(--b1); cursor: pointer; transition: opacity var(--tr); }
+.bdim:hover { opacity: .7; }
+.badgeOpen { background: var(--s2); color: var(--t2); border: 1px solid var(--b1); cursor: pointer; transition: opacity var(--tr); }
+.badgeOpen:hover { opacity: .7; }
+.clickable { cursor: pointer; transition: opacity var(--tr); }
+.clickable:hover { opacity: .7; }
+
+.iconBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--rs);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--t3);
+  transition: all var(--tr);
+}
+.iconBtn:hover { background: var(--s2); color: var(--gold); }
+.del:hover { color: var(--hot); }
+
+/* Priority backgrounds — no left bar, subtle tint only */
+.priHi { background: rgba(255,48,96,.04); border-color: rgba(255,48,96,.2); }
+.priHi::before { background: transparent; box-shadow: none; }
+.priHi:hover { background: rgba(255,48,96,.09); border-color: rgba(255,48,96,.38); }
+.priHi:hover::before { background: transparent; box-shadow: none; }
+.priMd { background: rgba(255,153,0,.04); border-color: rgba(255,153,0,.2); }
+.priMd::before { background: transparent; box-shadow: none; }
+.priMd:hover { background: rgba(255,153,0,.09); border-color: rgba(255,153,0,.38); }
+.priMd:hover::before { background: transparent; box-shadow: none; }
+.priLo { background: rgba(32,200,216,.04); border-color: rgba(32,200,216,.18); }
+.priLo::before { background: transparent; box-shadow: none; }
+.priLo:hover { background: rgba(32,200,216,.09); border-color: rgba(32,200,216,.36); }
+.priLo:hover::before { background: transparent; box-shadow: none; }
+
+/* Color-tool cursor mode */
+.colorToolMode { cursor: crosshair !important; }

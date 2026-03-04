@@ -1,0 +1,25 @@
+# Dependencies
+maya-os/node_modules/
+
+# Build output
+maya-os/dist/
+maya-os/.vite/
+
+# Env files
+maya-os/.env
+maya-os/.env.local
+maya-os/.env*.local
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Misc
+files.zip
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json

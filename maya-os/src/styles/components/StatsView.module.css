@@ -1,0 +1,73 @@
+.settingsWrap { padding: 18px; display: flex; flex-direction: column; gap: 20px; }
+.sg { display: flex; flex-direction: column; gap: 10px; }
+.sgTitle { font-size: 11px; font-weight: 700; font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; color: var(--text); }
+.divider { height: 1px; background: var(--b2); }
+
+.statGrid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 9px; font-size: 12px; color: var(--t2); font-family: var(--fm); }
+.statCell { background: var(--s1); border: 1px solid var(--b1); border-radius: var(--rs); padding: 10px 13px; }
+.scVal { font-size: 22px; font-weight: 700; font-family: var(--fd); color: var(--gold); line-height: 1.1; }
+.scLbl { font-size: 9px; font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; color: var(--t3); margin-top: 3px; }
+
+.dailyStatRow { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid var(--b1); }
+.dailyStatRow:last-child { border-bottom: none; }
+.dsDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dsName { flex: 1; font-size: 13px; font-weight: 500; min-width: 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.dsBarWrap { width: 80px; height: 3px; background: var(--s3); border-radius: 1px; overflow: hidden; flex-shrink: 0; }
+.dsBarFill { height: 100%; border-radius: 1px; }
+.dsPct { font-size: 11px; font-family: var(--fm); color: var(--t2); width: 36px; text-align: right; flex-shrink: 0; }
+.dsCount { font-size: 10px; font-family: var(--fm); color: var(--t3); width: 32px; text-align: right; flex-shrink: 0; }
+.dsStreak { font-size: 10px; font-family: var(--fm); color: var(--t3); width: 40px; text-align: right; flex-shrink: 0; }
+
+.flexRow { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+.targetLabel { font-size: 12px; color: var(--t2); font-family: var(--fm); }
+.mi {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  padding: 8px 11px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  font-family: var(--f);
+  font-weight: 500;
+}
+.mi:focus { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(240,176,48,.1); }
+.targetInput { width: 60px; text-align: center; }
+
+.btn { padding: 7px 13px; border-radius: var(--rs); font-size: 10px; font-weight: 700; transition: all var(--tr); font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; }
+.btnGhost { background: var(--s1); color: var(--t2); border: 1px solid var(--b2); }
+.btnGhost:hover { border-color: var(--gold); color: var(--gold); }
+.btnDanger { background: transparent; color: var(--hot); border: 1px solid rgba(255,48,96,.28); }
+.btnDanger:hover { box-shadow: 0 0 10px rgba(255,48,96,.2); }
+.btnSm { padding: 5px 10px; font-size: 9px; }
+
+.dangerZone { padding: 13px; border: 1px solid rgba(255,48,96,.18); border-radius: var(--r); background: rgba(255,48,96,.03); }
+.dangerTitle { color: var(--hot); text-shadow: 0 0 8px rgba(255,48,96,.4); }
+
+.empty { padding: 14px; text-align: center; color: var(--t3); font-size: 11px; font-family: var(--fm); }
+.statsNote { font-size: 10px; color: var(--t3); font-family: var(--fm); margin-bottom: 8px; }
+
+/* ── XP Progress Bar ───────────────────────────────────────── */
+.xpBarWrap { margin-top: 8px; }
+.xpBarLabel { font-size: 9px; font-family: var(--fm); color: var(--t3); display: flex; justify-content: space-between; margin-bottom: 4px; }
+.xpBarTrack { height: 4px; background: var(--s3); border-radius: 2px; overflow: hidden; }
+.xpBarFill { height: 100%; background: var(--gold); border-radius: 2px; box-shadow: 0 0 6px rgba(240,176,48,.4); transition: width .5s ease; }
+
+/* ── Activity Heatmap ──────────────────────────────────────── */
+.heatmapWrap { display: flex; gap: 5px; align-items: flex-start; overflow-x: auto; }
+.heatDayLabels { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
+.heatDayLbl { height: 10px; font-size: 8px; font-family: var(--fm); color: var(--t3); line-height: 10px; }
+.heatGrid { display: flex; gap: 2px; }
+.heatCol { display: flex; flex-direction: column; gap: 2px; }
+.heatCell { width: 10px; height: 10px; border-radius: 2px; background: var(--s2); flex-shrink: 0; cursor: default; }
+.heatCellFuture { opacity: 0; pointer-events: none; }
+.heatLegend { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.heatLegendItem { display: flex; align-items: center; gap: 3px; font-size: 8px; font-family: var(--fm); color: var(--t3); }
+.heatLegendDot { width: 8px; height: 8px; border-radius: 2px; flex-shrink: 0; }
+
+/* ── 30-day Bar Chart ──────────────────────────────────────── */
+.barChartWrap { display: flex; flex-direction: column; gap: 5px; }
+.barChartNote { font-size: 9px; font-family: var(--fm); color: var(--t3); display: flex; justify-content: space-between; }
+.barChart { display: flex; gap: 2px; align-items: flex-end; height: 60px; position: relative; border-bottom: 1px solid var(--b2); }
+.barTargetLine { position: absolute; top: 0; left: 0; right: 0; border-top: 1px dashed rgba(144,152,184,0.3); pointer-events: none; }
+.bar { flex: 1; min-width: 0; border-radius: 2px 2px 0 0; cursor: default; }

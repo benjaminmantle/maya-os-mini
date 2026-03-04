@@ -1,0 +1,124 @@
+.sidebar {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  background: var(--s0);
+}
+.sidebarTabs {
+  display: flex;
+  border-bottom: 1px solid var(--b2);
+  flex-shrink: 0;
+}
+.stab {
+  flex: 1;
+  padding: 11px 0;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-family: var(--fd);
+  color: var(--t3);
+  border-bottom: 2px solid transparent;
+  transition: color var(--tr), border-color var(--tr);
+}
+.stab:hover { color: var(--t2); }
+.stabActive { color: var(--gold); border-bottom-color: var(--gold); }
+.stabPanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
+.stabPanelActive { display: flex; }
+.panelAdd { padding: 10px 12px 8px; border-bottom: 1px solid var(--b2); flex-shrink: 0; }
+.panelBody { flex: 1; overflow-y: auto; padding: 9px 10px; display: flex; flex-direction: column; gap: 4px; }
+
+/* Dailies */
+.dailyList { display: flex; flex-direction: column; gap: 3px; }
+.dailyItem {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--rs);
+  padding: 7px 11px;
+  cursor: pointer;
+  transition: border-color var(--tr), opacity var(--tr);
+  user-select: none;
+}
+.dailyItem:hover { border-color: var(--b2); }
+.dailyItem:hover .dActions { opacity: 1; }
+.dailyItemDone { opacity: .28; }
+.dailyItemDoneName { text-decoration: line-through; }
+.dailyItemDragOver { border-color: var(--gold); background: var(--gd2); }
+.dailyItemDragging { opacity: .3; }
+.dDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
+.dName { flex: 1; font-size: 13px; font-weight: 500; }
+.dChk { font-size: 12px; color: var(--grn); }
+.dActions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--tr); flex-shrink: 0; }
+.dActionsVisible { opacity: 1; }
+
+.addDailyBtn {
+  font-size: 10px;
+  font-family: var(--fm);
+  color: var(--t3);
+  padding: 5px 8px;
+  border-radius: 2px;
+  border: 1px dashed var(--b1);
+  background: transparent;
+  width: 100%;
+  transition: color var(--tr), border-color var(--tr);
+  cursor: pointer;
+}
+.addDailyBtn:hover { color: var(--gold); border-color: var(--b2); }
+.addDailyForm { padding: 4px 0 2px; }
+
+/* Quick add (reuse from DayView but for sidebar context) */
+.qaRow { display: flex; gap: 6px; }
+.qaInput {
+  flex: 1;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: var(--rs);
+  padding: 8px 12px;
+  font-size: 13px;
+  color: var(--text);
+  outline: none;
+  transition: border-color var(--tr), box-shadow var(--tr);
+  font-family: var(--f);
+  font-weight: 500;
+}
+.qaInput:focus { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(240,176,48,.1); }
+.qaBtn {
+  background: var(--gold);
+  color: #000;
+  border-radius: var(--rs);
+  padding: 8px 16px;
+  font-size: 16px;
+  font-weight: 700;
+  transition: all var(--tr);
+  flex-shrink: 0;
+}
+.qaBtn:hover { box-shadow: 0 0 16px rgba(240,176,48,.5); }
+
+.empty { padding: 14px; text-align: center; color: var(--t3); font-size: 11px; font-family: var(--fm); }
+
+.typeSel {
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  color: var(--t2);
+  font-size: 11px;
+  border-radius: 2px;
+  padding: 3px 5px;
+  font-family: var(--fm);
+  cursor: pointer;
+  outline: none;
+}
+.typeSel:focus { border-color: var(--gold); }
+
+.btn { padding: 7px 13px; border-radius: var(--rs); font-size: 10px; font-weight: 700; transition: all var(--tr); font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; }
+.btnPrimary { background: var(--gold); color: #000; }
+.btnPrimary:hover { box-shadow: 0 0 14px rgba(240,176,48,.45); }
+.btnGhost { background: var(--s1); color: var(--t2); border: 1px solid var(--b2); }
+.btnGhost:hover { border-color: var(--gold); color: var(--gold); }
+.btnSm { padding: 5px 10px; font-size: 9px; }
+
+@media(max-width: 680px) {
+  .sidebar { border-right: none; border-top: 1px solid var(--b2); max-height: 280px; }
+}

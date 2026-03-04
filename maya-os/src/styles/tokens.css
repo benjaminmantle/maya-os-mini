@@ -1,0 +1,33 @@
+:root {
+  --bg:   #181614;
+  --s0:   #131211;
+  --s1:   #191817;
+  --s2:   #1f1e1c;
+  --s3:   #262421;
+  --b1:   #2e2c29;
+  --b2:   #3b3935;
+  --text: #ddd9d6;
+  --t2:   #8a8680;
+  --t3:   #534f4b;
+  --gold: #f0b030;
+  --gd2:  rgba(240,176,48,.13);
+  --hot:  #ff3060;
+  --ht2:  rgba(255,48,96,.13);
+  --grn:  #22ee80;
+  --gn2:  rgba(34,238,128,.12);
+  --pur:  #9955ff;
+  --blu:  #4488ff;
+  --ora:  #ff7030;
+  --yel:  #ffe040;
+  --pri-md: #ff9900;
+  --tel:  #20c8d8;
+  --tel2: rgba(32,200,216,.12);
+  --slv:  #9098b8;
+  --gry:  #787878;
+  --r: 4px;
+  --rs: 3px;
+  --f:  'Rajdhani', sans-serif;
+  --fm: 'Share Tech Mono', monospace;
+  --fd: 'Orbitron', sans-serif;
+  --tr: 120ms ease;
+}
