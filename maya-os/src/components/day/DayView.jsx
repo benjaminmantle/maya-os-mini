@@ -1,4 +1,4 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import styles from '../../styles/components/DayView.module.css';
 import Sidebar from '../sidebar/Sidebar.jsx';
 import TaskCard from '../task/TaskCard.jsx';
@@ -41,19 +41,40 @@ export default function DayView({
   const [sortDur, setSortDur] = useState('desc');
   const [deEditName, setDeEditName] = useState('');
   const [deEditType, setDeEditType] = useState('general');
+  const [spotlightDropActive, setSpotlightDropActive] = useState(false);
   const dragOverCardRef = useRef(null);
+  const prevFrogStateRef = useRef({ date: null, done: false });
   const showToast = useToast();
 
   const dayRecord = getDayRecord(focusDate);
   const state = { tasks, dailies, days, profile, target };
   const sc = scoreDay(focusDate, state);
   const spId = activeTaskId || focusedTaskId;
-  const spTask = spId ? tasks.find(x => x.id === spId && !dayRecord.cIds.includes(x.id)) : null;
+  const spTask = spId ? tasks.find(x => x.id === spId && !dayRecord.cIds.includes(x.id) && x.scheduledDate === focusDate) : null;
   const allForDay = tasks.filter(t => t.scheduledDate === focusDate);
   const frogs = allForDay.filter(t => t.isFrog && !dayRecord.cIds.includes(t.id) && t.id !== spId);
   const active = allForDay.filter(t => !t.isFrog && !dayRecord.cIds.includes(t.id) && t.id !== spId);
   const done = allForDay.filter(t => dayRecord.cIds.includes(t.id));
   const frogsDone = !!frogsComplete[focusDate];
+  const allFrogsForDay = allForDay.filter(t => t.isFrog);
+  const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => dayRecord.cIds.includes(t.id));
+
+  useEffect(() => {
+    const prev = prevFrogStateRef.current;
+    if (prev.date === focusDate && allFrogsDoneAuto && !prev.done) {
+      showToast('🐸 all frogs eaten!');
+    }
+    prevFrogStateRef.current = { date: focusDate, done: allFrogsDoneAuto };
+  }, [allFrogsDoneAuto, focusDate]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Clear focus/active state when the focused task is checked off
+  const cIdsKey = dayRecord.cIds.join(',');
+  useEffect(() => {
+    if (spId && dayRecord.cIds.includes(spId)) {
+      if (activeTaskId === spId) onStartTask(spId);
+      else if (focusedTaskId === spId) onFocusTask(spId);
+    }
+  }, [cIdsKey, spId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   function handleAdd() {
     const raw = inputVal.trim();
@@ -188,6 +209,9 @@ export default function DayView({
       } else if (needsZoneChange) {
         showToast('\u2192 ' + dayLabel(focusDate));
       }
+      // If the dragged task was the spotlight task, unfocus/stop it
+      if (id === activeTaskId) onStartTask(activeTaskId);
+      else if (id === focusedTaskId) onFocusTask(focusedTaskId);
     };
   }
 
@@ -218,6 +242,37 @@ export default function DayView({
     const rect = e.currentTarget.getBoundingClientRect();
     const t = tasks.find(x => x.id === taskId);
     setAssignPopup({ taskId, currentDate: t?.scheduledDate || null, x: rect.left, y: rect.bottom + 4 });
+  }
+
+  function handleSpotlightDragOver(e) {
+    e.preventDefault();
+    setSpotlightDropActive(true);
+  }
+
+  function handleSpotlightDragLeave(e) {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setSpotlightDropActive(false);
+    }
+  }
+
+  function handleSpotlightDrop(e) {
+    e.preventDefault();
+    setSpotlightDropActive(false);
+    const id = e.dataTransfer.getData('tid');
+    if (!id || id === spId) return;
+    const draggedTask = tasks.find(t => t.id === id);
+    if (!draggedTask) return;
+    // Un-frog the outgoing spotlight task so it returns to core tasks (not frogs)
+    if (spTask?.isFrog) {
+      updateTask(spTask.id, { isFrog: false });
+    }
+    // Schedule backlog task for today; un-frog incoming frog task (spotlight = core territory)
+    if (!draggedTask.scheduledDate) {
+      updateTask(id, { scheduledDate: focusDate, isFrog: false });
+    } else if (draggedTask.isFrog) {
+      updateTask(id, { isFrog: false });
+    }
+    onFocusTask(id);
   }
 
   function renderCard(t, showAssign = false) {
@@ -295,24 +350,33 @@ export default function DayView({
         </div>
 
         {/* Frogs */}
-        <div className={frogsDone ? styles.frogSecDone : styles.frogSec} onContextMenu={handleFrogContextMenu}>
+        <div className={allFrogsDoneAuto ? styles.frogSecAllDone : (frogsDone ? styles.frogSecDone : styles.frogSec)} onContextMenu={handleFrogContextMenu}>
           <div className={styles.secLbl + ' ' + styles.secLblFrog} style={{ marginBottom:7, cursor:'context-menu' }}>
-            {'\uD83D\uDC38'}&nbsp;Frogs{frogsDone && <span className={styles.frogCheck}>{' \u2713'}</span>}
+            {'\uD83D\uDC38'}&nbsp;Frogs{(frogsDone || allFrogsDoneAuto) && <span className={styles.frogCheck}>{' \u2713'}</span>}
           </div>
           <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(true)} onDragLeave={handleDragLeave} onDrop={makeDrop('frogs')}>
             {frogs.map(t => renderCard(t))}
           </div>
         </div>
 
-        {/* Spotlight */}
-        {spTask && (
-          <div>
-            <div className={styles.secLbl + ' ' + (spTask.id === activeTaskId ? styles.secLblActive : styles.secLblFocused)} style={{ marginBottom:7 }}>
-              {spTask.id === activeTaskId ? '\u25b6 Running' : '\u25c6 Up Next'}
-            </div>
-            {renderCard(spTask)}
-          </div>
-        )}
+        {/* Spotlight — always rendered as a drop zone */}
+        <div
+          className={styles.spotlightDropZone + (spotlightDropActive ? ' ' + styles.spotlightDropActive : '')}
+          onDragOver={handleSpotlightDragOver}
+          onDragLeave={handleSpotlightDragLeave}
+          onDrop={handleSpotlightDrop}
+        >
+          {spTask ? (
+            <>
+              <div className={styles.secLbl + ' ' + (spTask.id === activeTaskId ? styles.secLblActive : styles.secLblFocused)} style={{ marginBottom:7 }}>
+                {spTask.id === activeTaskId ? '\u25b6 Running' : '\u25c6 Up Next'}
+              </div>
+              {renderCard(spTask)}
+            </>
+          ) : spotlightDropActive ? (
+            <div className={styles.spotlightHint}>drop to focus</div>
+          ) : null}
+        </div>
 
         {/* Core tasks */}
         <div>

@@ -228,3 +228,16 @@
   white-space: nowrap;
 }
 .sortBtn:hover { color: var(--gold); border-color: var(--b2); }
+
+/* Spotlight drop zone — always rendered, accepts drags */
+.spotlightDropZone { border-radius: var(--rs); transition: background var(--tr), outline var(--tr); min-height: 8px; flex-shrink: 0; }
+.spotlightDropActive { background: rgba(240,176,48,.06); outline: 1px dashed rgba(240,176,48,.4); outline-offset: 3px; min-height: 44px; }
+.spotlightHint { padding: 10px 12px; font-size: 10px; color: var(--gold); font-family: var(--fm); text-align: center; letter-spacing: 1px; opacity: 0.7; }
+
+/* Frog all-done celebration */
+.frogSecAllDone .secLblFrog { animation: frogPulse 1.6s ease-in-out infinite alternate; }
+
+@keyframes frogPulse {
+  from { text-shadow: 0 0 8px rgba(34,238,128,.5); color: var(--grn); }
+  to { text-shadow: 0 0 20px rgba(34,238,128,.9), 0 0 40px rgba(34,238,128,.35); color: #6fffa8; }
+}
