@@ -1,5 +1,5 @@
 import { closeDayScoring } from '../utils/scoring.js';
-import { today } from '../utils/dates.js';
+import { today, uid } from '../utils/dates.js';
 import { parseDurMs } from '../utils/duration.js';
 import { DEFAULT_DAILIES, seedTasks } from './defaults.js';
 import { migrateV4toV5 } from './migrations.js';
@@ -299,6 +299,26 @@ export function importData(json) {
     if (d.frogsComplete !== undefined) S.frogsComplete = d.frogsComplete;
     save();
     return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+export function exportTasks() {
+  const completedIds = new Set(Object.values(S.days).flatMap(d => d.cIds || []));
+  const unfinished = S.tasks.filter(t => !completedIds.has(t.id));
+  return JSON.stringify({ version: 'maya_os_tasks_v1', tasks: unfinished }, null, 2);
+}
+
+export function importTasks(json) {
+  try {
+    const d = JSON.parse(json);
+    if (!Array.isArray(d.tasks)) return false;
+    const now = new Date().toISOString();
+    const incoming = d.tasks.map(t => ({ ...t, id: uid(), createdAt: now }));
+    S.tasks = [...S.tasks, ...incoming];
+    save();
+    return incoming.length;
   } catch (e) {
     return false;
   }

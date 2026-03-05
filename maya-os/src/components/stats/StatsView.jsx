@@ -3,7 +3,7 @@ import styles from '../../styles/components/StatsView.module.css';
 import { TITLES, scoreDay, expForLevel } from '../../utils/scoring.js';
 import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
-import { setTarget, exportData, importData, resetToday, clearAll } from '../../store/store.js';
+import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 
 // Tier → neon color for heatmap and bar chart
@@ -28,6 +28,7 @@ const TIER_LEGEND = [
 export default function StatsView({ profile, dailies, days, target: currentTarget, tasks }) {
   const [targetVal, setTargetVal] = useState(currentTarget);
   const fileRef = useRef(null);
+  const taskFileRef = useRef(null);
   const showToast = useToast();
 
   const level = profile.level || 1;
@@ -234,6 +235,28 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
       } else {
         showToast('import failed — invalid file');
       }
+      e.target.value = '';
+    };
+    reader.readAsText(file);
+  }
+
+  function handleExportTasks() {
+    const data = exportTasks();
+    const a = document.createElement('a');
+    a.href = 'data:application/json;charset=utf-8,' + encodeURIComponent(data);
+    a.download = 'maya-tasks-' + today() + '.json';
+    a.click();
+    showToast('tasks exported');
+  }
+
+  function handleImportTasks(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const count = importTasks(ev.target.result);
+      if (count !== false) showToast(`${count} task${count !== 1 ? 's' : ''} imported`);
+      else showToast('import failed — invalid file');
       e.target.value = '';
     };
     reader.readAsText(file);
@@ -529,10 +552,17 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
       {/* ── Danger Zone ────────────────────────────────────────── */}
       <div className={styles.dangerZone}>
         <div className={`${styles.sgTitle} ${styles.dangerTitle}`} style={{ marginBottom: 9 }}>Danger Zone</div>
-        <div className={styles.flexRow} style={{ marginBottom: 8 }}>
+        <div className={styles.statsNote} style={{ marginBottom: 4 }}>Full backup</div>
+        <div className={styles.flexRow} style={{ marginBottom: 12 }}>
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleExport}>Export Data</button>
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => fileRef.current?.click()}>Import Data</button>
           <input ref={fileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImport} />
+        </div>
+        <div className={styles.statsNote} style={{ marginBottom: 4 }}>Tasks only (unfinished)</div>
+        <div className={styles.flexRow} style={{ marginBottom: 8 }}>
+          <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleExportTasks}>Export Tasks</button>
+          <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={() => taskFileRef.current?.click()}>Import Tasks</button>
+          <input ref={taskFileRef} type="file" accept=".json" style={{ display: 'none' }} onChange={handleImportTasks} />
         </div>
         <div className={styles.flexRow}>
           <button className={`${styles.btn} ${styles.btnDanger} ${styles.btnSm}`} onClick={handleResetToday}>Reset Today</button>
