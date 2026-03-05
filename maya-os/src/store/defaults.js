@@ -13,14 +13,5 @@ export const DEFAULT_DAILIES = [
 ];
 
 export function seedTasks() {
-  const d = today();
-  return [
-    { id: uid(), name: 'Core Task 1', pts: 3, timeEstimate: '2h', isFrog: true, scheduledDate: d, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Core Task 2', pts: 2, timeEstimate: '1h', isFrog: false, scheduledDate: d, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Core Task 3', pts: 1, timeEstimate: '30m', isFrog: false, scheduledDate: d, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Core Task 4', pts: 2, timeEstimate: null, isFrog: false, scheduledDate: d, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Backlog Item 1', pts: 3, timeEstimate: null, isFrog: false, scheduledDate: null, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Backlog Item 2', pts: 1, timeEstimate: null, isFrog: false, scheduledDate: null, createdAt: new Date().toISOString() },
-    { id: uid(), name: 'Backlog Item 3', pts: 2, timeEstimate: '45m', isFrog: false, scheduledDate: null, createdAt: new Date().toISOString() },
-  ];
+  return [];
 }

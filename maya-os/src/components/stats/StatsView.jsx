@@ -35,6 +35,7 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   const dayKeys = Object.keys(days).sort();
   const todayStr = today();
   const pastDayKeys = dayKeys.filter(dk => dk <= todayStr);
+  const firstTrackedDay = pastDayKeys.length > 0 ? pastDayKeys[0] : todayStr;
   const n = dailies.length;
 
   // Shared fake-state for scoreDay — keeps scoring logic in one place
@@ -85,16 +86,112 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
     return TIER_CLR[scoreDay(date, fakeState).tier];
   }
 
-  // ── 30-day bar chart ─────────────────────────────────────────────────────
-  const barStart = addDays(todayStr, -29);
-  const barData = Array.from({ length: 30 }, (_, i) => {
-    const date = addDays(todayStr, -(29 - i));
+  // ── Points bar chart (adaptive window, up to 30 days) ────────────────────
+  const barWindowStart = firstTrackedDay > addDays(todayStr, -29) ? firstTrackedDay : addDays(todayStr, -29);
+  const barDayCount = Math.round((new Date(todayStr + 'T12:00:00') - new Date(barWindowStart + 'T12:00:00')) / 86400000) + 1;
+  const barData = Array.from({ length: barDayCount }, (_, i) => {
+    const date = addDays(barWindowStart, i);
     const day = days[date];
     if (!day || (!day.cIds?.length && !day.dIds?.length)) return { date, pct: 0, tier: null };
     const { tier, pts } = scoreDay(date, fakeState);
     const pct = currentTarget > 0 ? Math.min(100, Math.round(pts / currentTarget * 100)) : 0;
     return { date, pct, tier };
   });
+
+  // ── Radar chart (last 30 days) ───────────────────────────────────────────
+  const days30 = Array.from({ length: 30 }, (_, i) => addDays(todayStr, -(29 - i)));
+  const active30 = days30.filter(d => {
+    const r = days[d]; return r && (r.cIds?.length || r.dIds?.length || r.workout);
+  });
+  const radarTasks = active30.length > 0
+    ? active30.reduce((s, d) => s + Math.min(scoreDay(d, fakeState).pts, currentTarget) / Math.max(1, currentTarget), 0) / active30.length
+    : 0;
+  const dailyDays30 = active30.filter(d => scoreDay(d, fakeState).dTot > 0);
+  const radarDailies = dailyDays30.length > 0
+    ? dailyDays30.reduce((s, d) => { const { dDone, dTot } = scoreDay(d, fakeState); return s + dDone / dTot; }, 0) / dailyDays30.length
+    : 0;
+  const radarWorkout = days30.filter(d => days[d]?.workout).length / 30;
+  const frogDays30 = days30.filter(d => (tasks || []).some(t => t.scheduledDate === d && t.isFrog));
+  const radarFrogs = frogDays30.length > 0
+    ? frogDays30.filter(d => {
+        const frogs = (tasks || []).filter(t => t.scheduledDate === d && t.isFrog);
+        const cIds = days[d]?.cIds || [];
+        return frogs.every(t => cIds.includes(t.id));
+      }).length / frogDays30.length
+    : 0;
+  const radarDiscipline = active30.length > 0
+    ? active30.filter(d => days[d]?.closed).length / active30.length
+    : 0;
+  const radarValues = [radarTasks, radarDailies, radarWorkout, radarFrogs, radarDiscipline];
+
+  const RADAR_AXES   = ['TASKS', 'DAILIES', 'WORKOUT', 'FROGS', 'DISCIPLINE'];
+  const RADAR_COLORS = ['var(--gold)', 'var(--pur)', 'var(--hot)', 'var(--grn)', 'var(--tel)'];
+  const RADAR_N = 5, RADAR_CX = 90, RADAR_CY = 90, RADAR_R = 68;
+
+  function radarTip(i, scale = 1) {
+    const angle = -Math.PI / 2 + (2 * Math.PI / RADAR_N) * i;
+    return [RADAR_CX + scale * RADAR_R * Math.cos(angle), RADAR_CY + scale * RADAR_R * Math.sin(angle)];
+  }
+  function ringPts(scale) {
+    return Array.from({ length: RADAR_N }, (_, i) => radarTip(i, scale).join(',')).join(' ');
+  }
+  const userPts = radarValues.map((v, i) => radarTip(i, v).join(',')).join(' ');
+
+  // ── Weekly rhythm ─────────────────────────────────────────────────────────
+  const DOW_LABELS = ['MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT', 'SUN'];
+  const weeklyData = Array.from({ length: 7 }, (_, wi) => {
+    const matching = pastDayKeys.filter(dk => {
+      const d = new Date(dk + 'T12:00:00').getDay(); // 0=Sun
+      return (d === 0 ? 6 : d - 1) === wi;
+    });
+    const active = matching.filter(d => { const r = days[d]; return r && (r.cIds?.length || r.dIds?.length || r.workout); });
+    if (!active.length) return { wi, avgFrac: 0, count: 0 };
+    const avg = active.reduce((s, d) => s + scoreDay(d, fakeState).frac, 0) / active.length;
+    return { wi, avgFrac: avg, count: active.length };
+  });
+
+  function weekTierColor(frac) {
+    if (frac >= 0.90) return TIER_CLR.perfect;
+    if (frac >= 0.70) return TIER_CLR.good;
+    if (frac >= 0.50) return TIER_CLR.decent;
+    if (frac >= 0.35) return TIER_CLR.half;
+    if (frac > 0.05)  return TIER_CLR.poor;
+    return null;
+  }
+
+  // ── Trend chart (adaptive window, up to 60 days) ─────────────────────────
+  const trendWindowStart = firstTrackedDay > addDays(todayStr, -59) ? firstTrackedDay : addDays(todayStr, -59);
+  const trendDayCount = Math.round((new Date(todayStr + 'T12:00:00') - new Date(trendWindowStart + 'T12:00:00')) / 86400000) + 1;
+  const trend60 = Array.from({ length: trendDayCount }, (_, i) => {
+    const date = addDays(trendWindowStart, i);
+    const day = days[date];
+    const active = day && (day.cIds?.length || day.dIds?.length || day.workout);
+    if (!active) return { date, tasks: null, dailies: null, overall: null, workout: false };
+    const { pts, dDone, dTot, frac } = scoreDay(date, fakeState);
+    return {
+      date,
+      tasks: currentTarget > 0 ? Math.min(pts / currentTarget, 1) : 0,
+      dailies: dTot > 0 ? dDone / dTot : null,
+      overall: frac,
+      workout: !!day.workout,
+    };
+  });
+  const TC_W = 380, TC_H = 110, TC_PL = 26, TC_PR = 8, TC_PT = 12, TC_PB = 18;
+  const tc_cw = TC_W - TC_PL - TC_PR;
+  const tc_ch = TC_H - TC_PT - TC_PB;
+  const tcXn = Math.max(trendDayCount - 1, 1);
+  function tcX(i) { return TC_PL + (i / tcXn) * tc_cw; }
+  function tcY(v) { return TC_PT + (1 - v) * tc_ch; }
+  function trendSegs(accessor) {
+    const segs = []; let cur = [];
+    trend60.forEach((d, i) => {
+      const v = accessor(d);
+      if (v !== null) { cur.push([i, v]); }
+      else { if (cur.length) segs.push(cur); cur = []; }
+    });
+    if (cur.length) segs.push(cur);
+    return segs;
+  }
 
   // ── Per-daily stats ──────────────────────────────────────────────────────
   const dailyStats = dailies.map((d, i) => {
@@ -228,10 +325,10 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
 
       {/* ── 30-day Points Chart ────────────────────────────────── */}
       <div className={styles.sg}>
-        <div className={styles.sgTitle}>Points — Last 30 Days</div>
+        <div className={styles.sgTitle}>Points — Last {barDayCount} Day{barDayCount !== 1 ? 's' : ''}</div>
         <div className={styles.barChartWrap}>
           <div className={styles.barChartNote}>
-            <span>{barStart}</span>
+            <span>{barWindowStart}</span>
             <span>target: {currentTarget}pts</span>
             <span>{todayStr}</span>
           </div>
@@ -245,15 +342,142 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
                   height: `${pct}%`,
                   background: TIER_CLR[tier],
                   boxShadow: `0 0 3px ${TIER_CLR[tier]}55`,
-                } : {
-                  height: '2px',
-                  background: 'var(--s3)',
-                  opacity: 0.4,
-                }}
+                } : {}}
                 title={tier ? `${date}: ${pct}% of target` : `${date}: no data`}
               />
             ))}
           </div>
+        </div>
+      </div>
+
+      <div className={styles.divider} />
+
+      {/* ── Balance — Last 30 Days ─────────────────────────────── */}
+      <div className={styles.sg}>
+        <div className={styles.sgTitle}>Balance — Last 30 Days</div>
+        <div className={styles.chartsRow}>
+
+          {/* Radar chart */}
+          <div className={styles.radarWrap}>
+            <svg className={styles.radarSvg} viewBox="0 0 180 180">
+              {/* User polygon */}
+              <polygon className={styles.radarPoly} points={userPts} />
+              {/* Colored dots at each axis value */}
+              {radarValues.map((v, i) => {
+                const [x, y] = radarTip(i, Math.max(v, 0.04));
+                return <circle key={i} cx={x} cy={y} r={3} fill={RADAR_COLORS[i]} style={{ filter: `drop-shadow(0 0 3px ${RADAR_COLORS[i]})` }} />;
+              })}
+              {/* Axis tip labels */}
+              {RADAR_AXES.map((label, i) => {
+                const [lx, ly] = radarTip(i, 1.22);
+                const ta = lx < RADAR_CX - 2 ? 'end' : lx > RADAR_CX + 2 ? 'start' : 'middle';
+                const db = ly < RADAR_CY - 2 ? 'auto' : ly > RADAR_CY + 2 ? 'hanging' : 'middle';
+                return (
+                  <text key={i} className={styles.radarLabel} x={lx} y={ly} textAnchor={ta} dominantBaseline={db}>
+                    {label}
+                  </text>
+                );
+              })}
+            </svg>
+            <div className={styles.radarLegend}>
+              {RADAR_AXES.map((label, i) => (
+                <span key={i} className={styles.radarLegItem}>
+                  <span className={styles.radarDot} style={{ background: RADAR_COLORS[i] }} />
+                  {label}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          {/* Weekly rhythm */}
+          <div className={styles.weekWrap}>
+            <div className={styles.weekSubTitle}>Avg Score by Weekday</div>
+            <div className={styles.weekRhythm}>
+              {weeklyData.map(({ wi, avgFrac, count }) => {
+                const clr = weekTierColor(avgFrac);
+                return (
+                  <div key={wi} className={styles.weekBarCol}>
+                    <div
+                      className={styles.weekBarTrack}
+                      title={count
+                        ? `${DOW_LABELS[wi]}: ${Math.round(avgFrac * 100)}% avg (${count} day${count !== 1 ? 's' : ''})`
+                        : `${DOW_LABELS[wi]}: no data`}
+                    >
+                      {clr && (
+                        <div
+                          className={styles.weekBar}
+                          style={{
+                            height: `${Math.max(avgFrac * 100, 3)}%`,
+                            background: clr,
+                            boxShadow: `0 0 4px ${clr}66`,
+                          }}
+                        />
+                      )}
+                    </div>
+                    <div className={styles.weekBarLbl}>{DOW_LABELS[wi]}</div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+
+        </div>
+      </div>
+
+      <div className={styles.divider} />
+
+      {/* ── Trends — Last 60 Days ──────────────────────────────── */}
+      <div className={styles.sg}>
+        <div className={styles.sgTitle}>Trends — Last {trendDayCount} Day{trendDayCount !== 1 ? 's' : ''}</div>
+        <svg className={styles.trendSvg} viewBox={`0 0 ${TC_W} ${TC_H}`}>
+          {/* Horizontal grid lines */}
+          {[0, 0.25, 0.5, 0.75, 1].map(v => (
+            <line key={v}
+              x1={TC_PL} y1={tcY(v).toFixed(1)}
+              x2={TC_W - TC_PR} y2={tcY(v).toFixed(1)}
+              stroke="var(--b2)" strokeWidth="0.5"
+            />
+          ))}
+          {/* Y-axis labels */}
+          {[[0, '0%'], [0.5, '50%'], [1, '100%']].map(([v, lbl]) => (
+            <text key={lbl} className={styles.trendAxisLbl}
+              x={TC_PL - 3} y={tcY(v).toFixed(1)}
+              textAnchor="end" dominantBaseline="middle">{lbl}</text>
+          ))}
+          {/* Overall score — gold */}
+          {trendSegs(d => d.overall).map((seg, si) =>
+            seg.length >= 2
+              ? <polyline key={`ov${si}`} fill="none" stroke="var(--gold)" strokeWidth="1.5" strokeLinejoin="round"
+                  points={seg.map(([i, v]) => `${tcX(i).toFixed(1)},${tcY(v).toFixed(1)}`).join(' ')} />
+              : <circle key={`ov${si}`} cx={tcX(seg[0][0]).toFixed(1)} cy={tcY(seg[0][1]).toFixed(1)} r="2.5" fill="var(--gold)" />
+          )}
+          {/* Tasks score — orange */}
+          {trendSegs(d => d.tasks).map((seg, si) =>
+            seg.length >= 2
+              ? <polyline key={`tk${si}`} fill="none" stroke="var(--ora)" strokeWidth="1" strokeLinejoin="round" strokeOpacity="0.8"
+                  points={seg.map(([i, v]) => `${tcX(i).toFixed(1)},${tcY(v).toFixed(1)}`).join(' ')} />
+              : <circle key={`tk${si}`} cx={tcX(seg[0][0]).toFixed(1)} cy={tcY(seg[0][1]).toFixed(1)} r="2" fill="var(--ora)" fillOpacity="0.8" />
+          )}
+          {/* Dailies rate — purple */}
+          {trendSegs(d => d.dailies).map((seg, si) =>
+            seg.length >= 2
+              ? <polyline key={`dl${si}`} fill="none" stroke="var(--pur)" strokeWidth="1" strokeLinejoin="round" strokeOpacity="0.8"
+                  points={seg.map(([i, v]) => `${tcX(i).toFixed(1)},${tcY(v).toFixed(1)}`).join(' ')} />
+              : <circle key={`dl${si}`} cx={tcX(seg[0][0]).toFixed(1)} cy={tcY(seg[0][1]).toFixed(1)} r="2" fill="var(--pur)" fillOpacity="0.8" />
+          )}
+          {/* Workout day markers — teal dots above chart */}
+          {trend60.map((d, i) => d.workout ? (
+            <circle key={i} cx={tcX(i).toFixed(1)} cy={TC_PT - 3} r="2.5" fill="var(--tel)" fillOpacity="0.75" />
+          ) : null)}
+          {/* X-axis date labels */}
+          <text className={styles.trendAxisLbl} x={TC_PL} y={TC_H - 3} textAnchor="start">{trendWindowStart}</text>
+          <text className={styles.trendAxisLbl} x={TC_W - TC_PR} y={TC_H - 3} textAnchor="end">today</text>
+        </svg>
+        <div className={styles.trendLegend}>
+          <span className={styles.trendLegItem}><span className={styles.trendLegLine} style={{ background: 'var(--gold)' }} />overall</span>
+          <span className={styles.trendLegItem}><span className={styles.trendLegLine} style={{ background: 'var(--ora)', opacity: 0.8 }} />tasks</span>
+          <span className={styles.trendLegItem}><span className={styles.trendLegLine} style={{ background: 'var(--pur)', opacity: 0.8 }} />dailies</span>
+          <span className={styles.trendLegItem}><span className={styles.trendLegDot} style={{ background: 'var(--tel)', opacity: 0.75 }} />workout</span>
         </div>
       </div>
 
