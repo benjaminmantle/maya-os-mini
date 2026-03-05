@@ -56,7 +56,10 @@ maya-os/
     │   │
     │   ├── stats/
     │   │   └── StatsView.jsx      ← Progression cards, XP bar, activity heatmap,
-    │   │                            30-day bar chart, daily consistency, settings
+    │   │                            adaptive bar chart (first-tracked-day window),
+    │   │                            Balance section (radar + weekly rhythm bars),
+    │   │                            60-day trend line chart, daily consistency,
+    │   │                            tasks-only export/import, danger zone
     │   │
     │   └── shared/
     │       ├── ContextMenu.jsx    ← Generic positioned context menu
@@ -134,9 +137,11 @@ export function resetToday()
 
 // ── Settings ──────────────────────────────────────────────
 export function setTarget(n)
-export function exportData()
-export function importData(json)
-export function clearAll()
+export function exportData()            // full state → JSON string
+export function importData(json)        // full replace
+export function exportTasks()           // unfinished tasks only → maya_os_tasks_v1 JSON string
+export function importTasks(json)       // merge/append with fresh IDs; returns count or false
+export function clearAll()              // wipes state; re-seeds DEFAULT_DAILIES, empty tasks
 
 // ── Pub/sub ───────────────────────────────────────────────
 export function subscribe(fn)
@@ -262,7 +267,7 @@ perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30. Perfect streak mul
 `closeDay(date)` stores a `scoreRecord` delta (expDelta, streakIncremented, longestBefore, perfectDelta) on the DayRecord. `reopenDay(date)` reads and precisely reverses it. Prevents inflation from close → reopen → re-close cycles.
 
 ### StatsView pattern
-`StatsView.jsx` calls `scoreDay(date, fakeState)` inline with `fakeState = { days, tasks, dailies, target }`. No separate hook. Used for heatmap and bar chart.
+`StatsView.jsx` calls `scoreDay(date, fakeState)` inline with `fakeState = { days, tasks, dailies, target }`. No separate hook. Used for heatmap, bar chart, radar axes, weekly rhythm bars, and trend lines. All chart data computed inline — no extraction into hooks.
 
 ---
 

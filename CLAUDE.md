@@ -9,7 +9,7 @@ A personal productivity OS. Single-user, local-first, browser-based. No backend 
 - All data via centralized store (no direct localStorage in components)
 
 ## Reference implementation
-`../maya-os-reference.html` — read-only. If behavior is ambiguous and SPEC.md doesn't resolve it, match this file exactly.
+`../maya-os-mini-reference.html` — read-only. If behavior is ambiguous and SPEC.md doesn't resolve it, match this file exactly. **Note:** this file has been deleted from the repo. Use SPEC.md as the primary behavior reference going forward.
 
 ---
 
@@ -21,6 +21,7 @@ A personal productivity OS. Single-user, local-first, browser-based. No backend 
 - **Stay in scope.** Never silently change behavior outside the current task. Flag adjacent issues — don't fix them.
 - **Surface blockers.** Architectural decisions not covered here or in ARCHITECTURE.md require approval before proceeding.
 - **Surgical edits.** Targeted changes over broad rewrites unless a rewrite is explicitly requested.
+- **TODO.md is user-managed.** Never add, remove, reorder, or act on items in TODO.md unless explicitly directed. When told to work on a TODO item, mark it [x] when done — do not delete it.
 
 ---
 
@@ -81,6 +82,12 @@ After many rapid saves, Vite HMR can partially reset the store's `listeners` Set
 
 ### Drag-and-drop group integrity
 Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `DayView.jsx` (`makeDrop('day')`) and `BacklogPanel.jsx` must not be removed.
+
+### exportTasks / importTasks — IDs are always replaced on import
+`importTasks(json)` assigns a fresh `uid()` and `createdAt` to every incoming task regardless of what's in the file. This prevents ID collisions when merging across instances. Do not attempt to preserve original IDs on import.
+
+### Tasks-only import is additive, not replacing
+`importTasks` merges into `S.tasks` — it never wipes existing tasks. `importData` (full backup) does a full replace. Keep these behaviors distinct.
 
 ---
 

@@ -97,11 +97,17 @@ Two-column layout: main column left, sidebar right.
 - **XP progress bar** — shows current XP toward next level with level name preview; "★ max level" at level 20
 - **Workout** stats: total workouts, current workout streak
 - **Activity heatmap** — 13-week GitHub-style grid (Mon–Sun columns); cells colored by day tier for any day with recorded data; future cells hidden; tier legend below
-- **30-day points bar chart** — one bar per day, height = pts / target (capped at 100%), colored by tier; dotted target line at top; empty days show a thin baseline
+- **Adaptive points bar chart** — window starts from first tracked day (up to 30-day max); grows as history builds. Title shows "Points — Last N Days". Bars colored by tier; dotted target line at top; no stub bars on empty days
+- **Balance — Last 30 Days** — two charts side by side:
+  - *Radar chart* (character-stats style): 5 axes — TASKS, DAILIES, WORKOUT, FROGS, DISCIPLINE; single filled gold polygon (no concentric rings); colored dot at each axis tip; axis labels outside; legend below. No "web" look.
+  - *Weekly Rhythm*: 7 bars (Mon–Sun), height = avg day-score fraction for that weekday across all history; tier-colored; day label below each bar
+- **Adaptive trend line chart** — 60-day adaptive window (same start logic as bar chart); SVG polylines for TASKS, DAILIES, FROGS, XP metrics; isolated single-point days render as dots; legend below
 - **Daily Consistency** — per-daily completion rate bar (red/gold/green) + current streak + total completions count
 - Point target setting
-- Export / Import data (JSON)
-- Danger zone: Reset Today, Clear All Data
+- **Export / Import data** — two pairs of buttons:
+  - *Full backup*: exports complete state as JSON; import is a full replace
+  - *Tasks only (unfinished)*: exports unfinished tasks as `{ version: 'maya_os_tasks_v1', tasks: [...] }`; import merges/appends with fresh IDs (no replace, no history carried over)
+- Danger zone: Reset Today, Clear All Data (Clear All re-seeds DEFAULT_DAILIES, no dummy tasks)
 
 ---
 
@@ -270,9 +276,11 @@ Computed from last 5 closed days: rising / stable / slipping. Shown in topbar ch
 ## Data Persistence
 
 - localStorage key: `maya_os_v5`
-- Export: downloads JSON with all state
-- Import: loads JSON, overwrites state, saves
-- Migrations: if schema changes, increment version key and write migration
+- **Full export**: downloads JSON with all state; **full import** overwrites entire state
+- **Tasks-only export**: downloads `{ version: 'maya_os_tasks_v1', tasks: [...] }` — unfinished tasks only (excludes any task ID present in any `days[date].cIds`)
+- **Tasks-only import**: merges incoming tasks into existing state with fresh UIDs and `createdAt` timestamps — does not replace tasks, history, dailies, or profile
+- Migrations: if schema changes, increment version key and write migration in `src/store/migrations.js`
+- **Clear All**: wipes all state; re-seeds `DEFAULT_DAILIES`; `seedTasks()` returns `[]` (no dummy tasks)
 
 ---
 
