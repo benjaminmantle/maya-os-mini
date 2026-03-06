@@ -11,7 +11,7 @@ const PRI_ORDER = ['hi', 'md', 'lo'];
 const PRI_COLORS = { hi: 'var(--hot)', md: 'var(--pri-md)', lo: 'var(--tel)' };
 const PRI_LABELS = { hi: 'Hi', md: 'Med', lo: 'Lo' };
 
-function priRank(p) { return p === 'hi' ? 0 : p === 'md' ? 1 : p === 'lo' ? 2 : 3; }
+function priRank(p) { return p === 'maya' ? 0 : p === 'hi' ? 1 : p === 'md' ? 2 : p === 'lo' ? 3 : 4; }
 
 function snapToZone(insertAt, zoneList, pri) {
   const rank = priRank(pri);
@@ -58,7 +58,7 @@ export default function BacklogPanel({
   const inputRef = useRef(null);
   const dragOverCardRef = useRef(null);
 
-  const backlog = tasks.filter(t => !t.scheduledDate);
+  const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'maya');
 
   function clearCardIndicator() {
     if (dragOverCardRef.current) {
@@ -151,8 +151,8 @@ export default function BacklogPanel({
         if (insertAt > 0 && insertAt < zoneList.length) {
           const prevPri = zoneList[insertAt - 1]?.priority ?? null;
           const nextPri = zoneList[insertAt]?.priority ?? null;
-          if (prevPri === nextPri && prevPri !== draggedPri) {
-            // Sandwiched: recolor if same non-null color on both sides, decolor if both null
+          if (prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
+            // Sandwiched: recolor if same non-null color on both sides, decolor if both null; maya immune
             const patch = { priority: prevPri };
             if (needsZoneChange) { patch.scheduledDate = null; patch.isFrog = false; }
             updateTask(id, patch);

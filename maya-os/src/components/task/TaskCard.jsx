@@ -1,6 +1,6 @@
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
-import { updateTask, deleteTask, markTaskComplete } from '../../store/store.js';
+import { updateTask, deleteTask, markTaskComplete, markMayaDone } from '../../store/store.js';
 
 export default function TaskCard({
   task,
@@ -14,14 +14,19 @@ export default function TaskCard({
   inSidebar,
   activePriColor,
   onPriorityChange,
+  onStarChange,
+  showDateChip,
+  onDelete,
 }) {
-  const done = dayRecord && dayRecord.cIds.includes(task.id);
+  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya'
+  // Maya tasks use task.done as their single done flag everywhere
+  const done = pri === 'maya'
+    ? (task.done ?? false)
+    : (dayRecord && dayRecord.cIds.includes(task.id));
   const dur = task.timeEstimate || '';
   const open = isOpenEnded(dur) && dur !== '∞';
   const durLabel = dur || '—';
   const showPlus = dur && dur !== '∞';
-
-  const pri = task.priority; // null | 'hi' | 'md' | 'lo'
 
   const cardClass = [
     styles.taskCard,
@@ -30,6 +35,7 @@ export default function TaskCard({
     isActive ? styles.activeTask : '',
     isFocused ? styles.focusedTask : '',
     inSidebar ? styles.sidebarCard : '',
+    pri === 'maya' && !isFocused && !isActive && !task.isFrog ? styles.priMaya : '',
     pri === 'hi' && !isFocused && !isActive && !task.isFrog ? styles.priHi : '',
     pri === 'md' && !isFocused && !isActive && !task.isFrog ? styles.priMd : '',
     pri === 'lo' && !isFocused && !isActive && !task.isFrog ? styles.priLo : '',
@@ -37,7 +43,8 @@ export default function TaskCard({
   ].filter(Boolean).join(' ');
 
   function handleCardClick(e) {
-    if (!activePriColor) return;
+    // Maya tasks are immune to the paint tool
+    if (!activePriColor || pri === 'maya') return;
     e.stopPropagation();
     const next = task.priority === activePriColor ? null : activePriColor;
     if (onPriorityChange) onPriorityChange(task.id, next);
@@ -46,6 +53,7 @@ export default function TaskCard({
 
   function handleCheck(e) {
     e.stopPropagation();
+    if (pri === 'maya') { markMayaDone(task.id, !done); return; }
     if (!task.scheduledDate) return;
     markTaskComplete(task.id, task.scheduledDate, !done);
   }
@@ -77,7 +85,8 @@ export default function TaskCard({
 
   function handleDelete(e) {
     e.stopPropagation();
-    deleteTask(task.id);
+    if (onDelete) onDelete(task.id);
+    else deleteTask(task.id);
   }
 
   function handleDragStart(e) {
@@ -99,7 +108,7 @@ export default function TaskCard({
       onContextMenu={onContextMenu}
       onClick={handleCardClick}
     >
-      {dayRecord && (
+      {(dayRecord || pri === 'maya') && (
         <div
           className={`${styles.chk} ${done ? styles.chkOn : ''}`}
           onClick={handleCheck}
@@ -131,6 +140,23 @@ export default function TaskCard({
             </span>
           )}
         </div>
+        {pri === 'maya' && (
+          <div className={styles.mayaRow}>
+            <div className={styles.mayaStars}>
+              {[1, 2, 3].map(n => (
+                <span
+                  key={n}
+                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? styles.mayaStarOn : ''}`}
+                  onClick={onStarChange ? (e) => { e.stopPropagation(); onStarChange(task.id, n); } : undefined}
+                  style={onStarChange ? { cursor: 'pointer' } : {}}
+                >★</span>
+              ))}
+            </div>
+            {showDateChip && task.scheduledDate && (
+              <span className={styles.mayaDateChip}>{task.scheduledDate}</span>
+            )}
+          </div>
+        )}
         {timerDisplay && (
           <div className={`${styles.timer} ${timerDisplay.className === 'timer over' ? styles.over : ''} ${timerDisplay.className === 'timer open' ? styles.open : ''}`}>
             {timerDisplay.text}

@@ -20,8 +20,8 @@ const PRI_ORDER = ['hi', 'md', 'lo'];
 const PRI_COLORS = { hi: 'var(--hot)', md: 'var(--pri-md)', lo: 'var(--tel)' };
 const PRI_LABELS = { hi: 'High', md: 'Med', lo: 'Low' };
 
-// Priority helpers — hi > md > lo > null
-function priRank(p) { return p === 'hi' ? 0 : p === 'md' ? 1 : p === 'lo' ? 2 : 3; }
+// Priority helpers — maya > hi > md > lo > null
+function priRank(p) { return p === 'maya' ? 0 : p === 'hi' ? 1 : p === 'md' ? 2 : p === 'lo' ? 3 : 4; }
 
 // Clamp insertAt to the valid zone for `pri` within zoneList (list must NOT include the task)
 function snapToZone(insertAt, zoneList, pri) {
@@ -86,14 +86,16 @@ export default function DayView({
   const state = { tasks, dailies, days, profile, target };
   const sc = scoreDay(focusDate, state);
   const spId = activeTaskId || focusedTaskId;
-  const spTask = spId ? tasks.find(x => x.id === spId && !dayRecord.cIds.includes(x.id) && x.scheduledDate === focusDate) : null;
+  // Maya tasks use task.done; all others use the day record
+  const isDone = t => t.priority === 'maya' ? (t.done ?? false) : dayRecord.cIds.includes(t.id);
+  const spTask = spId ? tasks.find(x => x.id === spId && !isDone(x) && x.scheduledDate === focusDate) : null;
   const allForDay = tasks.filter(t => t.scheduledDate === focusDate);
-  const frogs = allForDay.filter(t => t.isFrog && !dayRecord.cIds.includes(t.id) && t.id !== spId);
-  const active = allForDay.filter(t => !t.isFrog && !dayRecord.cIds.includes(t.id) && t.id !== spId);
-  const done = allForDay.filter(t => dayRecord.cIds.includes(t.id));
+  const frogs = allForDay.filter(t => t.isFrog && !isDone(t) && t.id !== spId);
+  const active = allForDay.filter(t => !t.isFrog && !isDone(t) && t.id !== spId);
+  const done = allForDay.filter(t => isDone(t));
   const frogsDone = !!frogsComplete[focusDate];
   const allFrogsForDay = allForDay.filter(t => t.isFrog);
-  const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => dayRecord.cIds.includes(t.id));
+  const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => isDone(t));
 
   useEffect(() => {
     const prev = prevFrogStateRef.current;
@@ -104,9 +106,11 @@ export default function DayView({
   }, [allFrogsDoneAuto, focusDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear focus/active state when the focused task is checked off
-  const cIdsKey = dayRecord.cIds.join(',');
+  const mayaDoneKey = allForDay.filter(t => t.priority === 'maya' && t.done).map(t => t.id).join(',');
+  const cIdsKey = dayRecord.cIds.join(',') + '|' + mayaDoneKey;
   useEffect(() => {
-    if (spId && dayRecord.cIds.includes(spId)) {
+    const spTaskObj = spId ? tasks.find(x => x.id === spId) : null;
+    if (spTaskObj && isDone(spTaskObj)) {
       if (activeTaskId === spId) onStartTask(spId);
       else if (focusedTaskId === spId) onFocusTask(spId);
     }
@@ -222,8 +226,8 @@ export default function DayView({
             let insertAt = before ? targetIdx : targetIdx + 1;
             const prevPri = insertAt > 0 ? (zoneList[insertAt - 1]?.priority ?? null) : undefined;
             const nextPri = insertAt < zoneList.length ? (zoneList[insertAt]?.priority ?? null) : undefined;
-            // Recolor/decolor if sandwiched between two tasks of identical priority (both null → decolor)
-            if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri) {
+            // Recolor/decolor if sandwiched between two tasks of identical priority (both null → decolor); maya tasks are immune
+            if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
               const patch = { priority: prevPri };
               if (needsZoneChange) { patch.scheduledDate = focusDate; patch.isFrog = false; }
               updateTask(id, patch);
@@ -340,6 +344,7 @@ export default function DayView({
         onPriorityChange={onPriorityChange}
         showAssign={showAssign}
         onAssign={handleAssign}
+        onDelete={t.priority === 'maya' ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
       />
     );
   }
@@ -349,11 +354,15 @@ export default function DayView({
     { label: taskCtx.task.id === focusedTaskId ? '\u25c7 Unfocus' : '\u25c6 Focus', action: () => onFocusTask(taskCtx.task.id) },
     { label: '\u270e Edit', action: () => setEditTask(taskCtx.task) },
     { separator: true },
-    { label: '\uD83D\uDD34 High priority', active: taskCtx.task.priority === 'hi', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'hi' ? null : 'hi') },
-    { label: '\uD83D\uDFE1 Med priority',  active: taskCtx.task.priority === 'md', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'md' ? null : 'md') },
-    { label: '\uD83D\uDD35 Low priority',  active: taskCtx.task.priority === 'lo', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'lo' ? null : 'lo') },
-    { separator: true },
-    { label: '\u2715 Delete', danger: true, action: () => deleteTask(taskCtx.task.id) },
+    ...taskCtx.task.priority !== 'maya' ? [
+      { label: '\uD83D\uDD34 High priority', active: taskCtx.task.priority === 'hi', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'hi' ? null : 'hi') },
+      { label: '\uD83D\uDFE1 Med priority',  active: taskCtx.task.priority === 'md', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'md' ? null : 'md') },
+      { label: '\uD83D\uDD35 Low priority',  active: taskCtx.task.priority === 'lo', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'lo' ? null : 'lo') },
+      { separator: true },
+    ] : [],
+    taskCtx.task.priority === 'maya'
+      ? { label: '\uD83D\uDCC5 Remove from day', danger: true, action: () => updateTask(taskCtx.task.id, { scheduledDate: null }) }
+      : { label: '\u2715 Delete', danger: true, action: () => deleteTask(taskCtx.task.id) },
   ] : [];
 
   const dailyCtxItems = dailyCtx.daily ? [

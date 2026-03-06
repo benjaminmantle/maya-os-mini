@@ -151,6 +151,35 @@ export function markTaskComplete(taskId, date, done) {
   save();
 }
 
+// Maya tasks use task.done as the single done flag. This keeps cIds in sync
+// so scoring counts the points. Unscheduled tasks get auto-assigned to today
+// so scoreDay's scheduledDate filter can find them.
+export function markMayaDone(taskId, done) {
+  const task = S.tasks.find(t => t.id === taskId);
+  if (!task) return;
+  task.done = done;
+  if (done) {
+    if (!task.scheduledDate) {
+      task.scheduledDate = today();
+      task._autoScheduled = true;
+    }
+    const day = getDayRecord(task.scheduledDate);
+    if (!day.cIds.includes(taskId)) day.cIds.push(taskId);
+  } else {
+    const date = task.scheduledDate;
+    if (date) {
+      const day = getDayRecord(date);
+      const idx = day.cIds.indexOf(taskId);
+      if (idx !== -1) day.cIds.splice(idx, 1);
+    }
+    if (task._autoScheduled) {
+      task.scheduledDate = null;
+      delete task._autoScheduled;
+    }
+  }
+  save();
+}
+
 // Move a task before or after another task in the array (for drag-to-reorder)
 export function moveTask(draggedId, targetId, before) {
   const from = S.tasks.findIndex(t => t.id === draggedId);

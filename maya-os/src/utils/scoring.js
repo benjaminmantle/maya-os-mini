@@ -6,10 +6,26 @@ export const TITLES = [
   'Adrift', 'First Light', 'Trying Anyway', 'In Motion', 'Finding Rhythm',
   'Building', 'Steady Ground', 'Reliable', 'Consistent', 'Committed',
   'Disciplined', 'Sharp Edge', 'Methodical', 'Self-Directed', 'Grounded',
-  'Anchored', 'The Long Game', 'Sovereign', 'Trusted', 'Someone Who Returns'
+  'Anchored', 'The Long Game', 'Sovereign', 'Trusted', 'Someone Who Returns',
+  'Unwavering', 'The Operator', 'Locked In', 'Iron Will', 'Deep Focus',
+  'Composed', 'No Days Off', 'Forged', 'Signal Over Noise', 'The Architect',
+  'Under Control', 'Full Output', 'The Standard', 'Calibrated', 'Zero Drift',
+  'The Discipline', 'Unbroken', 'The Veteran', 'Precision Mode', 'Hardened',
+  'The Blueprint', 'Execution Only', 'Deep Work', 'Load-Bearing', 'The Faithful',
+  'System Stable', 'The Craftsperson', 'Built Different', 'The Constant', 'Halfway There',
+  'Immovable', 'The Marathon', 'Long Arc', 'Still Standing', 'The Proof',
+  'Compounding', 'Self-Sustaining', 'Earned Ground', 'Endgame Mode', 'Beyond Habit',
+  'The Pillar', 'Deep Root', 'The Institution', 'Years In', 'The Monument',
+  'Absolute', 'Living Proof', 'The Summit', 'Untouchable', 'The Authority',
+  'Crystalline', 'The Record', 'Unassailable', 'The Archive', 'Irreducible',
+  'The Covenant', 'Singular', 'The Ascendant', 'Beyond Measure', 'The Pinnacle',
+  'Immutable', 'The Legend', 'System Complete', 'Apex Form', 'Transcendent',
+  'The Thesis', 'Undeniable', 'The Final Proof', 'Incorruptible', 'The Reckoning',
+  'Pure Signal', 'The Way', 'Decades In', 'What Remains', 'The Infinite Return',
+  'Mythic', 'The Living System', 'Eternal Return', 'The Last Level', 'Someone Who Never Stopped'
 ];
 
-export const expForLevel = n => Math.round(200 * Math.pow(1.4, n - 1));
+export const expForLevel = n => Math.round(19 * Math.pow(n + 24, 1.15));
 
 export function scoreDay(d, state) {
   const day = state.days[d] || { cIds: [], dIds: [], closed: false };
@@ -49,7 +65,7 @@ export function closeDayScoring(d, state) {
   }
 
   let leveled = false;
-  while (profile.exp >= expForLevel((profile.level || 1) + 1)) {
+  while ((profile.level || 1) < 100 && profile.exp >= expForLevel((profile.level || 1) + 1)) {
     profile.exp -= expForLevel(profile.level + 1);
     profile.level++;
     leveled = true;

@@ -4,28 +4,43 @@ import styles from '../../styles/components/Modals.module.css';
 import { updateTask, deleteTask } from '../../store/store.js';
 import { get7, dayLabel } from '../../utils/dates.js';
 
+const MAYA_PREFIX = 'MAYA — ';
+
 export default function TaskEditModal({ task, onClose }) {
-  const [name, setName] = useState(task.name);
+  const isMaya = task.priority === 'maya';
+  const rawName = isMaya && task.name.startsWith(MAYA_PREFIX)
+    ? task.name.slice(MAYA_PREFIX.length)
+    : task.name;
+
+  const [name, setName] = useState(rawName);
   const [pts, setPts] = useState(task.pts || 2);
+  const [mayaPts, setMayaPts] = useState(task.mayaPts ?? 1);
   const [time, setTime] = useState(task.timeEstimate || '');
   const [sched, setSched] = useState(task.scheduledDate || '');
   const [frog, setFrog] = useState(!!task.isFrog);
 
   useEffect(() => {
-    setName(task.name);
+    const rn = task.priority === 'maya' && task.name.startsWith(MAYA_PREFIX)
+      ? task.name.slice(MAYA_PREFIX.length)
+      : task.name;
+    setName(rn);
     setPts(task.pts || 2);
+    setMayaPts(task.mayaPts ?? 1);
     setTime(task.timeEstimate || '');
     setSched(task.scheduledDate || '');
     setFrog(!!task.isFrog);
   }, [task]);
 
   function handleSave() {
+    const trimmed = name.trim() || rawName;
+    const finalName = isMaya ? MAYA_PREFIX + trimmed : trimmed;
     updateTask(task.id, {
-      name: name.trim() || task.name,
+      name: finalName,
       pts,
       timeEstimate: time.trim() || null,
       scheduledDate: sched || null,
       isFrog: frog,
+      ...(isMaya && { mayaPts }),
     });
     onClose();
   }
@@ -42,11 +57,27 @@ export default function TaskEditModal({ task, onClose }) {
 
   return (
     <Modal onClose={onClose}>
-      <div className={styles.modalTitle}>Edit Task</div>
+      <div className={styles.modalTitle}>{isMaya ? 'Edit Maya Task' : 'Edit Task'}</div>
       <div className={styles.mf}>
-        <div className={styles.ml}>Name</div>
+        <div className={styles.ml}>{isMaya ? `Name  (MAYA — will be prepended)` : 'Name'}</div>
         <input className={styles.mi} type="text" value={name} onChange={e => setName(e.target.value)} />
       </div>
+      {isMaya && (
+        <div className={styles.mf}>
+          <div className={styles.ml}>Maya Priority</div>
+          <div className={styles.btnRow}>
+            {[1, 2, 3].map(v => (
+              <button
+                key={v}
+                className={`${styles.selBtn} ${mayaPts === v ? styles.selBtnOn : ''}`}
+                onClick={() => setMayaPts(v)}
+              >
+                {'★'.repeat(v)}{'☆'.repeat(3 - v)}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
       <div className={styles.mf}>
         <div className={styles.ml}>Points</div>
         <div className={styles.btnRow}>
@@ -79,12 +110,14 @@ export default function TaskEditModal({ task, onClose }) {
           ))}
         </div>
       </div>
-      <div
-        className={`${styles.frogToggle} ${frog ? styles.frogToggleOn : ''}`}
-        onClick={() => setFrog(!frog)}
-      >
-        <span>🐸</span><span>Frog — tackle this first</span>
-      </div>
+      {!isMaya && (
+        <div
+          className={`${styles.frogToggle} ${frog ? styles.frogToggleOn : ''}`}
+          onClick={() => setFrog(!frog)}
+        >
+          <span>🐸</span><span>Frog — tackle this first</span>
+        </div>
+      )}
       <div className={styles.modalFoot}>
         <button className={`${styles.btn} ${styles.btnDanger} ${styles.btnSm}`} onClick={handleDelete}>Delete</button>
         <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={onClose}>Cancel</button>
