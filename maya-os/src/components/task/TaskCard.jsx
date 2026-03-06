@@ -13,6 +13,7 @@ export default function TaskCard({
   onAssign,
   inSidebar,
   activePriColor,
+  onPriorityChange,
 }) {
   const done = dayRecord && dayRecord.cIds.includes(task.id);
   const dur = task.timeEstimate || '';
@@ -38,9 +39,9 @@ export default function TaskCard({
   function handleCardClick(e) {
     if (!activePriColor) return;
     e.stopPropagation();
-    // Clicking the card with the color tool assigns/removes priority
     const next = task.priority === activePriColor ? null : activePriColor;
-    updateTask(task.id, { priority: next });
+    if (onPriorityChange) onPriorityChange(task.id, next);
+    else updateTask(task.id, { priority: next });
   }
 
   function handleCheck(e) {

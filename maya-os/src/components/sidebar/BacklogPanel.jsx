@@ -11,6 +11,36 @@ const PRI_ORDER = ['hi', 'md', 'lo'];
 const PRI_COLORS = { hi: 'var(--hot)', md: 'var(--pri-md)', lo: 'var(--tel)' };
 const PRI_LABELS = { hi: 'Hi', md: 'Med', lo: 'Lo' };
 
+function priRank(p) { return p === 'hi' ? 0 : p === 'md' ? 1 : p === 'lo' ? 2 : 3; }
+
+function snapToZone(insertAt, zoneList, pri) {
+  const rank = priRank(pri);
+  let lo = 0, hi = zoneList.length;
+  for (let i = 0; i < zoneList.length; i++) {
+    const r = priRank(zoneList[i].priority);
+    if (r < rank) lo = i + 1;
+    if (r > rank && hi === zoneList.length) hi = i;
+  }
+  return Math.min(Math.max(insertAt, lo), hi);
+}
+
+function insertAtForPri(pri, zoneList) {
+  const rank = priRank(pri);
+  let lo = 0, hi = zoneList.length;
+  for (let i = 0; i < zoneList.length; i++) {
+    const r = priRank(zoneList[i].priority);
+    if (r < rank) lo = i + 1;
+    if (r > rank && hi === zoneList.length) hi = i;
+  }
+  if (pri === null) return lo;
+  return lo + zoneList.slice(lo, hi).filter(t => t.priority === pri).length;
+}
+
+function doMove(id, insertAt, zoneList) {
+  if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);
+  else if (zoneList.length > 0) moveTask(id, zoneList[zoneList.length - 1].id, false);
+}
+
 export default function BacklogPanel({
   tasks,
   activeTaskId,
@@ -42,8 +72,9 @@ export default function BacklogPanel({
     const raw = inputVal.trim();
     if (!raw) return;
     const p = parseInput(raw);
+    const newId = uid();
     saveTask({
-      id: uid(),
+      id: newId,
       name: p.name,
       pts: p.pts,
       timeEstimate: p.time || null,
@@ -52,6 +83,7 @@ export default function BacklogPanel({
       scheduledDate: null,
       createdAt: new Date().toISOString(),
     });
+    doMove(newId, insertAtForPri(p.priority || null, backlog), backlog);
     setInputVal('');
   }
 
@@ -108,42 +140,48 @@ export default function BacklogPanel({
     const targetCard = directCard || hoveredCard;
     const draggedTask = tasks.find(t => t.id === id);
     const needsZoneChange = draggedTask && !!draggedTask.scheduledDate;
-    if (needsZoneChange) {
-      updateTask(id, { scheduledDate: null, isFrog: false });
-    }
+    const draggedPri = draggedTask?.priority ?? null;
+    const zoneList = backlog.filter(t => t.id !== id);
     if (targetCard && targetCard.dataset.taskid !== id) {
       const rect = targetCard.getBoundingClientRect();
       const before = e.clientY < rect.top + rect.height / 2;
-      // Snap to group boundary so same-priority groups stay contiguous
-      const draggedPri = draggedTask?.priority ?? null;
-      const zoneList = backlog.filter(t => t.id !== id);
       const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
       if (targetIdx !== -1) {
         let insertAt = before ? targetIdx : targetIdx + 1;
         if (insertAt > 0 && insertAt < zoneList.length) {
           const prevPri = zoneList[insertAt - 1]?.priority ?? null;
           const nextPri = zoneList[insertAt]?.priority ?? null;
-          if (prevPri !== null && prevPri === nextPri && prevPri !== draggedPri) {
-            let groupStart = insertAt - 1;
-            while (groupStart > 0 && (zoneList[groupStart - 1]?.priority ?? null) === prevPri) groupStart--;
-            let groupEnd = insertAt;
-            while (groupEnd < zoneList.length - 1 && (zoneList[groupEnd + 1]?.priority ?? null) === prevPri) groupEnd++;
-            insertAt = (insertAt - groupStart) <= (groupEnd + 1 - insertAt) ? groupStart : groupEnd + 1;
+          if (prevPri === nextPri && prevPri !== draggedPri) {
+            // Sandwiched: recolor if same non-null color on both sides, decolor if both null
+            const patch = { priority: prevPri };
+            if (needsZoneChange) { patch.scheduledDate = null; patch.isFrog = false; }
+            updateTask(id, patch);
+          } else {
+            insertAt = snapToZone(insertAt, zoneList, draggedPri);
+            if (needsZoneChange) updateTask(id, { scheduledDate: null, isFrog: false });
           }
+        } else {
+          insertAt = snapToZone(insertAt, zoneList, draggedPri);
+          if (needsZoneChange) updateTask(id, { scheduledDate: null, isFrog: false });
         }
-        if (insertAt < zoneList.length) {
-          moveTask(id, zoneList[insertAt].id, true);
-        } else if (zoneList.length > 0) {
-          moveTask(id, zoneList[zoneList.length - 1].id, false);
-        }
+        doMove(id, insertAt, zoneList);
       } else {
+        if (needsZoneChange) updateTask(id, { scheduledDate: null, isFrog: false });
         moveTask(id, targetCard.dataset.taskid, before);
       }
+    } else if (needsZoneChange) {
+      updateTask(id, { scheduledDate: null, isFrog: false });
     }
   }
 
   function handlePriBtn(color) {
     setActivePriColor(prev => prev === color ? null : color);
+  }
+
+  function handlePriorityChange(taskId, newPri) {
+    updateTask(taskId, { priority: newPri });
+    const zone = backlog.filter(t => t.id !== taskId);
+    doMove(taskId, insertAtForPri(newPri, zone), zone);
   }
 
   return (
@@ -203,6 +241,7 @@ export default function BacklogPanel({
             onAssign={handleAssign}
             inSidebar={true}
             activePriColor={activePriColor}
+            onPriorityChange={handlePriorityChange}
           />
         )) : <div className={styles.empty}>empty</div>}
       </div>
