@@ -1,2 +1,2 @@
 # maya-os-mini
-HTML-only, chatless version of gamified personal task management &amp; habit-building system.
+Chatless version of gamified personal task management &amp; habit-building system.
