@@ -1,4 +1,4 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useLayoutEffect, useRef } from 'react';
 import styles from '../../styles/components/Modals.module.css';
 
 export default function ContextMenu({ visible, x, y, items, onClose }) {
@@ -12,6 +12,17 @@ export default function ContextMenu({ visible, x, y, items, onClose }) {
     document.addEventListener('mousedown', handler);
     return () => document.removeEventListener('mousedown', handler);
   }, [visible, onClose]);
+
+  // Clamp to viewport so the menu is never cut off at edges or bottom
+  useLayoutEffect(() => {
+    if (!visible || !ref.current) return;
+    const rect = ref.current.getBoundingClientRect();
+    const pad = 8;
+    if (rect.right > window.innerWidth - pad)
+      ref.current.style.left = Math.max(pad, window.innerWidth - rect.width - pad) + 'px';
+    if (rect.bottom > window.innerHeight - pad)
+      ref.current.style.top = Math.max(pad, window.innerHeight - rect.height - pad) + 'px';
+  }, [visible, x, y]);
 
   if (!visible) return null;
 

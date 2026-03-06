@@ -26,7 +26,7 @@
 .stabPanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
 .stabPanelActive { display: flex; }
 .panelAdd { padding: 10px 12px 8px; border-bottom: 1px solid var(--b2); flex-shrink: 0; }
-.panelBody { flex: 1; overflow-y: auto; padding: 9px 10px; display: flex; flex-direction: column; gap: 4px; }
+.panelBody { flex: 1; overflow-y: auto; padding: 9px 10px 64px; display: flex; flex-direction: column; gap: 4px; }
 
 /* Dailies */
 .dailyList { display: flex; flex-direction: column; gap: 3px; }

@@ -36,8 +36,8 @@ body::after {
 button { font-family: inherit; cursor: pointer; border: none; background: none; }
 input, select { font-family: inherit; }
 
-::-webkit-scrollbar { width: 3px; }
-::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+::-webkit-scrollbar { display: none; }
+* { scrollbar-width: none; }
 
 #root {
   position: relative;

@@ -4,7 +4,7 @@
   height: 100%;
 }
 .focusMain {
-  padding: 18px;
+  padding: 18px 18px 64px 18px;
   display: flex;
   flex-direction: column;
   gap: 14px;
