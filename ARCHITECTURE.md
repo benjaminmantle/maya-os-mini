@@ -3,81 +3,87 @@
 ## File Structure
 
 ```
-maya-os/
+Maya-OS Mini/               ← repo root (.git lives here)
 ├── CLAUDE.md                  ← Claude Code instructions (read first)
 ├── SPEC.md                    ← Full feature specification
 ├── ARCHITECTURE.md            ← This file
-├── HANDOFF.md                 ← Current status, deviations, known issues
-├── package.json
-├── vite.config.js
-├── index.html
-└── src/
-    ├── main.jsx               ← React root mount, ToastProvider wrapper
-    ├── App.jsx                ← View router, top-level layout, timer/focus state
-    │
-    ├── store/
-    │   ├── store.js           ← ALL localStorage access, state management
-    │   ├── migrations.js      ← Schema version migrations
-    │   └── defaults.js        ← Default dailies, seed tasks
-    │
-    ├── styles/
-    │   ├── tokens.css         ← CSS custom properties (colors, fonts, spacing)
-    │   ├── global.css         ← Reset, body, scrollbar, shared utilities
-    │   └── components/        ← Per-component CSS modules
-    │       ├── TaskCard.module.css
-    │       ├── DayView.module.css
-    │       ├── Sidebar.module.css
-    │       ├── WeekView.module.css
-    │       ├── StatsView.module.css
-    │       ├── Modals.module.css
-    │       └── Topbar.module.css
-    │
-    ├── components/
-    │   ├── Topbar.jsx             ← Level, streak, momentum chip
-    │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / SETTINGS
-    │   │
-    │   ├── day/
-    │   │   └── DayView.jsx        ← Monolithic: date nav, score block, frogs,
-    │   │                            spotlight, core tasks, done section
-    │   │
-    │   ├── sidebar/
-    │   │   ├── Sidebar.jsx        ← Tab container (Dailies / Backlog)
-    │   │   ├── DailiesPanel.jsx   ← Daily list, drag reorder, add form
-    │   │   ├── DailyItem.jsx      ← Single daily row with actions
-    │   │   └── BacklogPanel.jsx   ← Backlog task list, quick-add
-    │   │
-    │   ├── task/
-    │   │   ├── TaskCard.jsx       ← Full task card (all contexts)
-    │   │   ├── TaskEditModal.jsx  ← Edit modal (name, pts, time, schedule, frog)
-    │   │   └── AssignPopup.jsx    ← Date assignment popup (📅 button)
-    │   │
-    │   ├── week/
-    │   │   └── WeekView.jsx       ← 7-day grid with drag-to-reschedule
-    │   │
-    │   ├── stats/
-    │   │   └── StatsView.jsx      ← Progression cards, XP bar, activity heatmap,
-    │   │                            adaptive bar chart (first-tracked-day window),
-    │   │                            Balance section (radar + weekly rhythm bars),
-    │   │                            60-day trend line chart, daily consistency,
-    │   │                            tasks-only export/import, danger zone
-    │   │
-    │   └── shared/
-    │       ├── ContextMenu.jsx    ← Generic positioned context menu
-    │       ├── Modal.jsx          ← Generic modal overlay wrapper
-    │       ├── Toast.jsx          ← Bottom toast notifications (ToastProvider + useToast)
-    │       └── LevelUpOverlay.jsx ← Fullscreen level up celebration
-    │
-    ├── hooks/
-    │   ├── useStore.js        ← React hook wrapping store, triggers re-renders
-    │   ├── useTimer.js        ← Active task timer (setInterval, cleanup)
-    │   └── useContextMenu.js  ← Context menu positioning and state
-    │
-    └── utils/
-        ├── dates.js           ← today(), addDays(), dayLabel(), getWeekDays(), uid()
-        ├── scoring.js         ← scoreDay(), closeDayScoring(), calcMomentum(), expForLevel(), TITLES
-        ├── parsing.js         ← parseInput() inline syntax parser
-        ├── duration.js        ← parseDurMs(), fmtMs(), isOpenEnded(), DURATIONS
-        └── colors.js          ← todColor() daily dot color interpolation
+├── HANDOFF.md                 ← Legacy handoff doc (superseded by CLAUDE.md)
+├── TODO.md                    ← User-managed task list
+├── README.md
+├── .gitignore
+└── maya-os/                   ← Vite/React app
+    ├── package.json
+    ├── vite.config.js
+    ├── index.html
+    └── src/
+        ├── main.jsx               ← React root mount, ToastProvider wrapper
+        ├── App.jsx                ← View router, top-level layout, timer/focus state
+        │
+        ├── store/
+        │   ├── store.js           ← ALL localStorage access, state management
+        │   ├── migrations.js      ← Schema version migrations
+        │   └── defaults.js        ← Default dailies, seed tasks
+        │
+        ├── styles/
+        │   ├── tokens.css         ← CSS custom properties (colors, fonts, spacing)
+        │   ├── global.css         ← Reset, body, scrollbar, shared utilities
+        │   └── components/        ← Per-component CSS modules
+        │       ├── TaskCard.module.css
+        │       ├── DayView.module.css
+        │       ├── Sidebar.module.css
+        │       ├── MayaPanel.module.css
+        │       ├── WeekView.module.css
+        │       ├── StatsView.module.css
+        │       ├── Modals.module.css
+        │       └── Topbar.module.css
+        │
+        ├── components/
+        │   ├── Topbar.jsx             ← Level, streak, momentum chip
+        │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / SETTINGS
+        │   │
+        │   ├── day/
+        │   │   └── DayView.jsx        ← Monolithic: date nav, score block, frogs,
+        │   │                            spotlight, core tasks, done section
+        │   │
+        │   ├── sidebar/
+        │   │   ├── Sidebar.jsx        ← Tab container (Dailies / Backlog / Maya)
+        │   │   ├── DailiesPanel.jsx   ← Daily list, drag reorder, add form
+        │   │   ├── DailyItem.jsx      ← Single daily row with actions
+        │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes maya)
+        │   │   └── MayaPanel.jsx      ← Maya task backlog, quick-add, star rating
+        │   │
+        │   ├── task/
+        │   │   ├── TaskCard.jsx       ← Full task card (all contexts)
+        │   │   ├── TaskEditModal.jsx  ← Edit modal (name, pts, time, schedule, frog)
+        │   │   └── AssignPopup.jsx    ← Date assignment popup (📅 button)
+        │   │
+        │   ├── week/
+        │   │   └── WeekView.jsx       ← 7-day grid with drag-to-reschedule
+        │   │
+        │   ├── stats/
+        │   │   └── StatsView.jsx      ← Progression cards, XP bar, activity heatmap,
+        │   │                            adaptive bar chart (first-tracked-day window),
+        │   │                            Balance section (radar + weekly rhythm bars),
+        │   │                            60-day trend line chart, daily consistency,
+        │   │                            tasks-only export/import, danger zone
+        │   │
+        │   └── shared/
+        │       ├── ContextMenu.jsx    ← Generic positioned context menu
+        │       ├── Modal.jsx          ← Generic modal overlay wrapper
+        │       ├── Toast.jsx          ← Bottom toast notifications (ToastProvider + useToast)
+        │       └── LevelUpOverlay.jsx ← Fullscreen level up celebration
+        │
+        ├── hooks/
+        │   ├── useStore.js        ← React hook wrapping store, triggers re-renders
+        │   ├── useTimer.js        ← Active task timer (setInterval, cleanup)
+        │   └── useContextMenu.js  ← Context menu positioning and state
+        │
+        └── utils/
+            ├── dates.js           ← today(), addDays(), dayLabel(), getWeekDays(), uid()
+            ├── scoring.js         ← scoreDay(), closeDayScoring(), calcMomentum(), expForLevel(), TITLES
+            ├── parsing.js         ← parseInput() inline syntax parser
+            ├── duration.js        ← parseDurMs(), fmtMs(), isOpenEnded(), DURATIONS
+            └── colors.js          ← todColor() daily dot color interpolation
 ```
 
 ---
@@ -119,6 +125,9 @@ export function saveTask(task)          // upsert
 export function deleteTask(id)
 export function updateTask(id, patch)
 export function markTaskComplete(taskId, date, done)
+export function markMayaDone(taskId, done)  // unified maya completion: sets task.done,
+                                             // writes/removes from dayRecord.cIds,
+                                             // auto-assigns scheduledDate=today() if unscheduled
 export function moveTask(draggedId, targetId, before)
 export function sortTasksForView(date, field, dir)
 
@@ -235,11 +244,20 @@ Defaults: pts=2, time=null, priority=null, isFrog=false.
 
 ## Priority System
 
-`priority: 'hi' | 'md' | 'lo' | null` — gives task card a colored left border and tinted background.
+`priority: 'hi' | 'md' | 'lo' | 'maya' | null` — gives task card a colored left border and tinted background.
+
+- `hi` / `md` / `lo` — set via quick-add syntax, right-click context menu, or priority paint tool
+- `maya` — permanent identity priority for Maya tasks; set at creation; cannot be changed via context menu
 
 Override order: frog (green) > active (green) > focused (gold) > priority color.
 
-Set via: quick-add syntax, right-click context menu, or priority paint tool in Core Tasks toolbar.
+`priRank`: `maya=0, hi=1, md=2, lo=3, null=4` — sort order in task lists. Maya tasks always sort first.
+
+**Maya task rules:**
+- Excluded from the Backlog panel; shown only in the Maya sidebar tab and on the day if scheduled
+- In DayView, "Delete" becomes "Remove from day" (sets `scheduledDate=null`; task persists in Maya tab)
+- Priority hi/md/lo context menu items hidden for maya tasks
+- Sandwich recolor guard skips maya tasks (they don't get background-recolored by neighbors)
 
 ---
 
@@ -259,9 +277,12 @@ Set via: quick-add syntax, right-click context menu, or priority paint tool in C
 perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30. Perfect streak multiplier up to 1.5× at 10+ days.
 
 ### Level formula
-`expForLevel(n) = round(200 × 1.4^(n-1))` — XP to reach level n from n-1.
-- Level 2: 280 XP, Level 5: ~1,075 XP, Level 10: ~5,900 XP
-- 20 levels total. The while-loop in `closeDayScoring` handles multi-level-ups in one close.
+`expForLevel(n) = Math.round(19 * (n + 24) ** 1.15)` — XP to reach level n from n-1.
+- Level 2: ~800 XP (~5 days perfect), Level 10: ~1,100 XP/level, Level 50: ~1.5 years total
+- 100 levels total; ~5 years at perfect play (150 XP/day) to reach level 100
+- 100 TITLES: 'Adrift' → 'Someone Who Never Stopped'
+- Level cap enforced at 100: `while (level < 100 && exp >= expForLevel(level + 1))`
+- The while-loop in `closeDayScoring` handles multi-level-ups in one close.
 
 ### Idempotent day scoring
 `closeDay(date)` stores a `scoreRecord` delta (expDelta, streakIncremented, longestBefore, perfectDelta) on the DayRecord. `reopenDay(date)` reads and precisely reverses it. Prevents inflation from close → reopen → re-close cycles.

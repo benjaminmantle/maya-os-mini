@@ -15,9 +15,14 @@ A daily task and habit tracking system with light gamification. Philosophy: redu
   pts: 0 | 0.5 | 1 | 2 | 3  // point value; default 2
   timeEstimate: string | null  // e.g. "2h", "45m", "2h+", "∞", null
   isFrog: boolean        // high-priority task to tackle first
-  priority: 'hi' | 'md' | 'lo' | null  // priority color; null = no color
-  scheduledDate: string | null  // YYYY-MM-DD or null (= backlog)
+  priority: 'hi' | 'md' | 'lo' | 'maya' | null  // priority color; null = no color
+  scheduledDate: string | null  // YYYY-MM-DD or null (= backlog / maya backlog)
   createdAt: string      // ISO timestamp
+  // Maya-only fields (only present when priority === 'maya'):
+  done?: boolean         // unified completion state (single flag; not dayRecord-derived)
+  mayaPts?: number       // star rating 1–5 (default 1)
+  _autoScheduled?: true  // internal: set when markMayaDone auto-assigns scheduledDate=today()
+                         //           cleared on undo so scheduledDate is also cleared
 }
 ```
 
@@ -87,7 +92,8 @@ Two-column layout: main column left, sidebar right.
 
 **Sidebar (tabbed):**
 - **Dailies tab** (default) — list of daily habits; click to toggle completion; hover shows edit/delete buttons; drag to reorder; right-click for context menu; "+ add daily" collapsed button at bottom
-- **Backlog tab** — unscheduled tasks; quick-add input; assign button (📅) per task
+- **Backlog tab** — unscheduled non-maya tasks; quick-add input; assign button (📅) per task
+- **Maya tab** — Maya tasks (`priority === 'maya'`) that are not yet done; quick-add prefixes `MAYA — `; star rating (1–5) per task; purple accent; assign button (📅) per task; dropping non-maya tasks here is silently rejected
 
 ### Week View
 7-day grid. Each day shows: weekday, date number, points progress bar, task snippets (up to 4), dailies completion count. Drag tasks to reschedule. Click day to navigate to it in Day view.
@@ -129,17 +135,18 @@ All tokens are optional and order-independent. Unrecognized text becomes the tas
 Defaults: pts=2, time=null, priority=null, isFrog=false.
 
 ### Task card anatomy
-- Checkbox (scheduled tasks only) — toggles completion
+- Checkbox (scheduled tasks, or any maya task) — toggles completion; maya tasks call `markMayaDone()` which uses `task.done` as the single source of truth
 - Task name
+- Star rating — maya tasks only; 1–5 stars (☆); stored as `task.mayaPts`
 - Points badge (0 / 0.5 / 1 / 2 / 3) — click to cycle; colors: dim(0) / silver(0.5) / yellow(1) / orange(2) / red(3)
 - Duration badge — click to cycle through presets; blue when set, grey when blank
   - Presets: null → 15m → 30m → 45m → 1h → 1.5h → 2h → 3h → 4h → ∞ → null
 - `+` toggle badge — appears when duration is set (not ∞); toggles open-ended mode (appends `+` to duration string)
 - Assign (📅) button — on core task list only; opens date picker popup
-- Delete ✕ button
+- Delete ✕ button — for maya tasks in DayView this becomes "Remove from day" (sets `scheduledDate=null`)
 - Edit ✎ button (opens modal)
 
-**Priority coloring:** left accent bar and card background tint. hi=red, md=purple/muted, lo=teal. Overridden by frog (green), focused (gold), active (green).
+**Priority coloring:** left accent bar and card background tint. hi=red, md=purple/muted, lo=teal, maya=purple (var(--pri-maya)). Overridden by frog (green), focused (gold), active (green).
 
 **Priority paint tool:** toolbar buttons in Core Tasks section; click button then click cards to paint/unpaint priority.
 
@@ -159,8 +166,8 @@ Defaults: pts=2, time=null, priority=null, isFrog=false.
 - ▶ Start / ⏹ Stop
 - ◆ Focus / ◇ Unfocus
 - ✎ Edit
-- 🔴 High / 🟡 Med / 🔵 Low priority (toggles)
-- ✕ Delete
+- 🔴 High / 🟡 Med / 🔵 Low priority (toggles) — **hidden for maya tasks**
+- ✕ Delete — for maya tasks in DayView: **📅 Remove from day** (unschedules, doesn't delete)
 
 ### Drag and drop
 - Drag tasks between: frog zone, core tasks zone, backlog zone, day-of-week tabs in nav
@@ -221,9 +228,11 @@ Tiers: perfect / good / decent / half / poor / fail
 ### XP & Leveling
 - Each tier awards XP on Close Day: perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30
 - Perfect day streak multiplier: up to 1.5× for 10+ day streaks
-- Level thresholds: `round(200 × 1.4^(level-1))` XP to reach level n from n-1
-  - Level 2: 280 XP (~3 perfect days), Level 5: ~1,100 XP (~11+ days), Level 10: ~5,900 XP (~months)
-- 20 level titles: Adrift → Someone Who Returns
+- Level thresholds: `Math.round(19 * (n + 24) ** 1.15)` XP to reach level n from n-1
+  - Level 2: ~800 XP (~5 days at perfect), Level 10: ~8 weeks total, Level 50: ~1.5 years, Level 100: ~5 years
+- 100 levels; 100 titles: 'Adrift' → 'Someone Who Never Stopped'
+- Level capped at 100 — XP continues accumulating but level stops incrementing
+- Completing a maya task (`markMayaDone`) writes to `dayRecord.cIds` so it counts toward Close Day scoring; no direct XP award — all XP flows through `closeDay` only
 - Level up triggers fullscreen overlay
 
 ### Close Day / Reopen Day
@@ -292,3 +301,6 @@ Computed from last 5 closed days: rising / stable / slipping. Shown in topbar ch
 - Timer state (activeTask, activeStart) is in-memory only — not persisted across page loads by design
 - HMR during active development can corrupt store listeners (listeners Set gets reset); hard page reload always fixes it
 - getDayRecord() has a side effect during render (initializes missing day records) — intentional, does not call save()
+- Maya task `done` state is `task.done` (boolean on the task itself), NOT derived from `dayRecord.cIds`. `isDone(t)` in DayView abstracts this: `t.priority === 'maya' ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`
+- `markMayaDone` auto-assigns `scheduledDate = today()` if task is unscheduled when checked (tracked via `_autoScheduled`); reverses on uncheck. This ensures the task appears in the correct day's `cIds` for Close Day scoring without double-counting
+- Maya tasks checked in Maya tab and checked in DayView affect the same `task.done` flag — no two-place checking
