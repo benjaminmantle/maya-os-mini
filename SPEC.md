@@ -100,7 +100,7 @@ Two-column layout: main column left, sidebar right.
 
 ### Stats View (Settings tab)
 - **Progression** cards: level, title, current streak, longest streak, perfect days, days tracked, frogs done, avg pts/day
-- **XP progress bar** — shows current XP toward next level with level name preview; "★ max level" at level 20
+- **XP progress bar** — shows current XP toward next level with level name preview; "★ max level" at level 100
 - **Workout** stats: total workouts, current workout streak
 - **Activity heatmap** — 13-week GitHub-style grid (Mon–Sun columns); cells colored by day tier for any day with recorded data; future cells hidden; tier legend below
 - **Adaptive points bar chart** — window starts from first tracked day (up to 30-day max); grows as history builds. Title shows "Points — Last N Days". Bars colored by tier; dotted target line at top; no stub bars on empty days

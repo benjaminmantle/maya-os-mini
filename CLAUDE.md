@@ -89,6 +89,15 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 ### Tasks-only import is additive, not replacing
 `importTasks` merges into `S.tasks` — it never wipes existing tasks. `importData` (full backup) does a full replace. Keep these behaviors distinct.
 
+### Maya task done state — single source of truth
+`task.done` (boolean on the task object itself) is the completion flag for maya tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `t.priority === 'maya' ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive maya completion from cIds alone.
+
+### markMayaDone — auto-schedules for scoring
+`markMayaDone(taskId, done)` auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya task, so it appears in the correct day's cIds for Close Day scoring. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya completion.
+
+### Maya tasks in DayView — unschedule, don't delete
+In DayView, the delete action for maya tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. The context menu label is "📅 Remove from day". Priority hi/md/lo items are hidden for maya tasks. The sandwich recolor guard must skip maya tasks (`prevPri !== 'maya' && draggedPri !== 'maya'`).
+
 ---
 
 ## Commands
