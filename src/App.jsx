@@ -19,6 +19,17 @@ export default function App() {
   const [focusedTaskId, setFocusedTaskId] = useState(null);
   const [weekNavDate, setWeekNavDate] = useState(null);
   const weekDays = getWeekDays();
+  const [theme, setTheme] = useState(() => localStorage.getItem('maya_theme') || 'dark');
+
+  useEffect(() => {
+    if (theme === 'light') document.documentElement.classList.add('theme-light');
+    else document.documentElement.classList.remove('theme-light');
+    localStorage.setItem('maya_theme', theme);
+  }, [theme]);
+
+  function handleThemeToggle() {
+    setTheme(t => t === 'dark' ? 'light' : 'dark');
+  }
 
   const { getTimerDisplay } = useTimer(activeTaskId, activeStart, state.tasks);
 
@@ -57,7 +68,7 @@ export default function App() {
 
   return (
     <>
-      <Topbar profile={state.profile} />
+      <Topbar profile={state.profile} theme={theme} onThemeToggle={handleThemeToggle} />
       <NavTabs
         activeView={view}
         weekDays={weekDays}

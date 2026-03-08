@@ -1,7 +1,7 @@
 import styles from '../styles/components/Topbar.module.css';
 import { TITLES } from '../utils/scoring.js';
 
-export default function Topbar({ profile }) {
+export default function Topbar({ profile, theme, onThemeToggle }) {
   const level = profile.level || 1;
   const title = TITLES[Math.min(level - 1, TITLES.length - 1)];
   const momentum = profile.momentum || 'stable';
@@ -22,6 +22,13 @@ export default function Topbar({ profile }) {
         <span className={styles.lvBadge}>{level}</span>
         <span className={styles.lvTitle}>{title}</span>
       </div>
+      <button
+        className={styles.themeBtn}
+        onClick={onThemeToggle}
+        title={theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
+      >
+        {theme === 'dark' ? '☀' : '☾'}
+      </button>
     </div>
   );
 }

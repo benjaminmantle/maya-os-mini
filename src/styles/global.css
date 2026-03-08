@@ -19,8 +19,8 @@ body::before {
   z-index: 9999;
   pointer-events: none;
   background-image:
-    linear-gradient(rgba(240,176,48,.025) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(240,176,48,.025) 1px, transparent 1px);
+    linear-gradient(var(--grid-line) 1px, transparent 1px),
+    linear-gradient(90deg, var(--grid-line) 1px, transparent 1px);
   background-size: 44px 44px;
 }
 
@@ -30,7 +30,7 @@ body::after {
   inset: 0;
   z-index: 0;
   pointer-events: none;
-  background: radial-gradient(ellipse 100% 60% at 50% 0%, transparent 50%, rgba(12,10,13,.8) 100%);
+  background: radial-gradient(ellipse 100% 60% at 50% 0%, transparent 50%, var(--vignette) 100%);
 }
 
 button { font-family: inherit; cursor: pointer; border: none; background: none; }

@@ -31,4 +31,38 @@
   --fm: 'Share Tech Mono', monospace;
   --fd: 'Orbitron', sans-serif;
   --tr: 120ms ease;
+  /* Effect tokens — overridden per theme */
+  --grid-line:    rgba(240,176,48,.025);
+  --vignette:     rgba(12,10,13,.8);
+  --topbar-scan:  rgba(240,176,48,.012);
+}
+
+/* ── Light theme ────────────────────────────────────────────────────────── */
+html.theme-light {
+  /* Surfaces — enough tint to feel colored, not washed-out white */
+  --bg:   #e8e3f4;
+  --s0:   #e1daf0;
+  --s1:   #ece8f8;
+  --s2:   #ddd6ec;
+  --s3:   #d0c9e1;
+  /* Borders — slightly stronger so structure reads on light */
+  --b1:   rgba(110,88,168,.18);
+  --b2:   rgba(110,88,168,.32);
+  /* Text */
+  --text: #1c1030;
+  --t2:   #4e3c78;
+  --t3:   #9080bc;
+  /* Tint backgrounds — slightly stronger on light so they read */
+  --gd2:  rgba(240,176,48,.18);
+  --ht2:  rgba(255,48,96,.14);
+  --gn2:  rgba(34,238,128,.16);
+  --tel2: rgba(32,200,216,.14);
+  /* Accent colours adjusted for light — less neon, more readable */
+  --grn:     #18b060;   /* darker green: less neon, better contrast */
+  --tel:     #0995a8;   /* darker teal: lo-priority reads on lavender */
+  --pri-md:  #d96000;   /* more orange: distinct from gold focus color */
+  /* Effects */
+  --grid-line:    rgba(110,88,168,.055);
+  --vignette:     rgba(140,120,200,.055);
+  --topbar-scan:  rgba(110,88,168,.018);
 }

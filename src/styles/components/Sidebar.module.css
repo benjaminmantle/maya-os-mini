@@ -87,8 +87,9 @@
 }
 .qaInput:focus { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(240,176,48,.1); }
 .qaBtn {
-  background: var(--gold);
-  color: #000;
+  background: var(--s2);
+  color: var(--t3);
+  border: 1px solid var(--b1);
   border-radius: var(--rs);
   padding: 8px 16px;
   font-size: 16px;
@@ -96,7 +97,7 @@
   transition: all var(--tr);
   flex-shrink: 0;
 }
-.qaBtn:hover { box-shadow: 0 0 16px rgba(240,176,48,.5); }
+.qaBtn:hover { color: var(--t2); border-color: var(--b2); }
 
 .empty { padding: 14px; text-align: center; color: var(--t3); font-size: 11px; font-family: var(--fm); }
 
@@ -119,6 +120,9 @@
 .btnGhost { background: var(--s1); color: var(--t2); border: 1px solid var(--b2); }
 .btnGhost:hover { border-color: var(--gold); color: var(--gold); }
 .btnSm { padding: 5px 10px; font-size: 9px; }
+
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+:global(html.theme-light) .dailyItemDone { opacity: .46; }
 
 @media(max-width: 680px) {
   .sidebar { border-right: none; border-top: 1px solid var(--b2); max-height: 280px; }

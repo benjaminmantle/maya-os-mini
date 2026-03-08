@@ -209,3 +209,53 @@
   background: transparent;
 }
 .bumpBtn:hover { color: var(--gold); background: var(--s2); }
+
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+
+/* Done tasks: .28 opacity vanishes on light bg */
+:global(html.theme-light) .done { opacity: .48; }
+
+/* Priority tints: values were tuned for dark; roughly double them for light */
+:global(html.theme-light) .priHi { background: rgba(255,48,96,.08); border-color: rgba(255,48,96,.34); }
+:global(html.theme-light) .priHi:hover { background: rgba(255,48,96,.14); border-color: rgba(255,48,96,.54); }
+:global(html.theme-light) .priHi::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priHi:hover::before { background: transparent; box-shadow: none; }
+
+:global(html.theme-light) .priMd { background: rgba(217,96,0,.13); border-color: rgba(217,96,0,.48); }
+:global(html.theme-light) .priMd:hover { background: rgba(217,96,0,.20); border-color: rgba(217,96,0,.65); }
+:global(html.theme-light) .priMd::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priMd:hover::before { background: transparent; box-shadow: none; }
+
+:global(html.theme-light) .priLo { background: rgba(9,149,168,.08); border-color: rgba(9,149,168,.40); }
+:global(html.theme-light) .priLo:hover { background: rgba(9,149,168,.14); border-color: rgba(9,149,168,.60); }
+:global(html.theme-light) .priLo::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priLo:hover::before { background: transparent; box-shadow: none; }
+
+:global(html.theme-light) .priMaya { background: rgba(191,95,255,.08); border-color: rgba(191,95,255,.32); }
+:global(html.theme-light) .priMaya:hover { background: rgba(191,95,255,.14); border-color: rgba(191,95,255,.52); }
+:global(html.theme-light) .priMaya::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priMaya:hover::before { background: transparent; box-shadow: none; }
+
+/* Frog card: use darker green values, add subtle bg tint so it stands out */
+:global(html.theme-light) .isFrog { background: rgba(24,176,96,.08); border-color: rgba(24,176,96,.52); }
+:global(html.theme-light) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(24,176,96,.55); }
+:global(html.theme-light) .isFrog:hover { background: rgba(24,176,96,.13); border-color: rgba(24,176,96,.72); }
+:global(html.theme-light) .isFrog:hover::before { box-shadow: 0 0 16px rgba(24,176,96,.65); }
+
+/* Points badges: vivid neons (yel/ora/hot) are too bright on light bg */
+:global(html.theme-light) .p1 { background: rgba(180,135,0,.12); color: #a87a00; border-color: rgba(180,135,0,.30); }
+:global(html.theme-light) .p2 { background: rgba(195,72,0,.10); color: #b84400; border-color: rgba(195,72,0,.28); }
+:global(html.theme-light) .p3 { background: rgba(185,15,48,.10); color: #b00c30; border-color: rgba(185,15,48,.28); }
+
+/* Focused task: more yellow, clearly distinct from orange priMd, glowy */
+:global(html.theme-light) .focusedTask { background: rgba(240,196,32,.22); border-color: rgba(240,196,32,.82); box-shadow: 0 0 10px rgba(240,176,48,.28); }
+:global(html.theme-light) .focusedTask:hover { border-color: rgba(240,196,32,.95); box-shadow: 0 0 14px rgba(240,176,48,.38); }
+:global(html.theme-light) .focusedTask::before { box-shadow: 0 0 22px rgba(240,176,48,.72); }
+
+/* Icon buttons: .42 opacity reads near-invisible on light; bump to visible range */
+:global(html.theme-light) .iconBtnEdit   { color: rgba(190,130,0,.70); }
+:global(html.theme-light) .iconBtnEdit:hover   { color: var(--gold); }
+:global(html.theme-light) .del           { color: rgba(210,25,55,.65); }
+:global(html.theme-light) .del:hover     { color: var(--hot); }
+:global(html.theme-light) .iconBtnAssign { color: rgba(35,85,215,.65); }
+:global(html.theme-light) .iconBtnAssign:hover { color: var(--blu); }
