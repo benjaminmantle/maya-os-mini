@@ -7,7 +7,7 @@ Maya-OS Mini/               ← repo root (.git lives here)
 ├── CLAUDE.md                  ← Claude Code instructions (read first)
 ├── SPEC.md                    ← Full feature specification
 ├── ARCHITECTURE.md            ← This file
-├── HANDOFF.md                 ← Legacy handoff doc (superseded by CLAUDE.md)
+├── HANDOFF.md                 ← Current status, phase history, verification checklist
 ├── TODO.md                    ← User-managed task list
 ├── README.md
 ├── .gitignore
@@ -242,7 +242,7 @@ Parser lives in `utils/parsing.js`. Shared by Day view and Backlog. All tokens o
 | `frog` | isFrog: true | |
 | remaining text | name | |
 
-Defaults: pts=2, time=null, priority=null, isFrog=false.
+Defaults: pts=0.5, time=null, priority=null, isFrog=false.
 
 ---
 
