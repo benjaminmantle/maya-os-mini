@@ -6,49 +6,11 @@ import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
 import { parseInput } from '../../utils/parsing.js';
+import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove } from '../../utils/taskPlacement.js';
 
 const PRI_ORDER = ['hi', 'md', 'lo'];
 const PRI_COLORS = { hi: 'var(--hot)', md: 'var(--pri-md)', lo: 'var(--tel)' };
 const PRI_LABELS = { hi: 'Hi', md: 'Med', lo: 'Lo' };
-
-function priRank(p) { return p === 'maya' ? 0 : p === 'hi' ? 1 : p === 'md' ? 2 : p === 'lo' ? 3 : 4; }
-
-function snapToZone(insertAt, zoneList, pri) {
-  const rank = priRank(pri);
-  let lo = 0, hi = zoneList.length;
-  for (let i = 0; i < zoneList.length; i++) {
-    const r = priRank(zoneList[i].priority);
-    if (r < rank) lo = i + 1;
-    if (r > rank && hi === zoneList.length) hi = i;
-  }
-  return Math.min(Math.max(insertAt, lo), hi);
-}
-
-function insertAtForPri(pri, zoneList) {
-  const rank = priRank(pri);
-  let lo = 0, hi = zoneList.length;
-  for (let i = 0; i < zoneList.length; i++) {
-    const r = priRank(zoneList[i].priority);
-    if (r < rank) lo = i + 1;
-    if (r > rank && hi === zoneList.length) hi = i;
-  }
-  if (pri === null) return lo;
-  return lo + zoneList.slice(lo, hi).filter(t => t.priority === pri).length;
-}
-
-function insertTopOfGroup(pri, zoneList) {
-  const rank = priRank(pri);
-  let lo = 0;
-  for (let i = 0; i < zoneList.length; i++) {
-    if (priRank(zoneList[i].priority) < rank) lo = i + 1;
-  }
-  return lo;
-}
-
-function doMove(id, insertAt, zoneList) {
-  if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);
-  else if (zoneList.length > 0) moveTask(id, zoneList[zoneList.length - 1].id, false);
-}
 
 export default function BacklogPanel({
   tasks,
@@ -56,7 +18,6 @@ export default function BacklogPanel({
   focusedTaskId,
   getTimerDisplay,
   onContextMenu,
-  onDoubleClick,
   focusDate,
 }) {
   const [inputVal, setInputVal] = useState('');

@@ -18,7 +18,7 @@
 
 ## How to run
 ```bash
-cd maya-os
+cd maya-os-mini
 npm run dev    # localhost:5173
 ```
 User runs this in their own terminal. Do not use `preview_*` tools to verify changes — the embedded preview browser doesn't maintain connection on Windows. Do code review instead.
@@ -46,17 +46,13 @@ User runs this in their own terminal. Do not use `preview_*` tools to verify cha
 ## Not yet verified
 - [ ] Frog section right-click complete/undo
 - [ ] Core tasks collapse toggle persists across navigation
-- [ ] Level up overlay fires at exact threshold
 - [ ] v4→v5 migration
 - [ ] AssignPopup positioning on small viewports
 
 ---
 
 ## Known issues
-- `sortTasksForView(null, ...)` matches all unscheduled tasks including unscheduled maya tasks — sorting Backlog can silently reorder the maya array position. Not a visible bug currently.
-- `handleGoToDay` and `handleSwitchDay` in App.jsx are identical — minor dead code.
-- `onDoubleClick` prop received by BacklogPanel but never called.
-- `priRank`, `snapToZone`, `insertAtForPri`, `insertTopOfGroup`, `doMove` are defined identically in both DayView.jsx and BacklogPanel.jsx — candidate for extraction to `src/utils/taskPlacement.js` if a cleanup pass is wanted.
+- None currently.
 
 ---
 

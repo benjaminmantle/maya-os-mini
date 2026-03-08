@@ -16,7 +16,6 @@ export default function Sidebar({
   onEditDaily,
   onDailyContextMenu,
   onTaskContextMenu,
-  onDoubleClick,
 }) {
   const [tab, setTab] = useState('dailies');
   const [backlogDragOver, setBacklogDragOver] = useState(false);
@@ -86,7 +85,6 @@ export default function Sidebar({
           focusedTaskId={focusedTaskId}
           getTimerDisplay={getTimerDisplay}
           onContextMenu={onTaskContextMenu}
-          onDoubleClick={onDoubleClick}
           focusDate={focusDate}
         />
       )}

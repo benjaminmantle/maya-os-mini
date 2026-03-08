@@ -7,6 +7,7 @@ import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
 import { parseInput } from '../../utils/parsing.js';
+import { doMove } from '../../utils/taskPlacement.js';
 
 // Higher mayaPts = earlier in list. insertAt/snap based on this ordering.
 function snapToStarZone(insertAt, zoneList, stars) {
@@ -38,10 +39,6 @@ function insertTopOfStarGroup(stars, zoneList) {
   return lo;
 }
 
-function doMove(id, insertAt, zoneList) {
-  if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);
-  else if (zoneList.length > 0) moveTask(id, zoneList[zoneList.length - 1].id, false);
-}
 
 export default function MayaPanel({
   tasks,

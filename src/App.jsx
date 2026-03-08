@@ -45,11 +45,6 @@ export default function App() {
     setFocusedTaskId(id);
   }, [focusedTaskId, activeTaskId]);
 
-  function handleGoToDay(date) {
-    setWeekNavDate(date);
-    setView('day');
-  }
-
   function handleSwitchDay(date) {
     setWeekNavDate(date);
     setView('day');
@@ -98,7 +93,7 @@ export default function App() {
               days={state.days}
               profile={state.profile}
               target={state.target}
-              onGoToDay={handleGoToDay}
+              onGoToDay={handleSwitchDay}
             />
           </div>
         )}
