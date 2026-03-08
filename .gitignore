@@ -1,14 +1,14 @@
 # Dependencies
-maya-os/node_modules/
+node_modules/
 
 # Build output
-maya-os/dist/
-maya-os/.vite/
+dist/
+.vite/
 
 # Env files
-maya-os/.env
-maya-os/.env.local
-maya-os/.env*.local
+.env
+.env.local
+.env*.local
 
 # Logs
 *.log

@@ -1,5 +1,18 @@
 # Maya OS — Claude Code Instructions
 
+## Project layout
+```
+maya-os-mini/        ← git root, Claude CWD — everything lives here
+├── CLAUDE.md
+├── HANDOFF.md
+├── ARCHITECTURE.md
+├── SPEC.md
+├── TODO.md
+├── package.json
+└── src/
+```
+Docs and source are all at the same level. Source files are at `src/...`.
+
 ## What this project is
 A personal productivity OS. Single-user, local-first, browser-based. No backend yet — all data in localStorage. Dark gamer/cyberpunk UI, gamified task system, minimal cognitive load.
 
@@ -7,9 +20,6 @@ A personal productivity OS. Single-user, local-first, browser-based. No backend 
 - Vite + React 18 (no Next.js)
 - Plain CSS modules — custom design system, not Tailwind
 - All data via centralized store (no direct localStorage in components)
-
-## Reference implementation
-`../maya-os-mini-reference.html` — read-only. If behavior is ambiguous and SPEC.md doesn't resolve it, match this file exactly. **Note:** this file has been deleted from the repo. Use SPEC.md as the primary behavior reference going forward.
 
 ---
 
@@ -109,7 +119,7 @@ npm run dev      # localhost:5173
 npm run build
 npm run preview
 ```
-Run from inside `maya-os/`.
+Run from the project root.
 
 ## Key files
 - `src/App.jsx` — view routing, timer/focus state

@@ -3,19 +3,18 @@
 ## File Structure
 
 ```
-Maya-OS Mini/               ← repo root (.git lives here)
+maya-os-mini/               ← repo root (.git lives here)
 ├── CLAUDE.md                  ← Claude Code instructions (read first)
 ├── SPEC.md                    ← Full feature specification
 ├── ARCHITECTURE.md            ← This file
-├── HANDOFF.md                 ← Current status, phase history, verification checklist
+├── HANDOFF.md                 ← Current status, verification checklist
 ├── TODO.md                    ← User-managed task list
 ├── README.md
 ├── .gitignore
-└── maya-os/                   ← Vite/React app
-    ├── package.json
-    ├── vite.config.js
-    ├── index.html
-    └── src/
+├── package.json
+├── vite.config.js
+├── index.html
+└── src/
         ├── main.jsx               ← React root mount, ToastProvider wrapper
         ├── App.jsx                ← View router, top-level layout, timer/focus state
         │
