@@ -20,7 +20,7 @@ A daily task and habit tracking system with light gamification. Philosophy: redu
   createdAt: string      // ISO timestamp
   // Maya-only fields (only present when priority === 'maya'):
   done?: boolean         // unified completion state (single flag; not dayRecord-derived)
-  mayaPts?: number       // star rating 1–5 (default 1)
+  mayaPts?: number       // star rating 1–3 (default 1)
   _autoScheduled?: true  // internal: set when markMayaDone auto-assigns scheduledDate=today()
                          //           cleared on undo so scheduledDate is also cleared
 }
@@ -124,15 +124,17 @@ All tokens are optional and order-independent. Unrecognized text becomes the tas
 
 | Token | Meaning | Examples |
 |-------|---------|---------|
-| `!hi` / `!h` / `!1` | High priority | `!1`, `!hi` |
-| `!md` / `!m` / `!2` | Med priority | `!2`, `!md` |
-| `!lo` / `!l` / `!3` | Low priority | `!3`, `!lo` |
+| `!hi` / `!h` / `!1` | High priority (regular tasks); 3 stars (maya tasks) | `!1`, `!hi` |
+| `!md` / `!m` / `!2` | Med priority (regular tasks); 2 stars (maya tasks) | `!2`, `!md` |
+| `!lo` / `!l` / `!3` | Low priority (regular tasks); 1 star (maya tasks) | `!3`, `!lo` |
 | `@N` | Points (0, 0.5, 1, 2, 3) | `@2`, `@0.5` |
 | `Nh` / `Nm` | Duration | `2h`, `45m`, `1hr`, `30min` |
 | `Nh+` / `Nm+` | Open-ended duration | `2h+`, `45m+` |
 | `frog` | Frog flag | anywhere in string |
 
-Defaults: pts=2, time=null, priority=null, isFrog=false.
+Defaults: pts=0.5, time=null, priority=null, isFrog=false.
+
+**Maya task quick-add note:** In the Maya panel, `!1/!2/!3` (or `!hi/!md/!lo`) set the star rating instead of the priority color (which is always `maya`). `!1`=3 stars, `!2`=2 stars, `!3`=1 star. No token defaults to 1 star.
 
 ### Task card anatomy
 - Checkbox (scheduled tasks, or any maya task) — toggles completion; maya tasks call `markMayaDone()` which uses `task.done` as the single source of truth

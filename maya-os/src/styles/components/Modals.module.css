@@ -86,7 +86,7 @@
 }
 .schedBtn:hover { border-color: var(--gold); color: var(--gold); }
 .schedBtnOn { border-color: var(--gold); color: var(--gold); background: var(--gd2); }
-.modalFoot { display: flex; gap: 6px; justify-content: flex-end; border-top: 1px solid var(--b2); padding-top: 11px; }
+.modalFoot { display: flex; gap: 6px; justify-content: flex-end; padding-top: 11px; }
 .btn { padding: 7px 13px; border-radius: var(--rs); font-size: 10px; font-weight: 700; transition: all var(--tr); font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; }
 .btnPrimary { background: var(--gold); color: #000; }
 .btnPrimary:hover { box-shadow: 0 0 14px rgba(240,176,48,.45); }
@@ -123,6 +123,7 @@
 }
 .ctxItem:hover { background: var(--s3); color: var(--text); }
 .ctxItemStart:hover { color: var(--grn); }
+.ctxItemDanger { margin-top: 6px; }
 .ctxItemDanger:hover { color: var(--hot); }
 
 /* Assign popup */

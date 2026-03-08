@@ -6,7 +6,8 @@ import { migrateV4toV5 } from './migrations.js';
 
 const STORAGE_KEY = 'maya_os_v5';
 
-let S = {
+// Persist S on window so Vite HMR module re-evaluation doesn't reset in-memory state
+if (!window.__mayaS) window.__mayaS = {
   tasks: [],
   dailies: [],
   days: {},
@@ -14,8 +15,11 @@ let S = {
   target: 10,
   frogsComplete: {},
 };
+let S = window.__mayaS;
 
-const listeners = new Set();
+// Persist listeners on window so Vite HMR module re-evaluation doesn't wipe them
+if (!window.__mayaListeners) window.__mayaListeners = new Set();
+const listeners = window.__mayaListeners;
 
 function persist() {
   localStorage.setItem(STORAGE_KEY, JSON.stringify({
@@ -207,6 +211,19 @@ export function sortTasksForView(date, field, dir) {
         ? (a.pts ?? 1) - (b.pts ?? 1)
         : (b.pts ?? 1) - (a.pts ?? 1);
     }
+    if (field === 'grp') {
+      // Sort by priority group: hi → md → lo → null (desc = hi first)
+      const rank = p => p === 'hi' ? 0 : p === 'md' ? 1 : p === 'lo' ? 2 : 3;
+      return dir === 'desc'
+        ? rank(a.priority) - rank(b.priority)
+        : rank(b.priority) - rank(a.priority);
+    }
+    if (field === 'mgrp') {
+      // Sort by maya star group: 3★ → 2★ → 1★ (desc = highest stars first)
+      return dir === 'desc'
+        ? (b.mayaPts ?? 1) - (a.mayaPts ?? 1)
+        : (a.mayaPts ?? 1) - (b.mayaPts ?? 1);
+    }
     // dur — null durations sort to end regardless of direction
     const av = parseDurMs(a.timeEstimate);
     const bv = parseDurMs(b.timeEstimate);
@@ -351,6 +368,22 @@ export function importTasks(json) {
   } catch (e) {
     return false;
   }
+}
+
+export function carryForwardTasks(toDate) {
+  const todayStr = today();
+  let count = 0;
+  S.tasks = S.tasks.map(t => {
+    if (!t.scheduledDate) return t;
+    if (t.scheduledDate >= todayStr) return t;  // only past dates
+    if (t.priority === 'maya') return t;         // maya tasks exempt
+    const dayRec = S.days[t.scheduledDate];
+    if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
+    count++;
+    return { ...t, scheduledDate: toDate, isFrog: false };
+  });
+  if (count > 0) save();
+  return count;
 }
 
 export function toggleWorkout(date) {

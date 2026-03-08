@@ -13,7 +13,7 @@ import { parseInput } from '../../utils/parsing.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
-  setFrogsComplete, deleteDaily, saveDaily, toggleWorkout,
+  setFrogsComplete, deleteDaily, saveDaily, toggleWorkout, carryForwardTasks,
 } from '../../store/store.js';
 
 const PRI_ORDER = ['hi', 'md', 'lo'];
@@ -50,6 +50,16 @@ function insertAtForPri(pri, zoneList) {
   return lo + zoneList.slice(lo, hi).filter(t => t.priority === pri).length;
 }
 
+// Insert at the TOP of the group (for new task creation — lands first in its group)
+function insertTopOfGroup(pri, zoneList) {
+  const rank = priRank(pri);
+  let lo = 0;
+  for (let i = 0; i < zoneList.length; i++) {
+    if (priRank(zoneList[i].priority) < rank) lo = i + 1;
+  }
+  return lo;
+}
+
 // Move task `id` to insertAt position within zoneList
 function doMove(id, insertAt, zoneList) {
   if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);
@@ -75,6 +85,7 @@ export default function DayView({
   const [assignPopup, setAssignPopup] = useState(null);
   const [sortPts, setSortPts] = useState('desc');
   const [sortDur, setSortDur] = useState('desc');
+  const [sortGrp, setSortGrp] = useState('desc');
   const [deEditName, setDeEditName] = useState('');
   const [deEditType, setDeEditType] = useState('general');
   const [spotlightDropActive, setSpotlightDropActive] = useState(false);
@@ -96,6 +107,16 @@ export default function DayView({
   const frogsDone = !!frogsComplete[focusDate];
   const allFrogsForDay = allForDay.filter(t => t.isFrog);
   const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => isDone(t));
+
+  const todayStr = today();
+  const pastPending = focusDate === todayStr
+    ? tasks.filter(t =>
+        t.scheduledDate &&
+        t.scheduledDate < todayStr &&
+        t.priority !== 'maya' &&
+        !(days[t.scheduledDate]?.cIds?.includes(t.id))
+      )
+    : [];
 
   useEffect(() => {
     const prev = prevFrogStateRef.current;
@@ -125,8 +146,8 @@ export default function DayView({
       id: newId, name: p.name, pts: p.pts, timeEstimate: p.time || null,
       isFrog: p.isFrog, priority: p.priority || null, scheduledDate: focusDate, createdAt: new Date().toISOString(),
     });
-    // Reposition into correct priority zone (active is pre-save state, excludes new task)
-    if (!p.isFrog) doMove(newId, insertAtForPri(p.priority || null, active), active);
+    // Reposition to top of its priority group (active is pre-save state, excludes new task)
+    if (!p.isFrog) doMove(newId, insertTopOfGroup(p.priority || null, active), active);
     setInputVal('');
   }
 
@@ -142,6 +163,11 @@ export default function DayView({
     } else {
       showToast(r.tier === 'perfect' ? '\u2746 perfect day' : r.tier === 'good' ? 'good day' : 'day closed');
     }
+  }
+
+  function handleCarryForward() {
+    const count = carryForwardTasks(todayStr);
+    if (count > 0) showToast(`↺ ${count} brought forward`);
   }
 
   function handleFrogContextMenu(e) {
@@ -220,25 +246,31 @@ export default function DayView({
         const before = e.clientY < rect.top + rect.height / 2;
         if (zone === 'day') {
           const draggedPri = draggedTask?.priority ?? null;
-          const zoneList = active.filter(t => t.id !== id);
-          const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
-          if (targetIdx !== -1) {
-            let insertAt = before ? targetIdx : targetIdx + 1;
-            const prevPri = insertAt > 0 ? (zoneList[insertAt - 1]?.priority ?? null) : undefined;
-            const nextPri = insertAt < zoneList.length ? (zoneList[insertAt]?.priority ?? null) : undefined;
-            // Recolor/decolor if sandwiched between two tasks of identical priority (both null → decolor); maya tasks are immune
-            if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
-              const patch = { priority: prevPri };
-              if (needsZoneChange) { patch.scheduledDate = focusDate; patch.isFrog = false; }
-              updateTask(id, patch);
-            } else {
-              insertAt = snapToZone(insertAt, zoneList, draggedPri);
-              if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
-            }
-            doMove(id, insertAt, zoneList);
-          } else {
+          if (draggedPri === 'maya') {
+            // Maya tasks: link to day via scheduledDate only — skip doMove so they stay in their
+            // MayaPanel position in S.tasks. DayView shows them by scheduledDate; MayaPanel by priority.
             if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
-            moveTask(id, targetCard.dataset.taskid, before);
+          } else {
+            const zoneList = active.filter(t => t.id !== id);
+            const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
+            if (targetIdx !== -1) {
+              let insertAt = before ? targetIdx : targetIdx + 1;
+              const prevPri = insertAt > 0 ? (zoneList[insertAt - 1]?.priority ?? null) : undefined;
+              const nextPri = insertAt < zoneList.length ? (zoneList[insertAt]?.priority ?? null) : undefined;
+              // Recolor/decolor if sandwiched between two tasks of identical priority (both null → decolor); maya tasks are immune
+              if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
+                const patch = { priority: prevPri };
+                if (needsZoneChange) { patch.scheduledDate = focusDate; patch.isFrog = false; }
+                updateTask(id, patch);
+              } else {
+                insertAt = snapToZone(insertAt, zoneList, draggedPri);
+                if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
+              }
+              doMove(id, insertAt, zoneList);
+            } else {
+              if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
+              moveTask(id, targetCard.dataset.taskid, before);
+            }
           }
         } else {
           if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: zone === 'frogs' });
@@ -330,7 +362,26 @@ export default function DayView({
     }
   }
 
-  function renderCard(t, showAssign = false, onPriorityChange = null) {
+  function handleBump(taskId, dir) {
+    const idx = active.findIndex(t => t.id === taskId);
+    if (idx === -1) return;
+    const rank = priRank(active[idx].priority);
+    let lo = 0, hi = active.length;
+    for (let i = 0; i < active.length; i++) {
+      const r = priRank(active[i].priority);
+      if (r < rank) lo = i + 1;
+      if (r > rank && hi === active.length) hi = i;
+    }
+    let targetPos;
+    if (dir === 'up') targetPos = Math.max(lo, idx - 1);
+    else if (dir === 'down') targetPos = Math.min(hi - 1, idx + 1);
+    else if (dir === 'top') targetPos = lo;
+    else targetPos = hi - 1;
+    if (targetPos === idx) return;
+    doMove(taskId, targetPos, active.filter(t => t.id !== taskId));
+  }
+
+  function renderCard(t, showAssign = false, onPriorityChange = null, onBump = null) {
     return (
       <TaskCard
         key={t.id}
@@ -345,6 +396,7 @@ export default function DayView({
         showAssign={showAssign}
         onAssign={handleAssign}
         onDelete={t.priority === 'maya' ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
+        onBump={onBump}
       />
     );
   }
@@ -353,12 +405,11 @@ export default function DayView({
     { label: taskCtx.task.id === activeTaskId ? '\u23f9 Stop' : '\u25b6 Start', start: true, action: () => onStartTask(taskCtx.task.id) },
     { label: taskCtx.task.id === focusedTaskId ? '\u25c7 Unfocus' : '\u25c6 Focus', action: () => onFocusTask(taskCtx.task.id) },
     { label: '\u270e Edit', action: () => setEditTask(taskCtx.task) },
-    { separator: true },
     ...taskCtx.task.priority !== 'maya' ? [
+      { separator: true },
       { label: '\uD83D\uDD34 High priority', active: taskCtx.task.priority === 'hi', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'hi' ? null : 'hi') },
       { label: '\uD83D\uDFE1 Med priority',  active: taskCtx.task.priority === 'md', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'md' ? null : 'md') },
       { label: '\uD83D\uDD35 Low priority',  active: taskCtx.task.priority === 'lo', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'lo' ? null : 'lo') },
-      { separator: true },
     ] : [],
     taskCtx.task.priority === 'maya'
       ? { label: '\uD83D\uDCC5 Remove from day', danger: true, action: () => updateTask(taskCtx.task.id, { scheduledDate: null }) }
@@ -402,17 +453,22 @@ export default function DayView({
             <span className={styles.scoreNum}>{sc.dDone}/{sc.dTot}</span>
           </div>
           <div className={styles.scoreFoot}>
-            <button
-              className={dayRecord.workout ? styles.workoutBtnOn : styles.workoutBtn}
+            <div
+              className={dayRecord.workout ? styles.workoutLabelDone : styles.workoutLabel}
               onClick={() => toggleWorkout(focusDate)}
-            >Workout</button>
-            <button className={styles.closeBtn} onClick={handleCloseDay}>{dayRecord.closed ? 'Reopen Day' : 'Close Day'}</button>
+            >🥊&nbsp;Workout{dayRecord.workout && <span className={styles.workoutCheck}> ✓</span>}</div>
+            <div className={styles.scoreFootRight}>
+              {pastPending.length > 0 && (
+                <button className={styles.carryBtn} onClick={handleCarryForward} title="Bring past incomplete tasks to today">↺ {pastPending.length}</button>
+              )}
+              <button className={styles.closeBtn} onClick={handleCloseDay}>{dayRecord.closed ? 'Reopen Day' : 'Close Day'}</button>
+            </div>
           </div>
         </div>
 
         {/* Frogs */}
         <div className={allFrogsDoneAuto ? styles.frogSecAllDone : (frogsDone ? styles.frogSecDone : styles.frogSec)} onContextMenu={handleFrogContextMenu}>
-          <div className={styles.secLbl + ' ' + styles.secLblFrog} style={{ marginBottom:7, cursor:'context-menu' }}>
+          <div className={styles.secLbl + ' ' + styles.secLblFrog} style={{ marginBottom:7, cursor:'pointer' }} onClick={handleFrogContextMenu}>
             {'\uD83D\uDC38'}&nbsp;Frogs{(frogsDone || allFrogsDoneAuto) && <span className={styles.frogCheck}>{' \u2713'}</span>}
           </div>
           <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(true)} onDragLeave={handleDragLeave} onDrop={makeDrop('frogs')}>
@@ -465,6 +521,7 @@ export default function DayView({
                 <div className={styles.toolGroup}>
                   <button className={styles.sortBtn} title="Sort by points" onClick={() => { sortTasksForView(focusDate, 'pts', sortPts); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
                   <button className={styles.sortBtn} title="Sort by duration" onClick={() => { sortTasksForView(focusDate, 'dur', sortDur); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
+                  <button className={styles.sortBtn} title="Sort by priority group" onClick={() => { sortTasksForView(focusDate, 'grp', sortGrp); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
                 </div>
               </div>
               <div className={styles.qaRow} style={{ marginBottom:7 }}>
@@ -472,7 +529,7 @@ export default function DayView({
                 <button className={styles.qaBtn} onClick={handleAdd}>+</button>
               </div>
               <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(false)} onDragLeave={handleDragLeave} onDrop={makeDrop('day')}>
-                {active.length ? active.map(t => renderCard(t, true, handlePriorityChange)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
+                {active.length ? active.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
               </div>
             </>
           )}
@@ -528,7 +585,7 @@ export default function DayView({
                 <option value="admin">Admin</option>
               </select>
             </div>
-            <div style={{ display:'flex', gap:6, justifyContent:'flex-end', borderTop:'1px solid var(--b2)', paddingTop:11 }}>
+            <div style={{ display:'flex', gap:6, justifyContent:'flex-end', paddingTop:11 }}>
               <button style={{ ...btnBase, background:'transparent', color:'var(--hot)', border:'1px solid rgba(255,48,96,.28)' }} onClick={() => { deleteDaily(editDaily.id); setEditDaily(null); }}>Delete</button>
               <button style={{ ...btnBase, background:'var(--s1)', color:'var(--t2)', border:'1px solid var(--b2)' }} onClick={() => setEditDaily(null)}>Cancel</button>
               <button style={{ ...btnBase, background:'var(--gold)', color:'#000', border:'none' }} onClick={handleDailySave}>Save</button>

@@ -112,8 +112,15 @@
   color: var(--t3);
   transition: all var(--tr);
 }
-.iconBtn:hover { background: var(--s2); color: var(--gold); }
-.del:hover { color: var(--hot); }
+.iconBtn:hover { background: var(--s2); }
+
+/* Soft colored defaults — dim tint at rest, saturate on hover */
+.iconBtnEdit   { color: rgba(240,176,48,.42); }
+.iconBtnEdit:hover   { color: var(--gold); }
+.del           { color: rgba(255,48,96,.42); }
+.del:hover     { color: var(--hot); }
+.iconBtnAssign { color: rgba(68,136,255,.42); }
+.iconBtnAssign:hover { color: var(--blu); }
 
 /* Priority backgrounds — no left bar, subtle tint only */
 .priHi { background: rgba(255,48,96,.04); border-color: rgba(255,48,96,.2); }
@@ -153,3 +160,54 @@
 
 /* Color-tool cursor mode */
 .colorToolMode { cursor: crosshair !important; }
+
+/* Card right-side button block */
+.cardActions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 2px;
+  flex-shrink: 0;
+}
+.cardActionsRow {
+  display: flex;
+  align-items: center;
+}
+
+/* Bump position buttons — single horizontal row, fade in on hover */
+.bumpBtns {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  opacity: 0;
+  transition: opacity var(--tr);
+}
+.taskCard:hover .bumpBtns { opacity: 1; }
+
+/* Maya second-row bump buttons — rendered only on hover via React state, no opacity trick.
+   flex-wrap + fixed 48px width forces a 2×2 grid [↑⇈] / [↓⇊] so it never exceeds the
+   3-icon row width (72px) and never pushes task text on any card/screen width. */
+.bumpBtnsRow {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  width: 48px;
+}
+.bumpBtn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--rs);
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  color: var(--t3);
+  cursor: pointer;
+  transition: color var(--tr), background var(--tr);
+  line-height: 1;
+  padding: 0;
+  background: transparent;
+}
+.bumpBtn:hover { color: var(--gold); background: var(--s2); }

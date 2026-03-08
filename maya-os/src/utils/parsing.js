@@ -27,5 +27,5 @@ export function parseInput(raw) {
   const dm = t.match(/@(0\.5|[0-3])\b/);
   if (dm) { pts = +dm[1]; t = t.replace(dm[0], '').trim(); }
 
-  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 2, time, isFrog, priority };
+  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, priority };
 }

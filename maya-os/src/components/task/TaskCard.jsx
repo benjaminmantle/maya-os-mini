@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
 import { updateTask, deleteTask, markTaskComplete, markMayaDone } from '../../store/store.js';
@@ -17,7 +18,9 @@ export default function TaskCard({
   onStarChange,
   showDateChip,
   onDelete,
+  onBump,
 }) {
+  const [hovered, setHovered] = useState(false);
   const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya'
   // Maya tasks use task.done as their single done flag everywhere
   const done = pri === 'maya'
@@ -107,6 +110,8 @@ export default function TaskCard({
       onDragEnd={handleDragEnd}
       onContextMenu={onContextMenu}
       onClick={handleCardClick}
+      onMouseEnter={() => setHovered(true)}
+      onMouseLeave={() => setHovered(false)}
     >
       {(dayRecord || pri === 'maya') && (
         <div
@@ -163,11 +168,38 @@ export default function TaskCard({
           </div>
         )}
       </div>
-      {showAssign && (
-        <button className={styles.iconBtn} onClick={(e) => { e.stopPropagation(); onAssign(task.id, e); }} title="Assign">📅</button>
-      )}
-      <button className={`${styles.iconBtn} ${styles.del}`} onClick={handleDelete} title="Delete">✕</button>
-      <button className={styles.iconBtn} onClick={(e) => { e.stopPropagation(); onContextMenu(e); }} title="Edit">✎</button>
+      <div className={styles.cardActions}>
+        <div className={styles.cardActionsRow}>
+          {onBump && pri !== 'maya' && (
+            <div className={styles.bumpBtns}>
+              <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'up'); }} title="Up one">↑</button>
+              <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'top'); }} title="To top">⇈</button>
+              <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'down'); }} title="Down one">↓</button>
+              <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'bottom'); }} title="To bottom">⇊</button>
+            </div>
+          )}
+          <button className={`${styles.iconBtn} ${styles.iconBtnEdit}`} onClick={(e) => { e.stopPropagation(); onContextMenu(e); }} title="Edit">✎</button>
+          <button className={`${styles.iconBtn} ${styles.del}`} onClick={handleDelete} title="Delete">✕</button>
+          {showAssign && (
+            <button className={`${styles.iconBtn} ${styles.iconBtnAssign}`} onClick={(e) => { e.stopPropagation(); onAssign(task.id, e); }} title="Assign">
+              <svg width="13" height="13" viewBox="0 0 13 13" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+                <rect x="1" y="2.5" width="11" height="9.5" rx="1.2" />
+                <line x1="1" y1="5.5" x2="12" y2="5.5" />
+                <line x1="4" y1="1" x2="4" y2="4" />
+                <line x1="9" y1="1" x2="9" y2="4" />
+              </svg>
+            </button>
+          )}
+        </div>
+        {onBump && pri === 'maya' && hovered && (
+          <div className={styles.bumpBtnsRow}>
+            <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'up'); }} title="Up one">↑</button>
+            <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'top'); }} title="To top">⇈</button>
+            <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'down'); }} title="Down one">↓</button>
+            <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'bottom'); }} title="To bottom">⇊</button>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

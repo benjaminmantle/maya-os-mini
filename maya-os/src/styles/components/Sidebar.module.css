@@ -23,6 +23,7 @@
 }
 .stab:hover { color: var(--t2); }
 .stabActive { color: var(--gold); border-bottom-color: var(--gold); }
+.stabDragOver { color: var(--gold) !important; border-bottom-color: var(--gold) !important; background: rgba(240,176,48,.07); }
 .stabPanel { display: none; flex-direction: column; flex: 1; overflow: hidden; }
 .stabPanelActive { display: flex; }
 .panelAdd { padding: 10px 12px 8px; border-bottom: 1px solid var(--b2); flex-shrink: 0; }
