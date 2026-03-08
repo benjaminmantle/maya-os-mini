@@ -7,7 +7,7 @@ import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
 import { parseInput } from '../../utils/parsing.js';
-import { doMove } from '../../utils/taskPlacement.js';
+import { doMove, insertAtForStars } from '../../utils/taskPlacement.js';
 
 // Higher mayaPts = earlier in list. insertAt/snap based on this ordering.
 function snapToStarZone(insertAt, zoneList, stars) {
@@ -18,17 +18,6 @@ function snapToStarZone(insertAt, zoneList, stars) {
     if (r < stars && hi === zoneList.length) hi = i;
   }
   return Math.min(Math.max(insertAt, lo), hi);
-}
-
-function insertAtForStars(stars, zoneList) {
-  let lo = 0, hi = zoneList.length;
-  for (let i = 0; i < zoneList.length; i++) {
-    const r = zoneList[i].mayaPts ?? 1;
-    if (r > stars) lo = i + 1;
-    if (r < stars && hi === zoneList.length) hi = i;
-  }
-  // Insert at end of matching star group
-  return lo + zoneList.slice(lo, hi).filter(t => (t.mayaPts ?? 1) === stars).length;
 }
 
 function insertTopOfStarGroup(stars, zoneList) {

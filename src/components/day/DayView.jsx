@@ -10,7 +10,7 @@ import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
 import { parseInput } from '../../utils/parsing.js';
-import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove } from '../../utils/taskPlacement.js';
+import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, insertAtForStars } from '../../utils/taskPlacement.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
@@ -59,6 +59,8 @@ export default function DayView({
   const allForDay = tasks.filter(t => t.scheduledDate === focusDate);
   const frogs = allForDay.filter(t => t.isFrog && !isDone(t) && t.id !== spId);
   const active = allForDay.filter(t => !t.isFrog && !isDone(t) && t.id !== spId);
+  // Maya tasks always rendered first so they stay grouped; each sub-group preserves S.tasks order
+  const activeSorted = [...active.filter(t => t.priority === 'maya'), ...active.filter(t => t.priority !== 'maya')];
   const done = allForDay.filter(t => isDone(t));
   const frogsDone = !!frogsComplete[focusDate];
   const allFrogsForDay = allForDay.filter(t => t.isFrog);
@@ -103,7 +105,7 @@ export default function DayView({
       isFrog: p.isFrog, priority: p.priority || null, scheduledDate: focusDate, createdAt: new Date().toISOString(),
     });
     // Reposition to top of its priority group (active is pre-save state, excludes new task)
-    if (!p.isFrog) doMove(newId, insertTopOfGroup(p.priority || null, active), active);
+    if (!p.isFrog) doMove(newId, insertTopOfGroup(p.priority || null, activeSorted), activeSorted);
     setInputVal('');
   }
 
@@ -203,11 +205,22 @@ export default function DayView({
         if (zone === 'day') {
           const draggedPri = draggedTask?.priority ?? null;
           if (draggedPri === 'maya') {
-            // Maya tasks: link to day via scheduledDate only — skip doMove so they stay in their
-            // MayaPanel position in S.tasks. DayView shows them by scheduledDate; MayaPanel by priority.
-            if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
+            if (needsZoneChange) {
+              // Initial assignment: link to day via scheduledDate only — skip doMove to preserve
+              // MayaPanel star-group order. activeSorted will render it at top on next render.
+              updateTask(id, { scheduledDate: focusDate, isFrog: false });
+            } else {
+              // Already on this day: allow repositioning within the maya group
+              const zoneList = activeSorted.filter(t => t.id !== id);
+              const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
+              if (targetIdx !== -1) {
+                let insertAt = before ? targetIdx : targetIdx + 1;
+                insertAt = snapToZone(insertAt, zoneList, 'maya');
+                doMove(id, insertAt, zoneList);
+              }
+            }
           } else {
-            const zoneList = active.filter(t => t.id !== id);
+            const zoneList = activeSorted.filter(t => t.id !== id);
             const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
             if (targetIdx !== -1) {
               let insertAt = before ? targetIdx : targetIdx + 1;
@@ -302,11 +315,17 @@ export default function DayView({
     onFocusTask(id);
   }
 
+  function handleStarChange(taskId, n) {
+    updateTask(taskId, { mayaPts: n });
+    const allMaya = tasks.filter(t => t.priority === 'maya' && !t.done && t.id !== taskId);
+    doMove(taskId, insertAtForStars(n, allMaya), allMaya);
+  }
+
   function handlePriorityChange(taskId, newPri) {
     updateTask(taskId, { priority: newPri });
-    const inActive = active.some(t => t.id === taskId);
+    const inActive = activeSorted.some(t => t.id === taskId);
     if (inActive) {
-      const zone = active.filter(t => t.id !== taskId);
+      const zone = activeSorted.filter(t => t.id !== taskId);
       doMove(taskId, insertAtForPri(newPri, zone), zone);
     } else {
       // Backlog task (right-clicked from context menu)
@@ -319,14 +338,14 @@ export default function DayView({
   }
 
   function handleBump(taskId, dir) {
-    const idx = active.findIndex(t => t.id === taskId);
+    const idx = activeSorted.findIndex(t => t.id === taskId);
     if (idx === -1) return;
-    const rank = priRank(active[idx].priority);
-    let lo = 0, hi = active.length;
-    for (let i = 0; i < active.length; i++) {
-      const r = priRank(active[i].priority);
+    const rank = priRank(activeSorted[idx].priority);
+    let lo = 0, hi = activeSorted.length;
+    for (let i = 0; i < activeSorted.length; i++) {
+      const r = priRank(activeSorted[i].priority);
       if (r < rank) lo = i + 1;
-      if (r > rank && hi === active.length) hi = i;
+      if (r > rank && hi === activeSorted.length) hi = i;
     }
     let targetPos;
     if (dir === 'up') targetPos = Math.max(lo, idx - 1);
@@ -334,7 +353,7 @@ export default function DayView({
     else if (dir === 'top') targetPos = lo;
     else targetPos = hi - 1;
     if (targetPos === idx) return;
-    doMove(taskId, targetPos, active.filter(t => t.id !== taskId));
+    doMove(taskId, targetPos, activeSorted.filter(t => t.id !== taskId));
   }
 
   function renderCard(t, showAssign = false, onPriorityChange = null, onBump = null) {
@@ -349,6 +368,8 @@ export default function DayView({
         onContextMenu={e => handleTaskContextMenu(e, t)}
         activePriColor={activePriColor}
         onPriorityChange={onPriorityChange}
+        onStarChange={handleStarChange}
+        inlineBump
         showAssign={showAssign}
         onAssign={handleAssign}
         onDelete={t.priority === 'maya' ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
@@ -485,7 +506,7 @@ export default function DayView({
                 <button className={styles.qaBtn} onClick={handleAdd}>+</button>
               </div>
               <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(false)} onDragLeave={handleDragLeave} onDrop={makeDrop('day')}>
-                {active.length ? active.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
+                {activeSorted.length ? activeSorted.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
               </div>
             </>
           )}

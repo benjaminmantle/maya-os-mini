@@ -174,7 +174,7 @@
   align-items: center;
 }
 
-/* Bump position buttons — single horizontal row, fade in on hover */
+/* Bump buttons inline (DayView) — same row as icon buttons, fade in on hover, no height change */
 .bumpBtns {
   display: flex;
   flex-direction: row;
@@ -184,9 +184,7 @@
 }
 .taskCard:hover .bumpBtns { opacity: 1; }
 
-/* Maya second-row bump buttons — rendered only on hover via React state, no opacity trick.
-   flex-wrap + fixed 48px width forces a 2×2 grid [↑⇈] / [↓⇊] so it never exceeds the
-   3-icon row width (72px) and never pushes task text on any card/screen width. */
+/* Bump buttons second row (sidebars) — 2×2 grid [↑⇈]/[↓⇊], rendered on hover via React state */
 .bumpBtnsRow {
   display: flex;
   flex-direction: row;

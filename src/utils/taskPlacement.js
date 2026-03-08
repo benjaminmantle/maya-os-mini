@@ -47,3 +47,15 @@ export function doMove(id, insertAt, zoneList) {
   if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);
   else if (zoneList.length > 0) moveTask(id, zoneList[zoneList.length - 1].id, false);
 }
+
+// Insert a maya task at the end of its star group (for star-change repositioning)
+// Higher mayaPts = earlier in list (3★ first, 1★ last)
+export function insertAtForStars(stars, zoneList) {
+  let lo = 0, hi = zoneList.length;
+  for (let i = 0; i < zoneList.length; i++) {
+    const r = zoneList[i].mayaPts ?? 1;
+    if (r > stars) lo = i + 1;
+    if (r < stars && hi === zoneList.length) hi = i;
+  }
+  return lo + zoneList.slice(lo, hi).filter(t => (t.mayaPts ?? 1) === stars).length;
+}

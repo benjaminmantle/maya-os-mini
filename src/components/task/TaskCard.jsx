@@ -19,6 +19,7 @@ export default function TaskCard({
   showDateChip,
   onDelete,
   onBump,
+  inlineBump,
 }) {
   const [hovered, setHovered] = useState(false);
   const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya'
@@ -170,7 +171,7 @@ export default function TaskCard({
       </div>
       <div className={styles.cardActions}>
         <div className={styles.cardActionsRow}>
-          {onBump && pri !== 'maya' && (
+          {onBump && inlineBump && (
             <div className={styles.bumpBtns}>
               <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'up'); }} title="Up one">↑</button>
               <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'top'); }} title="To top">⇈</button>
@@ -191,7 +192,7 @@ export default function TaskCard({
             </button>
           )}
         </div>
-        {onBump && pri === 'maya' && hovered && (
+        {onBump && !inlineBump && hovered && (
           <div className={styles.bumpBtnsRow}>
             <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'up'); }} title="Up one">↑</button>
             <button className={styles.bumpBtn} onClick={e => { e.stopPropagation(); onBump(task.id, 'top'); }} title="To top">⇈</button>
