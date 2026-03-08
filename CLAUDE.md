@@ -77,8 +77,8 @@ Never pass `renderCard` directly as a `.map()` callback — map passes `(item, i
 ### scoreRecord — do not strip
 `days[date].scoreRecord` stores the XP/streak delta from Close Day. `reopenDay()` reads it to reverse changes. Never strip or ignore this field.
 
-### HMR state corruption (dev only)
-After many rapid saves, Vite HMR can partially reset the store's `listeners` Set — clicks stop updating UI with no JS errors. Hard reload fixes it. Not a production issue.
+### HMR stability (dev only)
+`S` and `listeners` are stored on `window.__mayaS` and `window.__mayaListeners` so Vite HMR module re-evaluation doesn't wipe them. If UI still stops responding after many saves, hard reload fixes it. No effect in production.
 
 ### Drag-and-drop group integrity
 Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `DayView.jsx` (`makeDrop('day')`) and `BacklogPanel.jsx` must not be removed.
@@ -97,6 +97,9 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 
 ### Maya tasks in DayView — unschedule, don't delete
 In DayView, the delete action for maya tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. The context menu label is "📅 Remove from day". Priority hi/md/lo items are hidden for maya tasks. The sandwich recolor guard must skip maya tasks (`prevPri !== 'maya' && draggedPri !== 'maya'`).
+
+### Maya drag to DayView — linked copy, skip doMove
+When a maya task is dragged into the DayView day zone, `makeDrop('day')` ONLY calls `updateTask({ scheduledDate: focusDate, isFrog: false })` — it does NOT call `doMove`. This is intentional: `doMove` would relocate the task in `S.tasks` between non-maya day tasks, breaking its position in the Maya panel. MayaPanel filters by `priority === 'maya' && !done` (no scheduledDate condition) so the task naturally appears in both views. Do not add `doMove` back for maya tasks in this path.
 
 ---
 

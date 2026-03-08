@@ -84,16 +84,16 @@ Two-column layout: main column left, sidebar right.
 
 **Main column (top to bottom):**
 1. Date navigation — prev/next arrows, date display, "Today" jump button
-2. Score block — points progress bar, dailies progress bar, Workout toggle, Close Day button
+2. Score block — points progress bar, dailies progress bar, Workout toggle, Carry Forward button (when applicable), Close Day button
 3. Frogs section — drop zone for frog tasks; right-click section to mark complete (dims + green ✓); toggleable
 4. Spotlight zone — appears only when a task is focused or active; shows full interactive task card with label "◆ Up Next" or "▶ Running"
-5. Core Tasks — toolbar (priority paint, sort), quick-add input, task list, hide/show collapse toggle
+5. Core Tasks — toolbar (priority paint buttons, sort buttons: P pts / T duration / G group), quick-add input, task list, hide/show collapse toggle
 6. Done section — completed tasks for the day (auto-shown when any exist)
 
 **Sidebar (tabbed):**
 - **Dailies tab** (default) — list of daily habits; click to toggle completion; hover shows edit/delete buttons; drag to reorder; right-click for context menu; "+ add daily" collapsed button at bottom
-- **Backlog tab** — unscheduled non-maya tasks; quick-add input; assign button (📅) per task
-- **Maya tab** — Maya tasks (`priority === 'maya'`) that are not yet done; quick-add prefixes `MAYA — `; star rating (1–5) per task; purple accent; assign button (📅) per task; dropping non-maya tasks here is silently rejected
+- **Backlog tab** — unscheduled non-maya tasks; quick-add input; assign button per task; sort buttons: P / T / G (priority group: hi→md→lo→null)
+- **Maya tab** — Maya tasks (`priority === 'maya'`) that are not yet done; quick-add; star rating (1–3) per task; purple accent; assign button per task; sort buttons: P / T / G (star group: 3★→2★→1★); dropping non-maya tasks here is silently rejected
 
 ### Week View
 7-day grid. Each day shows: weekday, date number, points progress bar, task snippets (up to 4), dailies completion count. Drag tasks to reschedule. Click day to navigate to it in Day view.
@@ -177,6 +177,7 @@ Defaults: pts=0.5, time=null, priority=null, isFrog=false.
 - Dropping into core tasks sets isFrog=false, scheduledDate=focusDate
 - Dropping into backlog sets scheduledDate=null, isFrog=false
 - Dropping onto a day tab sets scheduledDate=that date
+- **Maya linked copy**: Maya tasks dragged to DayView or a day tab only set `scheduledDate` — `priority` and `done` are untouched. The task appears in DayView AND stays in the Maya tab (MayaPanel filters by `priority === 'maya' && !done`, not by scheduledDate). Dragging maya tasks to the Backlog panel or Backlog tab is silently rejected.
 - Week view: drag task to day column to reschedule
 - **Group integrity**: same-priority tasks stay as contiguous groups; dragging into the middle of a group snaps to the nearest group boundary
 - **Frog zone styling**: dragging into frogs always shows green styling regardless of priority color
@@ -244,6 +245,12 @@ Tiers: perfect / good / decent / half / poor / fail
 - Re-closing after reopen computes a fresh score from current state; no double-counting
 - Button shows "Close Day" / "Reopen Day" accordingly
 
+### Carry Forward
+- **↺ N button** appears in the score block footer, only when: viewing today AND there is at least one non-maya, non-done task scheduled for a past date
+- Clicking calls `carryForwardTasks(today())`: sets `scheduledDate = today()` and `isFrog = false` on all qualifying tasks; shows toast `↺ N brought forward`
+- Past frogs become regular core tasks (isFrog cleared); priority, duration, and points are preserved
+- Button disappears after use (pastPending becomes 0); not shown on past/future day views
+
 ### Workout
 - Workout button on score block toggles workout status for the day
 - Tracked in DayRecord.workout; shown in stats (total workouts, streak)
@@ -301,7 +308,7 @@ Computed from last 5 closed days: rising / stable / slipping. Shown in topbar ch
 - frogsComplete is per-day, not per-task — it marks the whole frog session as done
 - Stats view completion rates include all days ever tracked (not just recent)
 - Timer state (activeTask, activeStart) is in-memory only — not persisted across page loads by design
-- HMR during active development can corrupt store listeners (listeners Set gets reset); hard page reload always fixes it
+- HMR stability: `S` and `listeners` are stored on `window.__mayaS` / `window.__mayaListeners` to survive Vite module re-evaluation; hard reload still fixes any remaining edge cases
 - getDayRecord() has a side effect during render (initializes missing day records) — intentional, does not call save()
 - Maya task `done` state is `task.done` (boolean on the task itself), NOT derived from `dayRecord.cIds`. `isDone(t)` in DayView abstracts this: `t.priority === 'maya' ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`
 - `markMayaDone` auto-assigns `scheduledDate = today()` if task is unscheduled when checked (tracked via `_autoScheduled`); reverses on uncheck. This ensures the task appears in the correct day's `cIds` for Close Day scoring without double-counting

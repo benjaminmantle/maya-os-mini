@@ -130,6 +130,10 @@ export function markMayaDone(taskId, done)  // unified maya completion: sets tas
                                              // auto-assigns scheduledDate=today() if unscheduled
 export function moveTask(draggedId, targetId, before)
 export function sortTasksForView(date, field, dir)
+                                // fields: 'pts', 'dur', 'grp' (hi→md→lo→null), 'mgrp' (3★→2★→1★ for maya)
+export function carryForwardTasks(toDate)
+                                // moves all past non-done non-maya scheduled tasks to toDate;
+                                // sets isFrog=false on each; returns count moved
 
 // ── Daily mutators ────────────────────────────────────────
 export function saveDailies(dailies)    // full replacement (for reorder)
@@ -321,3 +325,4 @@ Suggested: Supabase (Postgres + realtime + auth, generous free tier).
 | No confirm() dialogs | Blocked in sandboxed iframes, bad UX |
 | getDayRecord side-effect during render | Lazy init, no save() call — acceptable tradeoff |
 | DayView monolithic | Matches reference HTML structure, avoids over-engineering |
+| S and listeners on window (store.js) | Survives Vite HMR module re-evaluation; no-op in production |
