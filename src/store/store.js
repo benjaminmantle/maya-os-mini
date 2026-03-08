@@ -368,7 +368,7 @@ export function importData(json) {
 export function exportTasks() {
   const completedIds = new Set(Object.values(S.days).flatMap(d => d.cIds || []));
   const unfinished = S.tasks.filter(t => !completedIds.has(t.id));
-  return JSON.stringify({ version: 'maya_os_tasks_v1', tasks: unfinished }, null, 2);
+  return JSON.stringify({ version: 'maya_os_tasks_v2', tasks: unfinished, dailies: S.dailies }, null, 2);
 }
 
 export function importTasks(json) {
@@ -378,6 +378,8 @@ export function importTasks(json) {
     const now = new Date().toISOString();
     const incoming = d.tasks.map(t => ({ ...t, id: uid(), createdAt: now }));
     S.tasks = [...S.tasks, ...incoming];
+    // Restore dailies if present in the export (v2+); absent in old exports — leave unchanged
+    if (Array.isArray(d.dailies)) S.dailies = d.dailies;
     save();
     return incoming.length;
   } catch (e) {
