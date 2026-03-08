@@ -195,10 +195,13 @@ export function moveTask(draggedId, targetId, before) {
   save();
 }
 
-// Permanently sort a subset of tasks (by date for day view, or null for backlog)
-export function sortTasksForView(date, field, dir) {
+// Permanently sort a subset of tasks (by date for day view, or null for backlog/maya).
+// mayaOnly: true = only maya tasks, false (default) = exclude maya tasks (for backlog).
+export function sortTasksForView(date, field, dir, mayaOnly = false) {
   const match = date === null
-    ? (t) => !t.scheduledDate
+    ? mayaOnly
+      ? (t) => !t.scheduledDate && t.priority === 'maya'
+      : (t) => !t.scheduledDate && t.priority !== 'maya'
     : (t) => t.scheduledDate === date && !t.isFrog;
   const indices = [];
   const slice = [];
@@ -269,7 +272,14 @@ export function markDailyComplete(dailyId, date, done) {
 // This restores the profile to its pre-close state.
 function reverseScoreRecord(record) {
   const p = S.profile;
-  p.exp = Math.max(0, (p.exp || 0) - record.expDelta);
+  // New records store expBefore/levelBefore for exact reversal (handles level-ups correctly).
+  // Old records fall back to the delta approach.
+  if (record.expBefore !== undefined) {
+    p.exp = record.expBefore;
+    p.level = record.levelBefore;
+  } else {
+    p.exp = Math.max(0, (p.exp || 0) - record.expDelta);
+  }
   if (record.streakIncremented) {
     p.streak = Math.max(0, (p.streak || 0) - 1);
   }
@@ -286,10 +296,15 @@ export function closeDay(date) {
     day.scoreRecord = null;
   }
   const longestBefore = S.profile.longest || 0;
+  // Snapshot exp/level before scoring so reopen can restore them exactly,
+  // even if a level-up occurred (level-up consumes exp, making the delta wrong).
+  const expBefore = S.profile.exp || 0;
+  const levelBefore = S.profile.level || 1;
   const result = closeDayScoring(date, S);
-  // Store the delta so it can be reversed cleanly on reopen.
   day.scoreRecord = {
     expDelta: result.gain,
+    expBefore,
+    levelBefore,
     streakIncremented: result.tier === 'perfect',
     longestBefore,
     perfectDelta: result.tier === 'perfect' ? 1 : 0,

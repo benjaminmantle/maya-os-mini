@@ -159,7 +159,7 @@ export default function DayView({
     }
     const r = closeDay(focusDate);
     if (r.leveled) {
-      setLevelUp(profile.level);
+      setLevelUp(r.profile.level);
     } else {
       showToast(r.tier === 'perfect' ? '\u2746 perfect day' : r.tier === 'good' ? 'good day' : 'day closed');
     }
