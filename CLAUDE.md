@@ -37,10 +37,13 @@ A personal productivity OS. Single-user, local-first, browser-based. No backend 
 
 ## Documentation Maintenance
 
-After any major feature or architectural change:
-- Update **ARCHITECTURE.md** — file structure, new patterns
-- Update **SPEC.md** — if behavior changed
-- Update **CLAUDE.md** — if new conventions were established
+**Update docs at the end of every session that adds a feature, changes behavior, or establishes a new pattern.** Do not wait to be asked. Docs are part of the deliverable.
+
+- **ARCHITECTURE.md** — file tree entries, new utility functions, new patterns (theme system, CSS conventions, etc.)
+- **SPEC.md** — any visible behavior change: new UI controls, changed interactions, new settings
+- **CLAUDE.md** — new gotchas, new conventions, new critical rules learned during implementation
+
+Scope: even "small" changes (a new state variable, a renamed function, a tab color) should be noted if they'd trip up a future Claude session. Err on the side of over-documenting.
 
 **SPEC.md may be outdated.** Treat as reference only. Actual implemented behavior takes precedence.
 
@@ -111,6 +114,21 @@ In DayView, the delete action for maya tasks calls `updateTask(id, { scheduledDa
 ### Maya drag to DayView — linked copy, skip doMove
 When a maya task is dragged into the DayView day zone, `makeDrop('day')` ONLY calls `updateTask({ scheduledDate: focusDate, isFrog: false })` — it does NOT call `doMove`. This is intentional: `doMove` would relocate the task in `S.tasks` between non-maya day tasks, breaking its position in the Maya panel. MayaPanel filters by `priority === 'maya' && !done` (no scheduledDate condition) so the task naturally appears in both views. Do not add `doMove` back for maya tasks in this path.
 
+### Theme system — dark is the default, no class
+Dark theme uses `:root` defaults. Other themes apply a class on `<html>` (`theme-dim`, `theme-light`, `theme-vanilla`, `theme-white`). When adding light-mode CSS overrides in a CSS module, always use `:global(html.theme-light)` — never `:root` or unscoped rules. Combine all light-variant selectors:
+```css
+:global(html.theme-light) .foo,
+:global(html.theme-vanilla) .foo,
+:global(html.theme-white) .foo { ... }
+```
+`overflow: hidden` on `.topbar` was removed to allow the theme dropdown to escape — do not restore it.
+
+### Em dash — applyEmDash must be wired to all name inputs
+`applyEmDash(str)` in `parsing.js` converts `--X` (where X is not `-`) to `—X`. It must be applied in `onChange` on every input where a user types a task/daily name. Current inputs covered: DayView core task quick-add, DayView daily-edit modal, BacklogPanel, MayaPanel, TaskEditModal name field, DailiesPanel add form. Any new name input must also import and wire `applyEmDash`.
+
+### Done section and Core Tasks — both have collapse state
+`DayView.jsx` has `coreHidden` and `doneHidden` boolean states (both start `false`). Both sections use the `secRow` + `collapseBtn` pattern. The Done section only renders when `done.length > 0`. Do not merge or remove either state.
+
 ---
 
 ## Commands
@@ -128,7 +146,7 @@ Run from the project root.
 - `src/components/day/DayView.jsx` — main view (intentionally monolithic)
 - `src/components/NavTabs.jsx` — navigation
 - `src/hooks/useStore.js` — store subscription
-- `src/utils/parsing.js` — quick-add syntax parser
+- `src/utils/parsing.js` — quick-add syntax parser; `applyEmDash()` for -- → — conversion
 - `src/utils/scoring.js` — XP, leveling, day tier logic
 
 See ARCHITECTURE.md for full file tree, store API, patterns, and reference material.

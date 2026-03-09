@@ -88,12 +88,12 @@ Two-column layout: main column left, sidebar right.
 3. Frogs section — drop zone for frog tasks; right-click section to mark complete (dims + green ✓); toggleable
 4. Spotlight zone — appears only when a task is focused or active; shows full interactive task card with label "◆ Up Next" or "▶ Running"
 5. Core Tasks — toolbar (priority paint buttons, sort buttons: P pts / T duration / G group), quick-add input, task list, hide/show collapse toggle
-6. Done section — completed tasks for the day (auto-shown when any exist)
+6. Done section — completed tasks for the day (auto-shown when any exist); has its own hide/show collapse toggle
 
-**Sidebar (tabbed):**
-- **Dailies tab** (default) — list of daily habits; click to toggle completion; hover shows edit/delete buttons; drag to reorder; right-click for context menu; "+ add daily" collapsed button at bottom
-- **Backlog tab** — unscheduled non-maya tasks; quick-add input; assign button per task; sort buttons: P / T / G (priority group: hi→md→lo→null)
-- **Maya tab** — Maya tasks (`priority === 'maya'`) that are not yet done; quick-add; star rating (1–3) per task; purple accent; assign button per task; sort buttons: P / T / G (star group: 3★→2★→1★); dropping non-maya tasks here is silently rejected
+**Sidebar (tabbed):** Each tab has its own active accent color — Dailies=teal, Backlog=gold, Maya=pink/purple.
+- **Dailies tab** (default, teal accent) — list of daily habits; click to toggle completion; hover shows edit/delete buttons; drag to reorder; right-click for context menu; "+ add daily" collapsed button at bottom
+- **Backlog tab** (gold accent) — unscheduled non-maya tasks; quick-add input; assign button per task; sort buttons: P / T / G (priority group: hi→md→lo→null)
+- **Maya tab** (pink/purple accent) — Maya tasks (`priority === 'maya'`) that are not yet done; quick-add; star rating (1–3) per task; purple accent; assign button per task; sort buttons: P / T / G (star group: 3★→2★→1★); dropping non-maya tasks here is silently rejected
 
 ### Week View
 7-day grid. Each day shows: weekday, date number, points progress bar, task snippets (up to 4), dailies completion count. Drag tasks to reschedule. Click day to navigate to it in Day view.
@@ -133,6 +133,8 @@ All tokens are optional and order-independent. Unrecognized text becomes the tas
 | `frog` | Frog flag | anywhere in string |
 
 Defaults: pts=0.5, time=null, priority=null, isFrog=false.
+
+**Em dash**: Typing `--` followed by any non-hyphen character (space, letter, etc.) automatically converts to `—`. Applies in all task name inputs, daily name inputs, and edit modals. Handled by `applyEmDash()` in `parsing.js`.
 
 **Maya task quick-add note:** In the Maya panel, `!1/!2/!3` (or `!hi/!md/!lo`) set the star rating instead of the priority color (which is always `maya`). `!1`=3 stars, `!2`=2 stars, `!3`=1 star. No token defaults to 1 star.
 
@@ -262,9 +264,23 @@ Computed from last 5 closed days: rising / stable / slipping. Shown in topbar ch
 
 ## Design System
 
+### Themes
+Five selectable themes, persisted to `localStorage.maya_theme`:
+| ID | Name | Character |
+|----|------|-----------|
+| `dark` (default) | Dark | Near-black warm, neon accents |
+| `dim` | Dim | Slightly lighter dark, less vignette |
+| `light` | Lavender | Muted lavender light mode |
+| `vanilla` | Vanilla | Warm off-white / cream |
+| `white` | White | Neutral near-white |
+
+Active theme class (`theme-dim`, `theme-light`, etc.) is set on `<html>`. Dark has no class (it's the `:root` default). Token overrides in `tokens.css` use `html.theme-*` blocks.
+
+SKIN button in topbar opens a dropdown showing all five themes with color swatches and checkmark on active.
+
 ### Colors (CSS vars)
 ```
---bg:   #0c0a0d   (near-black, warm)
+--bg:   #0c0a0d   (near-black, warm)   — overridden per theme
 --gold: #f0b030   (primary accent)
 --hot:  #ff3060   (danger, frogs, high priority)
 --grn:  #22ee80   (completion, frog section, active)
@@ -272,7 +288,7 @@ Computed from last 5 closed days: rising / stable / slipping. Shown in topbar ch
 --blu:  #4488ff   (duration badges)
 --yel:  #ffe040   (1pt tasks)
 --ora:  #ff7030   (2pt tasks, progress)
---tel:  #20c8d8   (open-ended timer, low priority)
+--tel:  #20c8d8   (open-ended timer, low priority, Dailies tab)
 --slv:  #9098b8   (silver, metadata)
 ```
 

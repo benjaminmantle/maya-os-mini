@@ -37,7 +37,7 @@ maya-os-mini/               ← repo root (.git lives here)
         │       └── Topbar.module.css
         │
         ├── components/
-        │   ├── Topbar.jsx             ← Level, streak, momentum chip
+        │   ├── Topbar.jsx             ← Level, streak, momentum chip; SKIN theme picker dropdown
         │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / SETTINGS
         │   │
         │   ├── day/
@@ -80,7 +80,7 @@ maya-os-mini/               ← repo root (.git lives here)
         └── utils/
             ├── dates.js           ← today(), addDays(), dayLabel(), getWeekDays(), uid()
             ├── scoring.js         ← scoreDay(), closeDayScoring(), calcMomentum(), expForLevel(), TITLES
-            ├── parsing.js         ← parseInput() inline syntax parser
+            ├── parsing.js         ← parseInput() inline syntax parser; applyEmDash() for -- → — conversion
             ├── duration.js        ← parseDurMs(), fmtMs(), isOpenEnded(), DURATIONS
             └── colors.js          ← todColor() daily dot color interpolation
 ```
@@ -224,6 +224,31 @@ All color/spacing values must reference tokens.
 
 Do not split into sub-components.
 
+**Collapse state**: Both Core Tasks (`coreHidden`) and Done (`doneHidden`) have independent hide/show toggles. Both start `false`. Each section renders a `secRow` + `collapseBtn` header when items exist.
+
+---
+
+## Theme System
+
+Five themes: **Dark** (default), **Dim**, **Lavender**, **Vanilla**, **White**.
+
+- Theme choice persisted to `localStorage.maya_theme`; loaded in `App.jsx` on mount
+- `App.jsx` manages the active class on `document.documentElement`, removing all non-dark classes then adding the chosen one:
+  ```js
+  document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-white');
+  if (theme !== 'dark') document.documentElement.classList.add(`theme-${theme}`);
+  ```
+- Token overrides live in `tokens.css` as `html.theme-*` blocks — they override `:root` via higher specificity. No `!important` needed.
+- **Topbar SKIN dropdown**: static chip button opens an absolutely-positioned menu. `overflow: hidden` was intentionally removed from `.topbar` to prevent clipping.
+- **Multi-theme CSS selectors** — when a component style only applies to light-variant themes, use combined selectors to avoid repeating declarations:
+  ```css
+  :global(html.theme-light) .myClass,
+  :global(html.theme-vanilla) .myClass,
+  :global(html.theme-white) .myClass { ... }
+  ```
+- **qa input opacity** — `.qaInput`, `.qaBtn`, and `.mayaBtn` use `color-mix(in srgb, var(--s2) 78%, transparent)` for background. This makes them slightly recessed/transparent across all themes proportionally, avoiding hardcoded per-theme overrides.
+- Dark theme has no class on `<html>` — it is the `:root` default. Light-variant overrides must always be in named `html.theme-*` blocks, never in `:root`.
+
 ---
 
 ## Quick-Add Syntax
@@ -298,6 +323,8 @@ perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30. Perfect streak mul
 ## CSS Strategy
 
 CSS Modules for component-scoped styles. Global tokens in `tokens.css` imported once in `main.jsx`. No Tailwind — custom aesthetic (glows, gradients, grid texture) fights utility classes.
+
+**Em dash** — `applyEmDash(str)` in `parsing.js` converts `--` followed by any non-hyphen character to `—`. Applied in `onChange` on every name/title text input across DayView, DailiesPanel, BacklogPanel, MayaPanel, and TaskEditModal. Import and wire to any new name inputs.
 
 ---
 
