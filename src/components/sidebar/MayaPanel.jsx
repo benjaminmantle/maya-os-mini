@@ -6,7 +6,7 @@ import TaskCard from '../task/TaskCard.jsx';
 import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
-import { parseInput } from '../../utils/parsing.js';
+import { parseInput, applyEmDash } from '../../utils/parsing.js';
 import { doMove, insertAtForStars } from '../../utils/taskPlacement.js';
 
 // Higher mayaPts = earlier in list. insertAt/snap based on this ordering.
@@ -194,7 +194,7 @@ export default function MayaPanel({
             ref={inputRef}
             className={`${styles.qaInput} ${mStyles.mayaInput}`}
             value={inputVal}
-            onChange={e => setInputVal(e.target.value)}
+            onChange={e => setInputVal(applyEmDash(e.target.value))}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
           />
           <button className={`${styles.qaBtn} ${mStyles.mayaBtn}`} onClick={handleAdd}>+</button>

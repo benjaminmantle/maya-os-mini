@@ -9,7 +9,7 @@ import LevelUpOverlay from '../shared/LevelUpOverlay.jsx';
 import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
-import { parseInput } from '../../utils/parsing.js';
+import { parseInput, applyEmDash } from '../../utils/parsing.js';
 import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, insertAtForStars } from '../../utils/taskPlacement.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
@@ -32,6 +32,7 @@ export default function DayView({
   const [focusDate, setFocusDate] = useState(initialDate || today());
   const [inputVal, setInputVal] = useState('');
   const [coreHidden, setCoreHidden] = useState(false);
+  const [doneHidden, setDoneHidden] = useState(false);
   const [editTask, setEditTask] = useState(null);
   const [editDaily, setEditDaily] = useState(null);
   const [levelUp, setLevelUp] = useState(null);
@@ -502,7 +503,7 @@ export default function DayView({
                 </div>
               </div>
               <div className={styles.qaRow} style={{ marginBottom:7 }}>
-                <input className={styles.qaInput} value={inputVal} onChange={e => setInputVal(e.target.value)} onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }} />
+                <input className={styles.qaInput} value={inputVal} onChange={e => setInputVal(applyEmDash(e.target.value))} onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }} />
                 <button className={styles.qaBtn} onClick={handleAdd}>+</button>
               </div>
               <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(false)} onDragLeave={handleDragLeave} onDrop={makeDrop('day')}>
@@ -515,8 +516,13 @@ export default function DayView({
         {/* Done */}
         {done.length > 0 && (
           <div>
-            <div className={styles.secLbl} style={{ color:'var(--t3)', marginBottom:7 }}>Done</div>
-            <div className={styles.taskList}>{done.map(t => renderCard(t))}</div>
+            <div className={styles.secRow}>
+              <div className={styles.secLbl} style={{ color:'var(--t3)' }}>Done</div>
+              <button className={styles.collapseBtn} onClick={() => setDoneHidden(!doneHidden)}>{doneHidden ? 'show' : 'hide'}</button>
+            </div>
+            {!doneHidden && (
+              <div className={styles.taskList}>{done.map(t => renderCard(t))}</div>
+            )}
           </div>
         )}
       </div>
@@ -549,7 +555,7 @@ export default function DayView({
             <div style={{ fontSize:12, fontWeight:700, fontFamily:'var(--fd)', letterSpacing:3, textTransform:'uppercase', color:'var(--gold)' }}>Edit Daily</div>
             <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
               <div style={lStyle}>Name</div>
-              <input style={iStyle} type="text" value={deEditName} onChange={e => setDeEditName(e.target.value)} />
+              <input style={iStyle} type="text" value={deEditName} onChange={e => setDeEditName(applyEmDash(e.target.value))} />
             </div>
             <div style={{ display:'flex', flexDirection:'column', gap:5 }}>
               <div style={lStyle}>Type</div>

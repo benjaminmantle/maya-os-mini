@@ -1,3 +1,8 @@
+// Convert -- followed by any non-hyphen character into an em dash
+export function applyEmDash(str) {
+  return str.replace(/--([^-])/g, '\u2014$1');
+}
+
 export function parseInput(raw) {
   let t = raw.trim(), pts = null, time = '', priority = null;
 

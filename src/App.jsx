@@ -22,14 +22,15 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('maya_theme') || 'dark');
 
   useEffect(() => {
-    if (theme === 'light') document.documentElement.classList.add('theme-light');
-    else document.documentElement.classList.remove('theme-light');
+    document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-white');
+    if (theme === 'dim')     document.documentElement.classList.add('theme-dim');
+    if (theme === 'light')   document.documentElement.classList.add('theme-light');
+    if (theme === 'vanilla') document.documentElement.classList.add('theme-vanilla');
+    if (theme === 'white')   document.documentElement.classList.add('theme-white');
     localStorage.setItem('maya_theme', theme);
   }, [theme]);
 
-  function handleThemeToggle() {
-    setTheme(t => t === 'dark' ? 'light' : 'dark');
-  }
+  function handleThemeSet(name) { setTheme(name); }
 
   const { getTimerDisplay } = useTimer(activeTaskId, activeStart, state.tasks);
 
@@ -68,7 +69,7 @@ export default function App() {
 
   return (
     <>
-      <Topbar profile={state.profile} theme={theme} onThemeToggle={handleThemeToggle} />
+      <Topbar profile={state.profile} theme={theme} onThemeSet={handleThemeSet} />
       <NavTabs
         activeView={view}
         weekDays={weekDays}

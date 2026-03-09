@@ -47,6 +47,7 @@ export default function Sidebar({
       <div className={styles.sidebarTabs}>
         <button
           className={`${styles.stab} ${tab === 'dailies' ? styles.stabActive : ''}`}
+          style={tab === 'dailies' ? { color: 'var(--tel)', borderBottomColor: 'var(--tel)' } : {}}
           onClick={() => setTab('dailies')}
         >
           Dailies

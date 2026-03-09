@@ -3,6 +3,7 @@ import Modal from '../shared/Modal.jsx';
 import styles from '../../styles/components/Modals.module.css';
 import { updateTask, deleteTask } from '../../store/store.js';
 import { get7, dayLabel } from '../../utils/dates.js';
+import { applyEmDash } from '../../utils/parsing.js';
 
 const MAYA_PREFIX = 'MAYA — ';
 
@@ -60,7 +61,7 @@ export default function TaskEditModal({ task, onClose }) {
       <div className={styles.modalTitle}>{isMaya ? 'Edit Maya Task' : 'Edit Task'}</div>
       <div className={styles.mf}>
         <div className={styles.ml}>{isMaya ? `Name  (MAYA — will be prepended)` : 'Name'}</div>
-        <input className={styles.mi} type="text" value={name} onChange={e => setName(e.target.value)} />
+        <input className={styles.mi} type="text" value={name} onChange={e => setName(applyEmDash(e.target.value))} />
       </div>
       {isMaya && (
         <div className={styles.mf}>

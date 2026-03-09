@@ -155,7 +155,7 @@
 .qaRow { display: flex; gap: 6px; }
 .qaInput {
   flex: 1;
-  background: var(--s2);
+  background: color-mix(in srgb, var(--s2) 78%, transparent);
   border: 1px solid var(--b1);
   border-radius: var(--rs);
   padding: 8px 12px;
@@ -168,7 +168,7 @@
 }
 .qaInput:focus { border-color: var(--gold); box-shadow: 0 0 0 1px rgba(240,176,48,.1); }
 .qaBtn {
-  background: var(--s2);
+  background: color-mix(in srgb, var(--s2) 78%, transparent);
   color: var(--t3);
   border: 1px solid var(--b1);
   border-radius: var(--rs);
@@ -273,17 +273,27 @@
   from { text-shadow: 0 0 6px rgba(200,25,50,.45);  color: var(--hot); }
   to   { text-shadow: 0 0 14px rgba(200,25,50,.78), 0 0 28px rgba(200,25,50,.22); color: #e82040; }
 }
-:global(html.theme-light) .frogSec .secLblFrog {
+:global(html.theme-light) .frogSec .secLblFrog,
+:global(html.theme-vanilla) .frogSec .secLblFrog,
+:global(html.theme-white) .frogSec .secLblFrog {
   animation: frogPulseLight 1.6s ease-in-out infinite alternate;
   color: var(--grn);
 }
-:global(html.theme-light) .secLblFrog { text-shadow: 0 0 5px rgba(24,176,96,.35); }
-:global(html.theme-light) .frogCheck  { text-shadow: 0 0 5px rgba(24,176,96,.4); }
-:global(html.theme-light) .workoutLabel {
+:global(html.theme-light) .secLblFrog,
+:global(html.theme-vanilla) .secLblFrog,
+:global(html.theme-white) .secLblFrog { text-shadow: 0 0 5px rgba(24,176,96,.35); }
+:global(html.theme-light) .frogCheck,
+:global(html.theme-vanilla) .frogCheck,
+:global(html.theme-white) .frogCheck  { text-shadow: 0 0 5px rgba(24,176,96,.4); }
+:global(html.theme-light) .workoutLabel,
+:global(html.theme-vanilla) .workoutLabel,
+:global(html.theme-white) .workoutLabel {
   animation: workoutPulseLight 1.6s ease-in-out infinite alternate;
   color: var(--hot);
 }
-:global(html.theme-light) .workoutCheck { text-shadow: 0 0 5px rgba(200,25,50,.4); }
+:global(html.theme-light) .workoutCheck,
+:global(html.theme-vanilla) .workoutCheck,
+:global(html.theme-white) .workoutCheck { text-shadow: 0 0 5px rgba(200,25,50,.4); }
 
 /* Workout label — frog-style but red */
 .workoutLabel {

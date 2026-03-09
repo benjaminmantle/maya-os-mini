@@ -5,7 +5,7 @@ import TaskCard from '../task/TaskCard.jsx';
 import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
-import { parseInput } from '../../utils/parsing.js';
+import { parseInput, applyEmDash } from '../../utils/parsing.js';
 import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove } from '../../utils/taskPlacement.js';
 
 const PRI_ORDER = ['hi', 'md', 'lo'];
@@ -186,7 +186,7 @@ export default function BacklogPanel({
             ref={inputRef}
             className={styles.qaInput}
             value={inputVal}
-            onChange={e => setInputVal(e.target.value)}
+            onChange={e => setInputVal(applyEmDash(e.target.value))}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
           />
           <button className={styles.qaBtn} onClick={handleAdd}>+</button>

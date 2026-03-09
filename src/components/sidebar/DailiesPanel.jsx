@@ -3,6 +3,7 @@ import styles from '../../styles/components/Sidebar.module.css';
 import DailyItem from './DailyItem.jsx';
 import { todColor } from '../../utils/colors.js';
 import { uid } from '../../utils/dates.js';
+import { applyEmDash } from '../../utils/parsing.js';
 import { markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 
@@ -75,7 +76,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
                 className={styles.qaInput}
                 placeholder="Daily name"
                 value={newName}
-                onChange={e => setNewName(e.target.value)}
+                onChange={e => setNewName(applyEmDash(e.target.value))}
                 onKeyDown={e => { if (e.key === 'Enter') handleAdd(); if (e.key === 'Escape') setShowForm(false); }}
                 autoFocus
               />

@@ -37,7 +37,24 @@
   --topbar-scan:  rgba(240,176,48,.012);
 }
 
-/* ── Light theme ────────────────────────────────────────────────────────── */
+/* ── Dim theme ──────────────────────────────────────────────────────────── */
+html.theme-dim {
+  /* Surfaces — a measured step above dark; same warmth, just less cave-black */
+  --bg:   #222020;
+  --s0:   #1c1b18;
+  --s1:   #272522;
+  --s2:   #2b2927;
+  --s3:   #323028;
+  /* Borders */
+  --b1:   #393734;
+  --b2:   #464442;
+  /* Slightly lighter muted text */
+  --t3:   #5c5855;
+  /* Vignette pulled back enough to let surfaces read, but still present */
+  --vignette: rgba(12,10,13,.45);
+}
+
+/* ── Lavender Light theme ───────────────────────────────────────────────── */
 html.theme-light {
   /* Surfaces — enough tint to feel colored, not washed-out white */
   --bg:   #e8e3f4;
@@ -65,4 +82,64 @@ html.theme-light {
   --grid-line:    rgba(110,88,168,.055);
   --vignette:     rgba(140,120,200,.055);
   --topbar-scan:  rgba(110,88,168,.018);
+}
+
+/* ── Vanilla theme ──────────────────────────────────────────────────────── */
+html.theme-vanilla {
+  /* Surfaces — warm off-white cream, slightly muted, no cold/purple tint */
+  --bg:   #ede8dc;
+  --s0:   #e5dfd0;
+  --s1:   #f3ede0;
+  --s2:   #e0d9ca;
+  --s3:   #d4ccb8;
+  /* Borders — warm tan/brown */
+  --b1:   rgba(120,100,55,.16);
+  --b2:   rgba(120,100,55,.30);
+  /* Text — dark warm brown */
+  --text: #201c0e;
+  --t2:   #5c4c2a;
+  --t3:   #9c8a62;
+  /* Tint backgrounds */
+  --gd2:  rgba(240,176,48,.18);
+  --ht2:  rgba(255,48,96,.14);
+  --gn2:  rgba(34,238,128,.16);
+  --tel2: rgba(32,200,216,.14);
+  /* Accent colours adjusted for warm bg */
+  --grn:     #1a9050;   /* dark green, warm-compatible */
+  --tel:     #0a7a8a;   /* dark teal */
+  --pri-md:  #c85a00;   /* deep burnt orange, distinct from gold */
+  /* Effects */
+  --grid-line:    rgba(120,100,55,.035);
+  --vignette:     rgba(50,35,8,.04);
+  --topbar-scan:  rgba(120,100,55,.012);
+}
+
+/* ── White theme ────────────────────────────────────────────────────────── */
+html.theme-white {
+  /* Surfaces — clean near-white, faint neutral warmth, not cold */
+  --bg:   #f0efed;
+  --s0:   #e8e7e4;
+  --s1:   #f6f5f3;
+  --s2:   #e4e3e0;
+  --s3:   #d8d7d4;
+  /* Borders — very subtle neutral */
+  --b1:   rgba(80,75,65,.14);
+  --b2:   rgba(80,75,65,.26);
+  /* Text — dark neutral-warm */
+  --text: #1a1916;
+  --t2:   #4a4740;
+  --t3:   #8c8880;
+  /* Tint backgrounds */
+  --gd2:  rgba(240,176,48,.18);
+  --ht2:  rgba(255,48,96,.14);
+  --gn2:  rgba(34,238,128,.16);
+  --tel2: rgba(32,200,216,.14);
+  /* Accent colours — same as vanilla, work on near-white */
+  --grn:     #1a9050;
+  --tel:     #0a7a8a;
+  --pri-md:  #c85a00;
+  /* Effects — nearly invisible */
+  --grid-line:    rgba(80,75,65,.025);
+  --vignette:     rgba(30,25,15,.03);
+  --topbar-scan:  rgba(80,75,65,.010);
 }
