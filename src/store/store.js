@@ -41,13 +41,6 @@ function save() {
   notify();
 }
 
-// Rename map for dailies fixup (old name → new name)
-const DAILY_RENAMES = {
-  '5m calisthenics #1': 'Calisthenics 5m #1',
-  '5m calisthenics #2': 'Calisthenics 5m #2',
-  '5,000 steps': '4,000 steps',
-  'Wind down by 10:30 pm': 'Wind down by 11pm',
-};
 
 function load() {
   try {
@@ -80,14 +73,6 @@ if (!S.tasks.length) {
   persist();
 }
 
-// One-time dailies rename fixup (runs on every load, no-ops after first rename)
-if (S.dailies.length) {
-  let changed = false;
-  S.dailies.forEach(d => {
-    if (DAILY_RENAMES[d.name]) { d.name = DAILY_RENAMES[d.name]; changed = true; }
-  });
-  if (changed) persist();
-}
 
 // --- Getters ---
 

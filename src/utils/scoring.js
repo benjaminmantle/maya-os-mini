@@ -78,7 +78,7 @@ export function closeDayScoring(d, state) {
 
 export function calcMomentum(state) {
   const order = ['fail', 'poor', 'half', 'decent', 'good', 'perfect'];
-  const recent = Object.keys(state.days).sort().slice(-5);
+  const recent = Object.keys(state.days).filter(d => state.days[d]?.closed).sort().slice(-5);
   if (recent.length < 2) return 'stable';
   const avg = recent.map(d => order.indexOf(scoreDay(d, state).tier)).reduce((a, b) => a + b, 0) / recent.length;
   return avg >= 3.5 ? 'rising' : avg <= 1.5 ? 'slipping' : 'stable';

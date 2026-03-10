@@ -35,7 +35,9 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   const title = TITLES[Math.min(level - 1, TITLES.length - 1)];
   const dayKeys = Object.keys(days).sort();
   const todayStr = today();
-  const pastDayKeys = dayKeys.filter(dk => dk <= todayStr);
+  const pastDayKeys = dayKeys.filter(dk => dk <= todayStr && (() => {
+    const r = days[dk]; return r && (r.cIds?.length || r.dIds?.length || r.workout);
+  })());
   const firstTrackedDay = pastDayKeys.length > 0 ? pastDayKeys[0] : todayStr;
   const n = dailies.length;
 
@@ -197,12 +199,11 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   // ── Per-daily stats ──────────────────────────────────────────────────────
   const dailyStats = dailies.map((d, i) => {
     const col = todColor(i, n);
-    const daysWithData = dayKeys.filter(dk => dk <= todayStr);
-    const total = daysWithData.length;
-    const done = daysWithData.filter(dk => days[dk]?.dIds?.includes(d.id)).length;
+    const total = pastDayKeys.length;
+    const done = pastDayKeys.filter(dk => days[dk]?.dIds?.includes(d.id)).length;
     const pct = total > 0 ? Math.round(done / total * 100) : 0;
     let streak = 0;
-    for (const dk of [...daysWithData].reverse()) {
+    for (const dk of [...pastDayKeys].reverse()) {
       if (days[dk]?.dIds?.includes(d.id)) streak++;
       else break;
     }
