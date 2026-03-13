@@ -215,8 +215,11 @@ Shell bubble and launcher are `z-index: 9999`. No component in Maya or Vault may
 ### Shell layout wrapping — #root vs Shell
 `global.css` still has `#root { max-width: 1200px; margin: 0 auto }` but Shell uses `position: fixed; inset: 0` to escape that constraint. Maya's centering now comes from `.appWrapCenter` in Shell.module.css (same max-width + flex-column). Vault uses `.appWrapFull` (full viewport). Do not modify `#root` styles — Shell handles the adaptation layer.
 
-### Portal bubble position — inside wrapper, not fixed
-The bubble and launcher are rendered inside the per-app wrapper div (`.appWrapCenter` / `.appWrapFull`) with `position: absolute`. Both wrappers have `position: relative` so the bubble anchors to their top-right corner. This makes the bubble track the centered Maya layout on wide screens and the viewport edge on narrow screens. Do not change bubble to `position: fixed` — it would lose its alignment with the app wrapper.
+### Portal bubble position — inside topbar padding, not fixed
+The bubble and launcher are rendered inside the per-app wrapper div (`.appWrapCenter` / `.appWrapFull`) with `position: absolute`. Both wrappers have `position: relative` so the bubble anchors to their edges. Shell.module.css overrides the topbar and nav `padding-left` from 18px to 31px via `:global([class^="_topbar_"])` / `:global([class^="_nav_"])` selectors to create room for the bubble (9px + 13px bubble + 9px). The bubble sits entirely inside the topbar's background — do not reduce this padding. Do not change bubble to `position: fixed`.
+
+### Shell.module.css :global overrides — fragile selectors
+Shell.module.css uses `:global([class^="_topbar_"])` and `:global([class^="_nav_"])` to override padding/border on Maya's topbar and nav from the Shell layer. These selectors depend on Vite CSS Modules naming format (`_className_hash`). They work because Shell.module.css is the only allowed file for Portal work. If Vite's CSS Modules naming changes, these selectors will break. Also overrides: `border-bottom-color: transparent` (removes topbar divider line) and `padding-bottom: 14px` (extra breathing room below title).
 
 ### ToastProvider scope
 `ToastProvider` wraps Shell in `main.jsx`. All apps share it. Never add a second ToastProvider inside Shell, VaultApp, or App.

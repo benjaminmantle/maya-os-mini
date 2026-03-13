@@ -70,7 +70,13 @@ User runs this in their own terminal. Do not use `preview_*` tools to verify —
 
 ---
 
-## Recent fixes (pre-Portal/Vault)
+## Recent fixes (Portal Shell refinements)
+- **Bubble positioning** — moved from wrapper margin area into the topbar's own padding via `:global` CSS overrides in Shell.module.css. Topbar and nav padding-left overridden from 18px → 31px. Bubble has 9px equal gaps to both the topbar left edge and the "M" of MAYA (matches word spacing in the logo). Vertically centered with the logo text.
+- **Topbar divider line removed** — `border-bottom-color: transparent` hides the line while preserving layout height.
+- **Topbar bottom spacing** — `padding-bottom: 14px` (up from 10px) adds breathing room between the title bar and day tabs.
+- **Wrapper padding removed** — `.appWrapCenter` and `.appWrapFull` no longer need `padding-left` since the topbar/nav overrides handle bubble space internally.
+
+## Earlier fixes (pre-Portal/Vault)
 - **Momentum "slipping" bug** — `calcMomentum()` in scoring.js was counting empty day records (created by nav tab getDayRecord side-effect) as "fail" days. Fixed: filter to closed days only.
 - **Phantom tracked day (Mar 7)** — empty day records inflated Days Tracked and deflated Avg Pts/Day and daily consistency %. Fixed: `pastDayKeys` in StatsView.jsx now filters to days with actual activity. Also fixed `dailyStats` which had its own bypass.
 - **Hardcoded dailies removed** — `DEFAULT_DAILIES` in defaults.js emptied; `DAILY_RENAMES` fixup loop removed from store.js. Fresh installs start blank.
