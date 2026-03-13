@@ -34,6 +34,8 @@
    bubble's 2px border and glow visually encroaching on the space. */
 .appWrapCenter :global([class^="_topbar_"]) {
   padding-left: 31px;
+  border-bottom-color: transparent;
+  padding-bottom: 14px;
 }
 .appWrapCenter :global([class^="_nav_"]) {
   padding-left: 31px;
