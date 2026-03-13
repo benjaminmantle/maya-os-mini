@@ -5,23 +5,31 @@
 ```
 maya-os-mini/               ← repo root (.git lives here)
 ├── CLAUDE.md                  ← Claude Code instructions (read first)
-├── SPEC.md                    ← Full feature specification
-├── ARCHITECTURE.md            ← This file
+├── SPEC.md                    ← Maya feature specification
+├── ARCHITECTURE.md            ← This file (Maya + Shell)
+├── VAULT_SPEC.md              ← Vault feature specification
+├── VAULT_ARCHITECTURE.md      ← Vault file tree, store API, patterns
+├── PORTAL_SPEC.md             ← Shell/bubble spec
 ├── HANDOFF.md                 ← Current status, verification checklist
 ├── TODO.md                    ← User-managed task list
 ├── README.md
 ├── .gitignore
+├── .env.local                 ← Supabase keys (never committed)
 ├── package.json
 ├── vite.config.js
 ├── index.html
 └── src/
-        ├── main.jsx               ← React root mount, ToastProvider wrapper
-        ├── App.jsx                ← View router, top-level layout, timer/focus state
+        ├── main.jsx               ← React root mount, ToastProvider, renders Shell
+        ├── Shell.jsx              ← Portal bubble + app launcher (wraps all apps)
+        ├── App.jsx                ← Maya: view router, top-level layout, timer/focus state
+        │
+        ├── vault/                 ← Vault app (see VAULT_ARCHITECTURE.md for full tree)
+        │   └── VaultApp.jsx       ← Vault root component
         │
         ├── store/
         │   ├── store.js           ← ALL localStorage access, state management
         │   ├── migrations.js      ← Schema version migrations
-        │   └── defaults.js        ← Default dailies, seed tasks
+        │   └── defaults.js        ← Empty-state defaults (fresh install starts blank)
         │
         ├── styles/
         │   ├── tokens.css         ← CSS custom properties (colors, fonts, spacing)
@@ -153,7 +161,7 @@ export function exportData()            // full state → JSON string
 export function importData(json)        // full replace
 export function exportTasks()           // unfinished tasks only → maya_os_tasks_v1 JSON string
 export function importTasks(json)       // merge/append with fresh IDs; returns count or false
-export function clearAll()              // wipes state; re-seeds DEFAULT_DAILIES, empty tasks
+export function clearAll()              // wipes state to blank (empty tasks, dailies, days)
 
 // ── Pub/sub ───────────────────────────────────────────────
 export function subscribe(fn)
