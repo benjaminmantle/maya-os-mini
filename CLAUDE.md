@@ -212,6 +212,12 @@ Call `registerShowcase()` in `VaultApp.jsx` `useEffect` on mount, before any pag
 ### Portal bubble z-index
 Shell bubble and launcher are `z-index: 9999`. No component in Maya or Vault may use z-index above 9000.
 
+### Shell layout wrapping — #root vs Shell
+`global.css` still has `#root { max-width: 1200px; margin: 0 auto }` but Shell uses `position: fixed; inset: 0` to escape that constraint. Maya's centering now comes from `.appWrapCenter` in Shell.module.css (same max-width + flex-column). Vault uses `.appWrapFull` (full viewport). Do not modify `#root` styles — Shell handles the adaptation layer.
+
+### Portal bubble position — inside wrapper, not fixed
+The bubble and launcher are rendered inside the per-app wrapper div (`.appWrapCenter` / `.appWrapFull`) with `position: absolute`. Both wrappers have `position: relative` so the bubble anchors to their top-right corner. This makes the bubble track the centered Maya layout on wide screens and the viewport edge on narrow screens. Do not change bubble to `position: fixed` — it would lose its alignment with the app wrapper.
+
 ### ToastProvider scope
 `ToastProvider` wraps Shell in `main.jsx`. All apps share it. Never add a second ToastProvider inside Shell, VaultApp, or App.
 

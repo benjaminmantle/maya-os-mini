@@ -42,7 +42,8 @@ maya-os-mini/               ← repo root (.git lives here)
         │       ├── WeekView.module.css
         │       ├── StatsView.module.css
         │       ├── Modals.module.css
-        │       └── Topbar.module.css
+        │       ├── Topbar.module.css
+        │       └── Shell.module.css
         │
         ├── components/
         │   ├── Topbar.jsx             ← Level, streak, momentum chip; SKIN theme picker dropdown
@@ -107,6 +108,8 @@ maya-os-mini/               ← repo root (.git lives here)
 | Day focus date (`focusDate`) | `DayView.jsx` local state | Which day is being viewed |
 | Quick-add input, modals, context menus | `DayView.jsx` / `BacklogPanel.jsx` | Local UI state |
 | Toast notifications | `Toast.jsx` context | Global but ephemeral |
+| Active shell app (`activeApp`) | `Shell.jsx` local state | Persisted to `localStorage.maya_active_shell_app`; default 'maya' |
+| Launcher open state | `Shell.jsx` local state | Ephemeral UI state |
 
 **Rule**: Survives page reload → store. Shared across views → App.jsx. Purely local UI → the component.
 

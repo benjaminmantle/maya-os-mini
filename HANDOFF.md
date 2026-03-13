@@ -2,7 +2,7 @@
 
 ## Status
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
-**Portal Shell: Not started.** Spec complete (PORTAL_SPEC.md).
+**Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
 **Vault: Not started.** Spec complete (VAULT_SPEC.md, VAULT_ARCHITECTURE.md). All 7 showcase templates designed.
 
 ---
@@ -47,10 +47,12 @@ User runs this in their own terminal. Do not use `preview_*` tools to verify —
 - **Export/import** — full backup + tasks-only; always additive with fresh IDs
 - **5 themes** — Dark (default), Dim, Lavender, Vanilla, White
 
-### Portal Shell (not started)
-- [ ] `src/Shell.jsx` — bubble + launcher
-- [ ] `src/styles/components/Shell.module.css`
-- [ ] `src/main.jsx` updated to render `<Shell />` instead of `<App />`
+### Portal Shell (complete)
+- [x] `src/Shell.jsx` — bubble + launcher, app registry, outside-click close, localStorage persist
+- [x] `src/styles/components/Shell.module.css` — bubble (dim at rest, glow on hover), launcher panel
+- [x] `src/main.jsx` updated to render `<Shell />` instead of `<App />`
+- [x] `src/vault/VaultApp.jsx` + `VaultApp.module.css` — placeholder (centered "Vault — Coming soon")
+- [x] Per-app wrapping: Maya gets `max-width: 1200px` centering; Vault gets full viewport
 
 ### Vault (not started)
 - [ ] Supabase project created + env vars in `.env.local`
@@ -84,7 +86,7 @@ User runs this in their own terminal. Do not use `preview_*` tools to verify —
 
 ## Recommended build order for Portal + Vault
 
-1. **Portal Shell first** — minimal change to main.jsx, Shell.jsx, Shell.module.css. Verify bubble appears and Maya still works identically before touching anything else.
+1. ~~**Portal Shell first**~~ ✅ Done.
 2. **Supabase setup** — create project, run schema SQL, confirm connection in vaultStore.js
 3. **Vault skeleton** — VaultApp.jsx renders in the shell, sidebar loads spaces/pages from Supabase
 4. **Sections: Text + List** — simpler types first; proves the section/page model

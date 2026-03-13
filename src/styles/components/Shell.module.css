@@ -1,0 +1,123 @@
+/* Portal Shell — bubble + launcher + app stage */
+
+.shell {
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+}
+
+.appStage {
+  position: absolute;
+  inset: 0;
+}
+
+/* Maya needs the max-width centering that #root used to provide.
+   Vault and future apps fill the full viewport instead.
+   position: relative anchors the bubble + launcher. */
+.appWrapCenter {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.appWrapFull {
+  position: relative;
+  height: 100%;
+}
+
+/* Override topbar + nav left padding to make room for the portal bubble.
+   31px = 9px gap (left edge) + 13px bubble (border-box) + 9px gap (to MAYA).
+   Gaps are 9px (slightly more than the 7px word gap) to compensate for the
+   bubble's 2px border and glow visually encroaching on the space. */
+.appWrapCenter :global([class^="_topbar_"]) {
+  padding-left: 31px;
+}
+.appWrapCenter :global([class^="_nav_"]) {
+  padding-left: 31px;
+}
+
+/* ── Bubble ──────────────────────────────────────────────────────────────── */
+/* Sits left of the "MAYA OS MINI" logo inside the topbar padding area.
+   7px gap to topbar left edge and 7px gap to "M" of MAYA — matching
+   the measured word gap between MAYA and OS. Vertically centered with
+   the logo. Size matches the 13px Orbitron title. Blue glow matches
+   "OS" gold text-shadow intensity. */
+
+.bubble {
+  position: absolute;
+  top: 15px;
+  left: 9px;
+  z-index: 9999;
+  width: 13px;
+  height: 13px;
+  border-radius: 50%;
+  background: var(--s2);
+  border: 2px solid var(--blu);
+  cursor: pointer;
+  opacity: 0.75;
+  box-shadow: 0 0 12px var(--blu), 0 0 28px rgba(68, 136, 255, 0.35);
+  transition: opacity 0.15s, box-shadow 0.15s;
+  user-select: none;
+}
+
+.bubble:hover {
+  opacity: 1;
+  box-shadow: 0 0 14px var(--blu), 0 0 32px rgba(68, 136, 255, 0.5);
+}
+
+/* ── Launcher panel ──────────────────────────────────────────────────────── */
+
+.launcher {
+  position: absolute;
+  top: 34px;
+  left: 4px;
+  z-index: 9999;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: 5px;
+  padding: 5px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 140px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
+}
+
+.appBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  border-radius: 3px;
+  background: transparent;
+  border: none;
+  color: var(--t2);
+  font-family: var(--f);
+  font-size: 0.88rem;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s, color 0.1s;
+}
+
+.appBtn:hover {
+  background: var(--s1);
+  color: var(--text);
+}
+
+.active {
+  color: var(--gold);
+}
+
+.appIcon {
+  font-size: 0.8rem;
+  width: 16px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.appLabel {
+  letter-spacing: 0.04em;
+}
