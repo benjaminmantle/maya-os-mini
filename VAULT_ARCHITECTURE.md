@@ -2,59 +2,66 @@
 
 ## File Structure
 
+Files marked ✅ are implemented. Others are planned.
+
 ```
 src/vault/
-├── VaultApp.jsx                        ← Root component; owns layout, active page, modal/mode state
+├── VaultApp.jsx               ✅  Root; sidebar + page view layout, initVault lifecycle, Cmd+K palette, sidebar resize
+├── VaultApp.module.css        ✅  Includes .resizeHandle for sidebar drag-to-resize
 ├── store/
-│   └── vaultStore.js                   ← ALL Supabase access; pub/sub pattern matching Maya store
+│   └── vaultStore.js          ✅  ALL data access; local/mock mode + Supabase mode; seed data; HMR-safe cache
 ├── hooks/
-│   └── useVault.js                     ← React hook wrapping vaultStore; triggers re-renders
+│   └── useVault.js            ✅  React hook wrapping vaultStore
 ├── components/
 │   ├── layout/
-│   │   ├── VaultSidebar.jsx            ← Tree nav: spaces + pages (infinite nesting)
-│   │   ├── PageView.jsx                ← Main area: renders a page's ordered sections
-│   │   └── CommandPalette.jsx          ← Cmd+K overlay: search pages, rows, sections
+│   │   ├── VaultSidebar.jsx   ✅  Tree nav: spaces + pages (infinite nesting), rename, add/delete, ⌘K hint
+│   │   ├── PageView.jsx       ✅  Main area: breadcrumb nav, editable title, sections, empty state
+│   │   └── CommandPalette.jsx ✅  Cmd+K search overlay, arrow nav, page navigation
 │   ├── sections/
-│   │   ├── TableSection.jsx            ← Table section: grid/gallery views, add/remove rows+cols
-│   │   ├── ListSection.jsx             ← List section: checkable items, drag reorder
-│   │   ├── TextSection.jsx             ← Free-form rich text (contenteditable, autosave)
-│   │   └── SectionShell.jsx            ← Shared wrapper: name, collapse, view switcher, delete
+│   │   ├── SectionShell.jsx   ✅  Shared wrapper: name, collapse, delete, toolbar slot
+│   │   ├── TableSection.jsx   ✅  Table section: grid/gallery toggle, filter bar, loads columns+rows
+│   │   ├── ListSection.jsx    ✅  Checkable list, inline edit, add/delete, clear checked, drag-to-reorder
+│   │   └── TextSection.jsx    ✅  contenteditable, debounced autosave, placeholder, rich text toolbar (B/I/U/link)
 │   ├── table/
-│   │   ├── TableGrid.jsx               ← Standard row/column table view
-│   │   ├── TableGallery.jsx            ← Card grid view
-│   │   ├── TableFilters.jsx            ← Filter/sort panel (slides down from SectionShell)
-│   │   ├── ColumnHeader.jsx            ← Header cell: name, type icon, resize handle, right-click menu
-│   │   ├── CellRenderer.jsx            ← Read-mode cell: renders correct display per column type
-│   │   ├── CellEditor.jsx              ← Edit-mode cell: renders correct input per column type
-│   │   └── NewColumnPanel.jsx          ← Inline panel: name + type + options when adding a column
+│   │   ├── TableGrid.jsx      ✅  Grid with inline editing, add/delete rows+cols, column sorting, add column panel, drag-to-reorder rows
+│   │   ├── TableGallery.jsx   ✅  Card grid view: responsive, auto-fill, shows all field types, click-to-expand detail modal
+│   │   ├── CellRenderer.jsx   ✅  Read-mode: text, number, select (TagChip), checkbox, rating, date, url, letter_grade (GradeBadge)
+│   │   ├── CellEditor.jsx     ✅  Edit-mode: inputs, select/multi-select dropdowns, date picker, rating, letter grade picker
+│   │   ├── ImportModal.jsx    ✅  CSV import: drop zone → preview with type detection → additive import
+│   │   ├── RelationGraph.jsx  ✅  Force-directed SVG graph: nodes=rows, edges=relations, drag/zoom/pan
+│   │   ├── ColumnHeader.jsx       Extracted header cell (planned; currently inline in TableGrid)
+│   │   └── NewColumnPanel.jsx     Extracted add-column panel (planned; currently inline in TableGrid)
 │   ├── showcase/
-│   │   ├── ShowcaseModal.jsx           ← Full-screen overlay wrapper; renders registered template or fallback
-│   │   ├── ShowcaseRegistry.js         ← Module-level map: showcase_template string → React component
+│   │   ├── ShowcaseRegistry.js ✅  Template registry: registerShowcase(key, component) / getShowcase(key)
+│   │   ├── ShowcaseView.jsx   ✅  Split layout: name list (180px) + template render area
 │   │   └── templates/
-│   │       ├── CharacterShowcase.jsx   ← Character profile (portrait, stats, personality, combat, relations)
-│   │       ├── PlaceShowcase.jsx       ← Place/world/city (banner, description, inhabitants, connections)
-│   │       ├── RaceShowcase.jsx        ← Race (art, traits, abilities, culture, notable members)
-│   │       ├── AbilityShowcase.jsx     ← Ability (type, element, effects, known users)
-│   │       ├── ItemShowcase.jsx        ← Item/weapon (art, stats, lore, owner)
-│   │       ├── MagicSystemShowcase.jsx ← Magic system (overview, rules, elements, abilities)
-│   │       └── ElementShowcase.jsx     ← Magic element (description, strengths/weaknesses, users)
+│   │       └── CharacterShowcase.jsx ✅  Character sheet: header, identity grid, radar chart, D&D block, tabs
 │   ├── focus/
-│   │   └── FocusMode.jsx               ← Full-screen minimal-chrome editor; [ / ] to move between sections
+│   │   └── FocusMode.jsx          Full-screen editor (planned)
 │   └── shared/
-│       ├── TagChip.jsx                 ← Colored pill for select/multi-select options
-│       ├── StarRating.jsx              ← 1–5 star widget (read + edit modes)
-│       ├── RelationChip.jsx            ← Linked row chip; click opens that row's showcase
-│       └── ImageUpload.jsx             ← Supabase Storage upload + signed URL display
+│       ├── TagChip.jsx        ✅  Colored pill using CSS token name strings
+│       ├── StarRating.jsx     ✅  1–5 star widget (read + edit)
+│       ├── GradeBadge.jsx     ✅  Colored badge for letter grades (F- through S+, GLITCH)
+│       ├── RelationChip.jsx       Linked row chip (planned)
+│       └── ImageUpload.jsx        Supabase Storage upload (planned)
 └── styles/
-    ├── VaultApp.module.css
-    ├── VaultSidebar.module.css
-    ├── PageView.module.css
-    ├── TableSection.module.css
-    ├── ListSection.module.css
-    ├── TextSection.module.css
-    ├── CommandPalette.module.css
-    ├── ShowcaseModal.module.css
-    └── FocusMode.module.css
+    ├── VaultApp.module.css    ✅
+    ├── VaultSidebar.module.css ✅
+    ├── PageView.module.css    ✅
+    ├── SectionShell.module.css ✅
+    ├── TableGrid.module.css   ✅
+    ├── TableGallery.module.css ✅
+    ├── CommandPalette.module.css ✅
+    ├── ListSection.module.css ✅
+    ├── TextSection.module.css ✅
+    ├── TagChip.module.css     ✅
+    ├── StarRating.module.css  ✅
+    ├── GradeBadge.module.css   ✅
+    ├── ImportModal.module.css  ✅
+    ├── ShowcaseView.module.css ✅
+    ├── CharacterShowcase.module.css ✅
+    ├── RelationGraph.module.css ✅
+    └── FocusMode.module.css       (planned)
 ```
 
 ---
@@ -293,6 +300,7 @@ function defaultForType(type) {
     case 'rating':       return null
     case 'image':        return null
     case 'relation':     return []
+    case 'letter_grade': return null
     default:             return null
   }
 }
@@ -312,6 +320,30 @@ style={{ background: `color-mix(in srgb, var(--${color}) 20%, transparent)`,
          border: `1px solid var(--${color})`,
          color: `var(--${color})` }}
 ```
+
+### Space color picker
+```jsx
+// Available colors (defined as SPACE_COLORS in VaultSidebar.jsx):
+const SPACE_COLORS = ['gold', 'hot', 'grn', 'pur', 'blu', 'ora', 'tel', 'slv'];
+
+// Dot is a <button> with inline background style:
+<button className={s.spaceDot} style={{ background: `var(--${sp.color || 'slv'})` }} />
+
+// Clicking opens a popover with 8 swatches. Selecting calls saveSpace({ ...sp, color: c }).
+// Outside-click closes via mousedown listener on document.
+```
+
+### Row / list item drag-to-reorder
+Same HTML5 drag pattern as Maya-OS DailiesPanel. `⠿` drag handle appears on hover. `onDragStart` sets source id via ref; `onDragOver` highlights target with gold top-border; `onDrop` splices ID array and calls `reorderRows(sectionId, ids)` or `reorderListItems(sectionId, ids)`. Drag is disabled when table has an active column sort.
+
+### Sidebar drag-to-resize
+VaultApp.jsx maintains `sidebarWidth` state (default 220px, range 160–400px). A 4px `.resizeHandle` div sits between sidebar and content. `onMouseDown` starts resize; `document.addEventListener('mousemove')` updates width; `mouseup` persists to `localStorage('vault_sidebar_width')`. Width passed as inline `style` prop to VaultSidebar.
+
+### Gallery card expand modal
+Click a gallery card → `RowDetailModal` opens as a fixed overlay (z-index 500, frosted blur). Title is editable (click to edit). All fields show CellRenderer by default; click to switch to CellEditor. Checkboxes toggle immediately. Close via Escape or backdrop click. Uses `setCellValue()` for saves.
+
+### Rich text toolbar
+TextSection shows a B/I/U/🔗 toolbar on focus. Uses `document.execCommand()` for formatting. Toolbar buttons use `onMouseDown` with `e.preventDefault()` to prevent contenteditable blur. Link button preserves selection via `window.getSelection().getRangeAt(0)`, shows inline URL input, then calls `execCommand('createLink')` with restored selection.
 
 ### Section drag-to-reorder
 Same HTML5 drag pattern as Maya-OS DailiesPanel. `onDragStart` sets dragged id; `onDrop` calls `reorderSections(pageId, newIds)`.
@@ -336,6 +368,47 @@ import s from './MyComponent.module.css'
 // <div className={s.myClass}>
 ```
 All color/spacing values must reference tokens from `src/styles/tokens.css`.
+
+### Letter Grade column type
+```js
+// Grade scale: 18 values ordered from worst to best
+export const GRADE_SCALE = ['F-','F','F+','D-','D','D+','C-','C','C+','B-','B','B+','A-','A','A+','S','S+','GLITCH'];
+export function gradeToNum(g) { return GRADE_SCALE.indexOf(g); }
+export function gradeColor(g) { /* returns token name: t3/brn/grn/blu/pur/gold/hot */ }
+
+// GradeBadge component uses color-mix with the tier token:
+// background: color-mix(in srgb, var(--${color}) 18%, transparent)
+// border: 1px solid color-mix(in srgb, var(--${color}) 45%, transparent)
+// color: var(--${color})
+```
+Five touch points for any new column type: `defaultForType`, CellRenderer, CellEditor, TableGallery FieldValue, TableGrid sort logic.
+
+### CSV Import
+```js
+parseCSV(csvString)                    // → string[][] (handles quoted fields, escaped quotes)
+detectColumnType(values)               // → 'number'|'date'|'checkbox'|'letter_grade'|'url'|'text'
+importSectionCSV(sectionId, csvString) // → { rowsAdded, columnsCreated }
+```
+Import is always additive (fresh UUIDs). ImportModal: 3-step flow (drop zone → preview with type override → import).
+
+### Character Showcase
+ShowcaseView receives rows, columns, templateKey. Left: scrollable name list (180px). Right: registered template.
+CharacterShowcase uses `getField(name)` helper: finds column by case-insensitive name match → returns cell value.
+8-axis SVG radar chart: `radarTip(i, frac)` maps grade fraction (gradeToNum/17) to x,y on a 75px radius.
+
+### Relationship Graph
+RelationGraph builds from `getAllRelations()` (returns all relation entries as `{ key: Set }`).
+Force simulation: repulsion (coulomb N²) + spring attraction for edges + velocity damping.
+~200 iterations via requestAnimationFrame, then settles. Nodes draggable, wheel zoom, background pan.
+
+### Local-mode relations
+```js
+// Cache: C.relations = { "${rowId}:${colId}": Set<targetRowId> }
+getRelationsSync(rowId, colId)  // → targetRowId[] (synchronous)
+getAllRelations()                // → { key: targetRowId[] } (all relations)
+addRelation(srcRowId, srcColId, tgtRowId)
+removeRelation(srcRowId, srcColId, tgtRowId)
+```
 
 ---
 

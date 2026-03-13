@@ -1,0 +1,133 @@
+.list {
+  display: flex;
+  flex-direction: column;
+}
+
+.item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 4px 6px;
+  border-radius: var(--rs);
+  transition: background var(--tr);
+}
+
+.item:hover {
+  background: var(--s1);
+}
+
+.checked {
+  opacity: 0.45;
+}
+
+/* ── Drag handle ──────────────────────── */
+.dragHandle {
+  color: var(--t3);
+  font-size: 0.78rem;
+  cursor: grab;
+  opacity: 0;
+  transition: opacity var(--tr), color var(--tr);
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.dragHandle:active { cursor: grabbing; }
+.item:hover .dragHandle { opacity: 1; }
+.dragHandle:hover { color: var(--text); }
+
+.dragOver {
+  border-top: 2px solid var(--gold);
+}
+
+.checkbox {
+  background: none;
+  border: none;
+  color: var(--t2);
+  font-size: 1.05rem;
+  cursor: pointer;
+  padding: 0;
+  line-height: 1;
+  flex-shrink: 0;
+  transition: color var(--tr);
+}
+
+.checkbox:hover { color: var(--gold); }
+.checked .checkbox { color: var(--grn); }
+
+.text {
+  font-family: var(--f);
+  font-size: 0.85rem;
+  color: var(--text);
+  cursor: text;
+  flex: 1;
+  line-height: 1.4;
+}
+
+.checked .text {
+  text-decoration: line-through;
+  color: var(--t3);
+}
+
+.editInput {
+  font-family: var(--f);
+  font-size: 0.85rem;
+  color: var(--text);
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  padding: 2px 6px;
+  outline: none;
+  flex: 1;
+}
+
+.editInput:focus { border-color: var(--gold); }
+
+.addRow {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: 4px;
+  padding: 2px 6px;
+}
+
+.addInput {
+  font-family: var(--f);
+  font-size: 0.82rem;
+  color: var(--text);
+  background: transparent;
+  border: none;
+  border-bottom: 1px solid var(--b1);
+  padding: 4px 2px;
+  outline: none;
+  flex: 1;
+  transition: border-color var(--tr);
+}
+
+.addInput:focus { border-color: var(--gold); }
+
+.addBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 3px 8px;
+  transition: color var(--tr);
+}
+
+.addBtn:hover { color: var(--gold); }
+
+.clearBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 5px 8px;
+  margin-top: 4px;
+  align-self: flex-start;
+  transition: color var(--tr);
+}
+
+.clearBtn:hover { color: var(--hot); }

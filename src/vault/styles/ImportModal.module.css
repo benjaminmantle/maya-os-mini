@@ -1,0 +1,250 @@
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 500;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(8px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.panel {
+  position: relative;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--r);
+  max-width: 750px;
+  width: 92%;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.6);
+  scrollbar-width: thin;
+}
+
+.panel::-webkit-scrollbar { width: 5px; }
+.panel::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 3px; }
+.panel::-webkit-scrollbar-track { background: transparent; }
+
+.closeBtn {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 1rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  transition: color var(--tr);
+}
+
+.closeBtn:hover { color: var(--text); }
+
+.title {
+  font-family: var(--fd);
+  font-size: 1rem;
+  letter-spacing: 0.06em;
+  color: var(--text);
+  margin: 0 0 16px;
+  font-weight: 400;
+}
+
+/* ── Drop zone ──────────────────────────── */
+.dropZone {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 48px 24px;
+  border: 2px dashed var(--b2);
+  border-radius: var(--r);
+  cursor: pointer;
+  transition: border-color var(--tr), background var(--tr);
+}
+
+.dropZone:hover,
+.dropZoneActive {
+  border-color: var(--gold);
+  background: color-mix(in srgb, var(--gold) 5%, transparent);
+}
+
+.dropIcon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+  opacity: 0.6;
+}
+
+.dropText {
+  font-family: var(--f);
+  font-size: 0.85rem;
+  color: var(--t2);
+  margin: 0;
+}
+
+/* ── Preview ────────────────────────────── */
+.previewInfo {
+  font-family: var(--f);
+  font-size: 0.78rem;
+  color: var(--t3);
+  margin: 0 0 8px;
+}
+
+.previewWrap {
+  overflow-x: auto;
+  border: 1px solid var(--b1);
+  border-radius: var(--rs);
+  scrollbar-width: thin;
+}
+
+.previewTable {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: collapse;
+  font-family: var(--f);
+  font-size: 0.75rem;
+}
+
+.previewTh {
+  padding: 8px 10px;
+  border-bottom: 1px solid var(--b1);
+  background: var(--s0);
+  text-align: left;
+  vertical-align: top;
+  white-space: nowrap;
+  min-width: 100px;
+}
+
+.colHeader {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  margin-bottom: 4px;
+}
+
+.colToggle input {
+  cursor: pointer;
+  accent-color: var(--gold);
+}
+
+.colHeaderName {
+  font-weight: 600;
+  color: var(--text);
+  font-size: 0.72rem;
+  letter-spacing: 0.04em;
+}
+
+.colMatch {
+  font-size: 0.65rem;
+  font-weight: 700;
+  padding: 0 3px;
+  border-radius: 2px;
+}
+
+.matchYes {
+  color: var(--grn);
+}
+
+.matchNew {
+  color: var(--gold);
+}
+
+.typeSelect {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.68rem;
+  padding: 2px 4px;
+  outline: none;
+  width: 100%;
+}
+
+.typeSelect:disabled {
+  opacity: 0.4;
+}
+
+.previewTd {
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--s2);
+  color: var(--t2);
+  white-space: nowrap;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.previewTd:nth-child(even) { background: var(--s0); }
+
+.disabledCol {
+  opacity: 0.3;
+}
+
+.previewMore {
+  font-family: var(--f);
+  font-size: 0.72rem;
+  color: var(--t3);
+  margin: 6px 0 0;
+  text-align: center;
+}
+
+/* ── Actions ────────────────────────────── */
+.actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 16px;
+  gap: 8px;
+}
+
+.backBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.82rem;
+  cursor: pointer;
+  padding: 6px 12px;
+  transition: color var(--tr);
+}
+
+.backBtn:hover { color: var(--text); }
+
+.importBtn {
+  background: color-mix(in srgb, var(--gold) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--rs);
+  color: var(--gold);
+  font-family: var(--f);
+  font-size: 0.85rem;
+  padding: 7px 18px;
+  cursor: pointer;
+  transition: background var(--tr);
+}
+
+.importBtn:hover { background: color-mix(in srgb, var(--gold) 25%, transparent); }
+.importBtn:disabled { opacity: 0.4; cursor: default; }
+
+/* ── Done state ─────────────────────────── */
+.doneState {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 32px 16px;
+  gap: 12px;
+}
+
+.doneIcon {
+  font-size: 2rem;
+  color: var(--grn);
+}
+
+.doneText {
+  font-family: var(--f);
+  font-size: 0.88rem;
+  color: var(--text);
+  margin: 0;
+  text-align: center;
+}

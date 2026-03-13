@@ -1,0 +1,133 @@
+/* ── Overlay ──────────────────────────────── */
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 8000;
+  background: rgba(0, 0, 0, 0.55);
+  backdrop-filter: blur(6px);
+  display: flex;
+  justify-content: center;
+  padding-top: 18vh;
+}
+
+/* ── Palette container ───────────────────── */
+.palette {
+  width: 560px;
+  max-height: 420px;
+  background: var(--s0);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  box-shadow: 0 8px 40px rgba(0, 0, 0, 0.6), 0 0 0 1px var(--b1);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* ── Input ────────────────────────────────── */
+.inputWrap {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--b1);
+}
+
+.searchIcon {
+  color: var(--t3);
+  font-size: 0.8rem;
+  flex-shrink: 0;
+}
+
+.input {
+  flex: 1;
+  background: none;
+  border: none;
+  outline: none;
+  color: var(--text);
+  font-family: var(--fd);
+  font-size: 0.88rem;
+  letter-spacing: 0.04em;
+  caret-color: var(--gold);
+}
+
+.input::placeholder {
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.82rem;
+  letter-spacing: 0;
+}
+
+/* ── Results ──────────────────────────────── */
+.results {
+  flex: 1;
+  overflow-y: auto;
+  padding: 4px;
+  scrollbar-width: thin;
+}
+
+.results::-webkit-scrollbar { width: 4px; }
+.results::-webkit-scrollbar-thumb { background: var(--b2); border-radius: 2px; }
+
+.noResults {
+  padding: 20px;
+  text-align: center;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.82rem;
+}
+
+.resultRow {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  width: 100%;
+  padding: 8px 12px;
+  background: none;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 80ms;
+  border-left: 3px solid transparent;
+}
+
+.resultRow:hover {
+  background: var(--s1);
+}
+
+.active {
+  background: var(--s2);
+  border-left-color: var(--gold);
+}
+
+.resultIcon {
+  font-size: 0.8rem;
+  width: 20px;
+  text-align: center;
+  flex-shrink: 0;
+}
+
+.resultName {
+  font-family: var(--f);
+  font-size: 0.85rem;
+  color: var(--text);
+  flex: 1;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.active .resultName {
+  color: var(--gold);
+}
+
+.resultBreadcrumb {
+  font-family: var(--f);
+  font-size: 0.68rem;
+  color: var(--t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 180px;
+  flex-shrink: 0;
+}

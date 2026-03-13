@@ -1,0 +1,327 @@
+.gridWrap {
+  overflow-x: auto;
+}
+
+.grid {
+  display: grid;
+  min-width: max-content;
+}
+
+/* ── Header ───────────────────────────────── */
+.headerCell {
+  padding: 6px 10px;
+  border-bottom: 1px solid var(--b1);
+  display: flex;
+  align-items: center;
+  position: sticky;
+  top: 0;
+  background: var(--s0);
+  z-index: 1;
+}
+
+.colName {
+  font-family: var(--fd);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--t3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: pointer;
+  user-select: none;
+  flex: 1;
+  transition: color var(--tr);
+}
+
+.colName:hover {
+  color: var(--t2);
+}
+
+.sortArrow {
+  color: var(--gold);
+  font-size: 0.6rem;
+  margin-left: 2px;
+}
+
+.colNameInput {
+  font-family: var(--fd);
+  font-size: 0.62rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--text);
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  padding: 2px 4px;
+  outline: none;
+  width: 100%;
+}
+
+.addColBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 0.95rem;
+  cursor: pointer;
+  padding: 2px 6px;
+  transition: color var(--tr);
+}
+
+.addColBtn:hover { color: var(--gold); }
+
+/* ── Cells ────────────────────────────────── */
+.cell {
+  position: relative;
+  padding: 5px 10px;
+  border-bottom: 1px solid var(--s2);
+  display: flex;
+  align-items: center;
+  min-height: 34px;
+  cursor: default;
+  font-family: var(--f);
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+.altRow {
+  background: var(--s1);
+}
+
+.cellText {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cellNumber {
+  font-family: var(--fm);
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.cellCheck {
+  font-size: 0.9rem;
+  color: var(--t2);
+  cursor: pointer;
+}
+
+.cellDate {
+  font-family: var(--fm);
+  font-size: 0.76rem;
+  color: var(--t2);
+}
+
+.cellUrl {
+  color: var(--blu);
+  text-decoration: none;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.cellUrl:hover { text-decoration: underline; }
+
+.cellTags {
+  display: flex;
+  gap: 3px;
+  flex-wrap: wrap;
+}
+
+.cellImage {
+  height: 28px;
+  width: auto;
+  border-radius: var(--rs);
+  object-fit: cover;
+}
+
+/* ── Editing ──────────────────────────────── */
+.editInput {
+  width: 100%;
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.82rem;
+  padding: 3px 6px;
+  outline: none;
+}
+
+.editInput:focus {
+  border-color: var(--gold);
+}
+
+/* ── Select dropdown ─────────────────────── */
+.selectDropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  z-index: 100;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: var(--r);
+  padding: 3px;
+  min-width: 140px;
+  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.5);
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.selectOption {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  background: none;
+  border: none;
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-radius: var(--rs);
+  text-align: left;
+  transition: background var(--tr);
+}
+
+.selectOption:hover { background: var(--s3); }
+.selectActive { color: var(--gold); }
+
+.selectDot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.selectCheck {
+  font-size: 0.75rem;
+  color: var(--t3);
+}
+
+.selectActive .selectCheck { color: var(--gold); }
+
+/* ── Row actions ─────────────────────────── */
+.rowActions {
+  position: relative;
+}
+
+/* ── Drag handle ─────────────────────────── */
+.dragHandle {
+  color: var(--t3);
+  font-size: 0.78rem;
+  cursor: grab;
+  padding: 2px;
+  opacity: 0;
+  transition: opacity var(--tr), color var(--tr);
+  user-select: none;
+}
+
+.dragHandle:active { cursor: grabbing; }
+.rowActions:hover .dragHandle { opacity: 1; }
+.dragHandle:hover { color: var(--text); }
+
+.dragOver {
+  border-top: 2px solid var(--gold) !important;
+}
+
+.rowDeleteBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 0.78rem;
+  cursor: pointer;
+  padding: 3px 4px;
+  opacity: 0;
+  transition: opacity var(--tr), color var(--tr);
+}
+
+.rowActions:hover .rowDeleteBtn,
+.cell:hover ~ .rowActions .rowDeleteBtn { opacity: 1; }
+/* show on row hover via parent grid */
+.grid:has(.cell:hover) .rowDeleteBtn { opacity: 0; }
+.rowActions:hover .rowDeleteBtn { opacity: 1; }
+
+.rowDeleteBtn:hover { color: var(--hot); }
+
+/* ── Add row ─────────────────────────────── */
+.addRowCell {
+  padding: 4px 10px;
+}
+
+.addRowBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.88rem;
+  cursor: pointer;
+  padding: 4px 0;
+  transition: color var(--tr);
+}
+
+.addRowBtn:hover { color: var(--gold); }
+
+/* ── Add column panel ────────────────────── */
+.addColPanel {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px;
+  margin-top: 4px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--r);
+}
+
+.addColInput {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.8rem;
+  padding: 4px 8px;
+  outline: none;
+  width: 140px;
+}
+
+.addColInput:focus { border-color: var(--gold); }
+
+.addColSelect {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.85rem;
+  padding: 5px 8px;
+  outline: none;
+}
+
+.addColConfirm {
+  background: color-mix(in srgb, var(--gold) 15%, transparent);
+  border: 1px solid color-mix(in srgb, var(--gold) 40%, transparent);
+  border-radius: var(--rs);
+  color: var(--gold);
+  font-family: var(--f);
+  font-size: 0.85rem;
+  padding: 5px 12px;
+  cursor: pointer;
+  transition: background var(--tr);
+}
+
+.addColConfirm:hover { background: color-mix(in srgb, var(--gold) 25%, transparent); }
+
+.addColCancel {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-size: 0.85rem;
+  cursor: pointer;
+  padding: 3px 6px;
+}
+
+.addColCancel:hover { color: var(--hot); }

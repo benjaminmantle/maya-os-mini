@@ -1,0 +1,105 @@
+.graphWrap {
+  position: relative;
+  width: 100%;
+  height: 500px;
+  background: var(--s0);
+  border-radius: var(--r);
+  overflow: hidden;
+  border: 1px solid var(--s2);
+}
+
+.graphSvg {
+  width: 100%;
+  height: 100%;
+  cursor: grab;
+}
+.graphSvg:active { cursor: grabbing; }
+
+/* Zoom / pan controls */
+.controls {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  z-index: 2;
+}
+
+.controlBtn {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--s1);
+  border: 1px solid var(--s2);
+  border-radius: var(--rs);
+  color: var(--t2);
+  font-family: var(--fm);
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background var(--tr), color var(--tr);
+}
+.controlBtn:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+/* Edges */
+.edge {
+  stroke: var(--t3);
+  stroke-width: 1.2;
+  transition: stroke var(--tr), stroke-width var(--tr);
+}
+.edgeHighlight {
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+
+/* Nodes */
+.node {
+  cursor: pointer;
+  transition: opacity 0.2s ease;
+}
+
+.nodeCircle {
+  fill: color-mix(in srgb, var(--blu) 40%, var(--s1));
+  stroke: var(--blu);
+  stroke-width: 1.5;
+  transition: r 0.15s ease, fill 0.15s ease, stroke 0.15s ease;
+}
+.nodeCircleHover {
+  fill: color-mix(in srgb, var(--gold) 45%, var(--s1));
+  stroke: var(--gold);
+  stroke-width: 2;
+}
+
+.nodeLabel {
+  font-family: var(--f);
+  font-size: 0.65rem;
+  fill: var(--t2);
+  pointer-events: none;
+  user-select: none;
+}
+
+.nodeInitials {
+  font-family: var(--fd);
+  font-size: 0.55rem;
+  font-weight: 700;
+  fill: var(--text);
+  pointer-events: none;
+  user-select: none;
+}
+
+/* Empty state */
+.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 120px;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.82rem;
+  text-align: center;
+}

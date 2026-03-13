@@ -1,0 +1,27 @@
+.stars {
+  display: inline-flex;
+  gap: 1px;
+  line-height: 1;
+}
+
+.star {
+  font-size: 0.9rem;
+  transition: color var(--tr);
+}
+
+.filled {
+  color: var(--gold);
+}
+
+.empty {
+  color: var(--b2);
+}
+
+.editable {
+  cursor: pointer;
+}
+
+.editable:hover {
+  color: var(--gold);
+  opacity: 0.7;
+}

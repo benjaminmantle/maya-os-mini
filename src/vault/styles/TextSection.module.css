@@ -1,0 +1,107 @@
+.wrapper {
+  position: relative;
+  min-height: 60px;
+}
+
+/* ── Formatting toolbar ─────────────────── */
+.toolbar {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 2px 4px;
+  margin-bottom: 4px;
+  border-bottom: 1px solid var(--b1);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity var(--tr);
+}
+
+.toolbarVisible {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.toolbarBtn {
+  background: none;
+  border: none;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.82rem;
+  padding: 3px 7px;
+  cursor: pointer;
+  border-radius: var(--rs);
+  transition: color var(--tr), background var(--tr);
+  line-height: 1;
+}
+
+.toolbarBtn:hover {
+  color: var(--text);
+  background: var(--s2);
+}
+
+.toolbarBtnActive {
+  color: var(--gold);
+  background: var(--gd2);
+}
+
+.linkInput {
+  background: var(--s2);
+  border: 1px solid var(--b2);
+  border-radius: var(--rs);
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 0.78rem;
+  padding: 3px 8px;
+  outline: none;
+  width: 160px;
+  margin-left: 4px;
+  transition: border-color var(--tr);
+}
+
+.linkInput:focus {
+  border-color: var(--gold);
+}
+
+.linkInput::placeholder {
+  color: var(--t3);
+  font-size: 0.74rem;
+}
+
+/* ── Placeholder ────────────────────────── */
+.placeholder {
+  position: absolute;
+  top: 36px;
+  left: 4px;
+  color: var(--t3);
+  font-family: var(--f);
+  font-size: 0.85rem;
+  pointer-events: auto;
+  cursor: text;
+  user-select: none;
+}
+
+/* ── Editor ─────────────────────────────── */
+.editor {
+  font-family: var(--f);
+  font-size: 0.85rem;
+  color: var(--text);
+  line-height: 1.6;
+  padding: 4px;
+  outline: none;
+  min-height: 40px;
+  border-radius: var(--rs);
+  transition: background var(--tr);
+}
+
+.editor:focus {
+  background: var(--s1);
+}
+
+.editor p {
+  margin: 0 0 8px;
+}
+
+.editor a {
+  color: var(--blu);
+  text-decoration: underline;
+}
