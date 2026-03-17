@@ -63,6 +63,10 @@ export default function DayView({
   // Maya tasks always rendered first so they stay grouped; each sub-group preserves S.tasks order
   const activeSorted = [...active.filter(t => t.priority === 'maya'), ...active.filter(t => t.priority !== 'maya')];
   const done = allForDay.filter(t => isDone(t));
+  const q = inputVal.trim().toLowerCase();
+  const displayFrogs = q ? frogs.filter(t => t.name.toLowerCase().includes(q)) : frogs;
+  const displayActive = q ? activeSorted.filter(t => t.name.toLowerCase().includes(q)) : activeSorted;
+  const displayDone = q ? done.filter(t => t.name.toLowerCase().includes(q)) : done;
   const frogsDone = !!frogsComplete[focusDate];
   const allFrogsForDay = allForDay.filter(t => t.isFrog);
   const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => isDone(t));
@@ -450,7 +454,7 @@ export default function DayView({
             {'\uD83D\uDC38'}&nbsp;Frogs{(frogsDone || allFrogsDoneAuto) && <span className={styles.frogCheck}>{' \u2713'}</span>}
           </div>
           <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(true)} onDragLeave={handleDragLeave} onDrop={makeDrop('frogs')}>
-            {frogs.map(t => renderCard(t))}
+            {displayFrogs.map(t => renderCard(t))}
           </div>
         </div>
 
@@ -507,7 +511,7 @@ export default function DayView({
                 <button className={styles.qaBtn} onClick={handleAdd}>+</button>
               </div>
               <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(false)} onDragLeave={handleDragLeave} onDrop={makeDrop('day')}>
-                {activeSorted.length ? activeSorted.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
+                {activeSorted.length ? displayActive.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
               </div>
             </>
           )}
@@ -521,7 +525,7 @@ export default function DayView({
               <button className={styles.collapseBtn} onClick={() => setDoneHidden(!doneHidden)}>{doneHidden ? 'show' : 'hide'}</button>
             </div>
             {!doneHidden && (
-              <div className={styles.taskList}>{done.map(t => renderCard(t))}</div>
+              <div className={styles.taskList}>{displayDone.map(t => renderCard(t))}</div>
             )}
           </div>
         )}

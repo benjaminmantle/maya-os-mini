@@ -30,6 +30,8 @@ export default function BacklogPanel({
   const dragOverCardRef = useRef(null);
 
   const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'maya');
+  const bq = inputVal.trim().toLowerCase();
+  const displayBacklog = bq ? backlog.filter(t => t.name.toLowerCase().includes(bq)) : backlog;
 
   function clearCardIndicator() {
     if (dragOverCardRef.current) {
@@ -220,7 +222,7 @@ export default function BacklogPanel({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {backlog.length ? backlog.map(t => (
+        {backlog.length ? displayBacklog.map(t => (
           <TaskCard
             key={t.id}
             task={t}

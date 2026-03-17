@@ -382,7 +382,7 @@ export function carryForwardTasks(toDate) {
     const dayRec = S.days[t.scheduledDate];
     if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
     count++;
-    return { ...t, scheduledDate: toDate, isFrog: false };
+    return { ...t, scheduledDate: toDate };
   });
   if (count > 0) save();
   return count;

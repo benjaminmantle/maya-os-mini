@@ -47,6 +47,8 @@ export default function MayaPanel({
   // Store order IS the display order — handleAdd/handleStarChange maintain star-group order in store.
   // P/T sort buttons reorder store; star grouping is maintained by drag/star-change snap logic.
   const mayaTasks = tasks.filter(t => t.priority === 'maya' && !t.done);
+  const mq = inputVal.trim().toLowerCase();
+  const displayMaya = mq ? mayaTasks.filter(t => t.name.toLowerCase().includes(mq)) : mayaTasks;
 
   function clearCardIndicator() {
     if (dragOverCardRef.current) {
@@ -213,7 +215,7 @@ export default function MayaPanel({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {mayaTasks.length ? mayaTasks.map(t => (
+        {mayaTasks.length ? displayMaya.map(t => (
           <TaskCard
             key={t.id}
             task={t}
