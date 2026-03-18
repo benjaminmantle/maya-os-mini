@@ -7,7 +7,7 @@ import { applyEmDash } from '../../utils/parsing.js';
 import { markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 
-export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDaily, onContextMenu }) {
+export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDaily, onContextMenu, theme }) {
   const [showForm, setShowForm] = useState(false);
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('general');
@@ -55,7 +55,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
               index={i}
               total={n}
               done={dayRecord.dIds.includes(d.id)}
-              color={todColor(i, n)}
+              color={todColor(i, n, theme)}
               onToggle={() => handleToggle(d.id)}
               onEdit={() => onEditDaily(d)}
               onDelete={() => storeDeleteDaily(d.id)}

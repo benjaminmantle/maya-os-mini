@@ -16,6 +16,7 @@ export default function Sidebar({
   onEditDaily,
   onDailyContextMenu,
   onTaskContextMenu,
+  theme,
 }) {
   const [tab, setTab] = useState('dailies');
   const [backlogDragOver, setBacklogDragOver] = useState(false);
@@ -77,6 +78,7 @@ export default function Sidebar({
           focusDate={focusDate}
           onEditDaily={onEditDaily}
           onContextMenu={onDailyContextMenu}
+          theme={theme}
         />
       )}
       {tab === 'backlog' && (

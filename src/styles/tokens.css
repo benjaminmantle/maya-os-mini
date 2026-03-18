@@ -119,6 +119,42 @@ html.theme-vanilla {
   --topbar-scan:  rgba(120,100,55,.012);
 }
 
+/* ── Kraft theme ────────────────────────────────────────────────────────── */
+html.theme-kraft {
+  /* Surfaces — warm tan, like kraft paper / manila folders; ~30% darker than vanilla */
+  --bg:   #c6b286;
+  --s0:   #bba87c;
+  --s1:   #d4c296;
+  --s2:   #bfaa80;
+  --s3:   #b09870;
+  /* Borders — warm brown, stronger than vanilla for structure */
+  --b1:   rgba(92,68,26,.24);
+  --b2:   rgba(92,68,26,.46);
+  /* Text — dark warm brown, high contrast on tan */
+  --text: #1e1608;
+  --t2:   #4a3818;
+  --t3:   #7a6038;
+  /* Tint backgrounds — stronger than vanilla for punchier cards */
+  --gd2:  rgba(240,176,48,.22);
+  --ht2:  rgba(255,48,96,.17);
+  --gn2:  rgba(34,238,128,.19);
+  --tel2: rgba(32,200,216,.17);
+  /* Gold replaced with deep amber — #f0b030 washes out on tan; this contrasts cleanly */
+  --gold: #8c6200;
+  --gd2:  rgba(140,98,0,.22);
+  /* Purple/maya — #9955ff and #bf5fff both too light on tan; darken significantly */
+  --pur:      #6600cc;
+  --pri-maya: #8822cc;
+  /* Accent colours — slightly more vivid than vanilla; background dark enough to carry them */
+  --grn:     #1a9850;
+  --tel:     #0a8aaa;
+  --pri-md:  #d05500;
+  /* Effects — subtle warm presence */
+  --grid-line:    rgba(92,68,26,.052);
+  --vignette:     rgba(50,35,8,.058);
+  --topbar-scan:  rgba(92,68,26,.016);
+}
+
 /* ── White theme ────────────────────────────────────────────────────────── */
 html.theme-white {
   /* Surfaces — clean near-white, faint neutral warmth, not cold */

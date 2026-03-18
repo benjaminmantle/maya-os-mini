@@ -3,11 +3,12 @@ import styles from '../styles/components/Topbar.module.css';
 import { TITLES } from '../utils/scoring.js';
 
 const THEMES = [
-  { id: 'dark',    label: 'Dark',     dot: '#191817' },
-  { id: 'dim',     label: 'Dim',      dot: '#2a2825' },
-  { id: 'light',   label: 'Lavender', dot: '#ece8f8' },
-  { id: 'vanilla', label: 'Vanilla',  dot: '#f3ede0' },
-  { id: 'white',   label: 'White',    dot: '#f6f5f3' },
+  { id: 'dark',    label: 'Dark',      dot: '#191817' },
+  { id: 'dim',     label: 'Soft-Dark', dot: '#2a2825' },
+  { id: 'kraft',   label: 'Kraft',     dot: '#d4c296' },
+  { id: 'vanilla', label: 'Vanilla',   dot: '#f3ede0' },
+  { id: 'light',   label: 'Lav-Light', dot: '#ece8f8' },
+  { id: 'white',   label: 'Light',     dot: '#f6f5f3' },
 ];
 
 export default function Topbar({ profile, theme, onThemeSet }) {

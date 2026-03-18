@@ -22,10 +22,11 @@ export default function App() {
   const [theme, setTheme] = useState(() => localStorage.getItem('maya_theme') || 'dark');
 
   useEffect(() => {
-    document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-white');
+    document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-kraft', 'theme-white');
     if (theme === 'dim')     document.documentElement.classList.add('theme-dim');
     if (theme === 'light')   document.documentElement.classList.add('theme-light');
     if (theme === 'vanilla') document.documentElement.classList.add('theme-vanilla');
+    if (theme === 'kraft')   document.documentElement.classList.add('theme-kraft');
     if (theme === 'white')   document.documentElement.classList.add('theme-white');
     localStorage.setItem('maya_theme', theme);
   }, [theme]);
@@ -94,6 +95,7 @@ export default function App() {
               onFocusTask={handleFocusTask}
               getTimerDisplay={(t) => getTimerDisplay(t)}
               initialDate={weekNavDate}
+              theme={theme}
             />
           </div>
         )}

@@ -91,7 +91,8 @@ maya-os-mini/               ← repo root (.git lives here)
             ├── scoring.js         ← scoreDay(), closeDayScoring(), calcMomentum(), expForLevel(), TITLES
             ├── parsing.js         ← parseInput() inline syntax parser; applyEmDash() for -- → — conversion
             ├── duration.js        ← parseDurMs(), fmtMs(), isOpenEnded(), DURATIONS
-            └── colors.js          ← todColor() daily dot color interpolation
+            └── colors.js          ← todColor(i, n, theme?) daily dot color interpolation;
+                                       TOD_COLORS (neon, default) + TOD_COLORS_KRAFT (ink-on-parchment)
 ```
 
 ---
@@ -142,8 +143,8 @@ export function moveTask(draggedId, targetId, before)
 export function sortTasksForView(date, field, dir)
                                 // fields: 'pts', 'dur', 'grp' (hi→md→lo→null), 'mgrp' (3★→2★→1★ for maya)
 export function carryForwardTasks(toDate)
-                                // moves all past non-done non-maya scheduled tasks to toDate;
-                                // sets isFrog=false on each; returns count moved
+                                // moves all past non-done scheduled tasks (including maya) to toDate;
+                                // preserves isFrog; returns count moved
 
 // ── Daily mutators ────────────────────────────────────────
 export function saveDailies(dailies)    // full replacement (for reorder)
@@ -241,20 +242,31 @@ Do not split into sub-components.
 
 ## Theme System
 
-Five themes: **Dark** (default), **Dim**, **Lavender**, **Vanilla**, **White**.
+Six themes ordered dark → light: **Dark** (default), **Soft-Dark**, **Kraft**, **Vanilla**, **Lav-Light**, **Light**.
+
+| Label | ID | Class on `<html>` |
+|---|---|---|
+| Dark | `dark` | *(none — `:root` default)* |
+| Soft-Dark | `dim` | `theme-dim` |
+| Kraft | `kraft` | `theme-kraft` |
+| Vanilla | `vanilla` | `theme-vanilla` |
+| Lav-Light | `light` | `theme-light` |
+| Light | `white` | `theme-white` |
 
 - Theme choice persisted to `localStorage.maya_theme`; loaded in `App.jsx` on mount
 - `App.jsx` manages the active class on `document.documentElement`, removing all non-dark classes then adding the chosen one:
   ```js
-  document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-white');
+  document.documentElement.classList.remove('theme-dim', 'theme-light', 'theme-vanilla', 'theme-kraft', 'theme-white');
   if (theme !== 'dark') document.documentElement.classList.add(`theme-${theme}`);
   ```
 - Token overrides live in `tokens.css` as `html.theme-*` blocks — they override `:root` via higher specificity. No `!important` needed.
-- **Topbar SKIN dropdown**: static chip button opens an absolutely-positioned menu. `overflow: hidden` was intentionally removed from `.topbar` to prevent clipping.
-- **Multi-theme CSS selectors** — when a component style only applies to light-variant themes, use combined selectors to avoid repeating declarations:
+- **Kraft theme** — mid-tone parchment/document aesthetic. Key overrides: `--gold: #8c6200` (dark amber replaces neon yellow for contrast on tan), focused task strip `#f0c840`, daily dots use `TOD_COLORS_KRAFT` palette (ink-on-parchment: moss → teal → slate → indigo → violet → plum).
+- **Topbar SKIN dropdown**: static chip button opens an absolutely-positioned menu (min-width: 150px). `overflow: hidden` was intentionally removed from `.topbar` to prevent clipping.
+- **Multi-theme CSS selectors** — when a component style only applies to light-variant themes, use combined selectors:
   ```css
   :global(html.theme-light) .myClass,
   :global(html.theme-vanilla) .myClass,
+  :global(html.theme-kraft) .myClass,
   :global(html.theme-white) .myClass { ... }
   ```
 - **qa input opacity** — `.qaInput`, `.qaBtn`, and `.mayaBtn` use `color-mix(in srgb, var(--s2) 78%, transparent)` for background. This makes them slightly recessed/transparent across all themes proportionally, avoiding hardcoded per-theme overrides.
@@ -290,11 +302,15 @@ Defaults: pts=0.5, time=null, priority=null, isFrog=false.
 
 Override order: frog (green) > active (green) > focused (gold) > priority color.
 
-`priRank`: `maya=0, hi=1, md=2, lo=3, null=4` — sort order in task lists. Maya tasks always sort first.
+`taskRank(task)`: maps star count to sort rank — `3★→1, 2★→2, 1★→3, null→4`. Used in DayView to group maya tasks alongside same-rank hi/md/lo tasks.
 
-**Maya task rules:**
+**Maya task rules in DayView:**
+- **Grouped by star level**, not in a separate section: 3★ ranks with hi (pink), 2★ with md (gold), 1★ with lo (blue). Still renders purple.
+- **New scheduled tasks go to TOP of their rank group** — both on drag-to-day and AssignPopup schedule.
+- **Star change repositions to TOP of new rank group** — `handleStarChange` uses `snapToZoneByRank(0, zone, newRank)`.
 - Excluded from the Backlog panel; shown only in the Maya sidebar tab and on the day if scheduled
 - In DayView, "Delete" becomes "Remove from day" (sets `scheduledDate=null`; task persists in Maya tab)
+- ↩ button on core task cards moves task back to backlog (`scheduledDate: null`)
 - Priority hi/md/lo context menu items hidden for maya tasks
 - Sandwich recolor guard skips maya tasks (they don't get background-recolored by neighbors)
 

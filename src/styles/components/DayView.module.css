@@ -294,6 +294,33 @@
 :global(html.theme-light) .workoutCheck,
 :global(html.theme-vanilla) .workoutCheck,
 :global(html.theme-white) .workoutCheck { text-shadow: 0 0 5px rgba(200,25,50,.4); }
+:global(html.theme-kraft) .frogSec .secLblFrog {
+  animation: frogPulseLight 1.6s ease-in-out infinite alternate;
+  color: var(--grn);
+  text-shadow: 0 0 5px rgba(26,152,80,.42);
+}
+:global(html.theme-kraft) .frogSecDone .secLblFrog,
+:global(html.theme-kraft) .frogSecAllDone .secLblFrog {
+  animation: none;
+  color: var(--t3);
+  text-shadow: none;
+}
+:global(html.theme-kraft) .frogCheck  { text-shadow: 0 0 5px rgba(26,152,80,.48); }
+/* Kraft workout: bigger dark→bright swing so it's as apparent as frog */
+@keyframes workoutPulseKraft {
+  from { text-shadow: 0 0 4px rgba(160,10,30,.48); color: #8a0a1c; }
+  to   { text-shadow: 0 0 16px rgba(195,15,40,.92), 0 0 30px rgba(195,15,40,.28); color: #d81030; }
+}
+:global(html.theme-kraft) .workoutLabel {
+  animation: workoutPulseKraft 1.6s ease-in-out infinite alternate;
+  color: #8a0a1c;
+}
+:global(html.theme-kraft) .workoutCheck { text-shadow: 0 0 6px rgba(195,15,40,.52); }
+
+/* Kraft spotlight — drop hint and focused strip */
+:global(html.theme-kraft) .spotlightHint { color: var(--gold); opacity: 1; font-weight: 600; }
+:global(html.theme-kraft) .spotlightDropActive { background: rgba(140,98,0,.10); outline: 1px dashed rgba(140,98,0,.55); }
+:global(html.theme-kraft) .spotlightFocused::before { background: #f0c840; box-shadow: none; }
 
 /* Workout label — frog-style but red */
 .workoutLabel {

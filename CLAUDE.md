@@ -169,17 +169,39 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 ### Maya tasks in DayView — unschedule, don't delete
 Delete action for maya tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
 
-### Maya drag to DayView — linked copy, skip doMove
-`makeDrop('day')` ONLY calls `updateTask({ scheduledDate: focusDate, isFrog: false })` for maya tasks — does NOT call `doMove`. Intentional. Do not add `doMove` back.
+### Maya drag to DayView — calls doMove for initial placement
+`makeDrop('day')` calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToZoneByRank(0, zone, taskRank(task))` to position at TOP of the correct rank group. The old "skip doMove" pattern is gone — `doMove` IS called now.
+
+### Maya tasks grouped by star rank in DayView
+Maya tasks in DayView core tasks are NOT in a separate section. They sort alongside hi/md/lo tasks by `taskRank()`: 3★ ranks with hi (rank 1), 2★ with md (rank 2), 1★ with lo (rank 3). They still render purple. `priRank` still used for backlog/other views; `taskRank` is DayView-specific.
+
+### Maya tasks go to TOP of rank group
+When scheduled (drag, AssignPopup) or when stars change on a scheduled task, maya tasks insert at the TOP of their rank group. `handleStarChange` passes `insertAt=0` to `snapToZoneByRank`. AssignPopup `onScheduled` callback triggers repositioning for same-day scheduling.
+
+### carryForwardTasks includes maya tasks and preserves frog
+`carryForwardTasks(toDate)` now moves maya tasks too (previously excluded). It no longer hardcodes `isFrog: false` — frog status is preserved.
 
 ### Theme system — dark is the default, no class
 Dark theme uses `:root` defaults. Other themes apply a class on `<html>`. Light-mode overrides must always be in named `html.theme-*` blocks:
 ```css
 :global(html.theme-light) .foo,
 :global(html.theme-vanilla) .foo,
+:global(html.theme-kraft) .foo,
 :global(html.theme-white) .foo { ... }
 ```
 `overflow: hidden` on `.topbar` was removed to allow the theme dropdown to escape — do not restore it.
+
+Six themes (IDs stable, labels updated): `dark` (Dark), `dim` (Soft-Dark), `kraft` (Kraft), `vanilla` (Vanilla), `light` (Lav-Light), `white` (Light).
+
+### Kraft theme — --gold override and focused strip
+Kraft overrides `--gold: #8c6200` in `tokens.css`. This darkens all `var(--gold)` usages on kraft.
+The **focused task left strip** (`.focusedTask::before`) does NOT use `var(--gold)` on kraft — it has an explicit `background: #f0c840` override in `TaskCard.module.css` so it matches the card's bright yellow border. Do not assume the strip follows `--gold`.
+
+### Kraft frog pulse — must cover both done classes
+The kraft pulse animation for frogs only applies to `.frogSec .secLblFrog` (undone). The stop-animation rule covers BOTH `.frogSecDone .secLblFrog` AND `.frogSecAllDone .secLblFrog` — the parent div uses one of three classes (ternary, not additive), so both must be handled. The broad `:global(html.theme-kraft) .secLblFrog` selector was intentionally removed to prevent pulse bleeding into done states.
+
+### todColor theme parameter
+`todColor(i, n, theme?)` in `colors.js` accepts an optional theme string. Pass `document.documentElement.className.match(/theme-(\w+)/)?.[1]` from `DailiesPanel.jsx`. Returns `TOD_COLORS_KRAFT` palette for `theme === 'kraft'`, default neon palette otherwise.
 
 ### Em dash — applyEmDash must be wired to all name inputs
 `applyEmDash(str)` in `parsing.js` converts `--X` to `—X`. Must be applied in `onChange` on every task/daily name input. Any new name input must wire `applyEmDash`.

@@ -327,3 +327,54 @@
 :global(html.theme-light) .iconBtnAssign:hover,
 :global(html.theme-vanilla) .iconBtnAssign:hover,
 :global(html.theme-white) .iconBtnAssign:hover { color: var(--blu); }
+
+/* ── Kraft theme overrides — mid-tone tan; glows partially restored for punchiness ── */
+:global(html.theme-kraft) .done { opacity: .46; }
+
+:global(html.theme-kraft) .priHi { background: rgba(255,48,96,.12); border-color: rgba(255,48,96,.50); }
+:global(html.theme-kraft) .priHi:hover { background: rgba(255,48,96,.19); border-color: rgba(255,48,96,.72); }
+:global(html.theme-kraft) .priHi::before { background: var(--hot); box-shadow: 0 0 7px rgba(255,48,96,.40); }
+:global(html.theme-kraft) .priHi:hover::before { box-shadow: 0 0 13px rgba(255,48,96,.56); }
+
+:global(html.theme-kraft) .priMd { background: rgba(208,85,0,.15); border-color: rgba(208,85,0,.55); }
+:global(html.theme-kraft) .priMd:hover { background: rgba(208,85,0,.23); border-color: rgba(208,85,0,.74); }
+:global(html.theme-kraft) .priMd::before { background: var(--pri-md); box-shadow: 0 0 7px rgba(208,85,0,.38); }
+:global(html.theme-kraft) .priMd:hover::before { box-shadow: 0 0 13px rgba(208,85,0,.54); }
+
+:global(html.theme-kraft) .priLo { background: rgba(10,138,170,.11); border-color: rgba(10,138,170,.50); }
+:global(html.theme-kraft) .priLo:hover { background: rgba(10,138,170,.18); border-color: rgba(10,138,170,.70); }
+:global(html.theme-kraft) .priLo::before { background: var(--tel); box-shadow: 0 0 7px rgba(10,138,170,.38); }
+:global(html.theme-kraft) .priLo:hover::before { box-shadow: 0 0 13px rgba(10,138,170,.54); }
+
+/* kraft maya: --pur is now #6600cc, update rgba to match */
+:global(html.theme-kraft) .priMaya { background: rgba(102,0,204,.13); border-color: rgba(102,0,204,.50); }
+:global(html.theme-kraft) .priMaya:hover { background: rgba(102,0,204,.20); border-color: rgba(102,0,204,.70); }
+:global(html.theme-kraft) .priMaya::before { background: var(--pur); box-shadow: 0 0 7px rgba(102,0,204,.48); }
+:global(html.theme-kraft) .priMaya:hover::before { box-shadow: 0 0 14px rgba(102,0,204,.62); }
+
+:global(html.theme-kraft) .isFrog { background: rgba(26,152,80,.12); border-color: rgba(26,152,80,.62); }
+:global(html.theme-kraft) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(26,152,80,.50); }
+:global(html.theme-kraft) .isFrog:hover { background: rgba(26,152,80,.18); border-color: rgba(26,152,80,.82); }
+:global(html.theme-kraft) .isFrog:hover::before { box-shadow: 0 0 17px rgba(26,152,80,.66); }
+
+:global(html.theme-kraft) .p1 { background: rgba(185,140,0,.16); color: #8c6200; border-color: rgba(185,140,0,.38); }
+:global(html.theme-kraft) .p2 { background: rgba(200,72,0,.14); color: #9a3800; border-color: rgba(200,72,0,.36); }
+:global(html.theme-kraft) .p3 { background: rgba(200,15,48,.14); color: #920828; border-color: rgba(200,15,48,.36); }
+/* 0.5 pts badge — --slv (#9098b8) is too light on tan; use dark slate */
+:global(html.theme-kraft) .p05 { background: rgba(72,72,140,.14); color: #383870; border-color: rgba(72,72,140,.34); }
+/* Duration badge — --blu (#4488ff) washes out on tan; use dark indigo */
+:global(html.theme-kraft) .bdurSet { background: rgba(22,64,180,.13); color: #1640b8; border-color: rgba(22,64,180,.32); }
+
+:global(html.theme-kraft) .focusedTask { background: rgba(240,196,32,.25); border-color: rgba(240,196,32,.88); box-shadow: 0 0 10px rgba(240,176,48,.32); }
+:global(html.theme-kraft) .focusedTask:hover { border-color: rgba(240,196,32,.98); box-shadow: 0 0 15px rgba(240,176,48,.44); }
+:global(html.theme-kraft) .focusedTask::before { background: #f0c840; box-shadow: 0 0 22px rgba(240,176,48,.76); }
+:global(html.theme-kraft) .focusedTask:hover::before { background: #f0c840; }
+
+:global(html.theme-kraft) .iconBtnEdit { color: rgba(120,85,0,.80); }
+:global(html.theme-kraft) .iconBtnEdit:hover { color: var(--gold); }
+:global(html.theme-kraft) .del { color: rgba(185,18,45,.74); }
+:global(html.theme-kraft) .del:hover { color: var(--hot); }
+:global(html.theme-kraft) .iconBtnAssign { color: rgba(20,65,185,.74); }
+:global(html.theme-kraft) .iconBtnAssign:hover { color: var(--blu); }
+:global(html.theme-kraft) .iconBtnBack { color: rgba(90,65,20,.68); }
+:global(html.theme-kraft) .iconBtnBack:hover { color: var(--text); }

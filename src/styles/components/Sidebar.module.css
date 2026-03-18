@@ -124,7 +124,13 @@
 /* ── Light theme overrides ─────────────────────────────────────────────── */
 :global(html.theme-light) .dailyItemDone,
 :global(html.theme-vanilla) .dailyItemDone,
+:global(html.theme-kraft) .dailyItemDone,
 :global(html.theme-white) .dailyItemDone { opacity: .46; }
+
+/* Kraft: dailies cards use s1 which is too pale against tan sidebar — pull toward s2 */
+:global(html.theme-kraft) .dailyItem { background: var(--s2); }
+/* Kraft: ink-tone dots don't need a neon glow halo */
+:global(html.theme-kraft) .dDot { box-shadow: none !important; }
 
 @media(max-width: 680px) {
   .sidebar { border-right: none; border-top: 1px solid var(--b2); max-height: 280px; }

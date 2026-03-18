@@ -28,6 +28,7 @@ export default function DayView({
   onStartTask, onFocusTask,
   getTimerDisplay,
   initialDate,
+  theme,
 }) {
   const [focusDate, setFocusDate] = useState(initialDate || today());
   const [inputVal, setInputVal] = useState('');
@@ -550,6 +551,7 @@ export default function DayView({
         tasks={tasks} activeTaskId={activeTaskId} focusedTaskId={focusedTaskId}
         getTimerDisplay={getTimerDisplay} onEditDaily={openDailyEdit}
         onDailyContextMenu={handleDailyContextMenu} onTaskContextMenu={handleTaskContextMenu}
+        theme={theme}
       />
 
       <ContextMenu visible={taskCtx.visible} x={taskCtx.x} y={taskCtx.y} items={taskCtxItems} onClose={() => setTaskCtx(m => ({ ...m, visible: false }))} />
