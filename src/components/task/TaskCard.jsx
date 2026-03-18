@@ -18,6 +18,7 @@ export default function TaskCard({
   onStarChange,
   showDateChip,
   onDelete,
+  onMoveToBacklog,
   onBump,
   inlineBump,
 }) {
@@ -190,6 +191,9 @@ export default function TaskCard({
                 <line x1="9" y1="1" x2="9" y2="4" />
               </svg>
             </button>
+          )}
+          {onMoveToBacklog && (
+            <button className={`${styles.iconBtn} ${styles.iconBtnBack}`} onClick={(e) => { e.stopPropagation(); onMoveToBacklog(task.id); }} title="Move to backlog">↩</button>
           )}
         </div>
         {onBump && !inlineBump && hovered && (

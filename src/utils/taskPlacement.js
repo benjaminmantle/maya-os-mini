@@ -42,6 +42,27 @@ export function insertTopOfGroup(pri, zoneList) {
   return lo;
 }
 
+// Effective rank for a task — maya tasks use star count, others use priority string
+// 3★ maya → 1 (with hi), 2★ → 2 (with md), 1-0★ → 3 (with lo)
+export function taskRank(t) {
+  if (t.priority === 'maya') {
+    const s = t.mayaPts ?? 1;
+    return s >= 3 ? 1 : s >= 2 ? 2 : 3;
+  }
+  return priRank(t.priority);
+}
+
+// Like snapToZone but uses taskRank on zone items and accepts a rank number directly
+export function snapToZoneByRank(insertAt, zoneList, rank) {
+  let lo = 0, hi = zoneList.length;
+  for (let i = 0; i < zoneList.length; i++) {
+    const r = taskRank(zoneList[i]);
+    if (r < rank) lo = i + 1;
+    if (r > rank && hi === zoneList.length) hi = i;
+  }
+  return Math.min(Math.max(insertAt, lo), hi);
+}
+
 // Move task `id` to insertAt position within zoneList
 export function doMove(id, insertAt, zoneList) {
   if (insertAt < zoneList.length) moveTask(id, zoneList[insertAt].id, true);

@@ -378,9 +378,12 @@ export function carryForwardTasks(toDate) {
   S.tasks = S.tasks.map(t => {
     if (!t.scheduledDate) return t;
     if (t.scheduledDate >= todayStr) return t;  // only past dates
-    if (t.priority === 'maya') return t;         // maya tasks exempt
-    const dayRec = S.days[t.scheduledDate];
-    if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
+    if (t.priority === 'maya') {
+      if (t.done) return t; // maya completion is task.done
+    } else {
+      const dayRec = S.days[t.scheduledDate];
+      if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
+    }
     count++;
     return { ...t, scheduledDate: toDate };
   });

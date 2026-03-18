@@ -4,7 +4,7 @@ import { updateTask } from '../../store/store.js';
 import { get7, dayLabel } from '../../utils/dates.js';
 import { useToast } from '../shared/Toast.jsx';
 
-export default function AssignPopup({ taskId, currentDate, x, y, onClose }) {
+export default function AssignPopup({ taskId, currentDate, x, y, onClose, onScheduled }) {
   const ref = useRef(null);
   const showToast = useToast();
 
@@ -27,6 +27,7 @@ export default function AssignPopup({ taskId, currentDate, x, y, onClose }) {
       ...(date === null ? { isFrog: false } : {}),
     });
     showToast(date ? `→ ${dayLabel(date)}` : '→ backlog');
+    if (date && onScheduled) onScheduled(taskId, date);
     onClose();
   }
 

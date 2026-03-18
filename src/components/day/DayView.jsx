@@ -10,7 +10,7 @@ import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
 import { parseInput, applyEmDash } from '../../utils/parsing.js';
-import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, insertAtForStars } from '../../utils/taskPlacement.js';
+import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, insertAtForStars, taskRank, snapToZoneByRank } from '../../utils/taskPlacement.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
@@ -60,8 +60,8 @@ export default function DayView({
   const allForDay = tasks.filter(t => t.scheduledDate === focusDate);
   const frogs = allForDay.filter(t => t.isFrog && !isDone(t) && t.id !== spId);
   const active = allForDay.filter(t => !t.isFrog && !isDone(t) && t.id !== spId);
-  // Maya tasks always rendered first so they stay grouped; each sub-group preserves S.tasks order
-  const activeSorted = [...active.filter(t => t.priority === 'maya'), ...active.filter(t => t.priority !== 'maya')];
+  // Maya tasks grouped by stars into hi/md/lo rank groups; stable sort preserves S.tasks order within rank
+  const activeSorted = [...active].sort((a, b) => taskRank(a) - taskRank(b));
   const done = allForDay.filter(t => isDone(t));
   const q = inputVal.trim().toLowerCase();
   const displayFrogs = q ? frogs.filter(t => t.name.toLowerCase().includes(q)) : frogs;
@@ -76,8 +76,7 @@ export default function DayView({
     ? tasks.filter(t =>
         t.scheduledDate &&
         t.scheduledDate < todayStr &&
-        t.priority !== 'maya' &&
-        !(days[t.scheduledDate]?.cIds?.includes(t.id))
+        !(t.priority === 'maya' ? t.done : days[t.scheduledDate]?.cIds?.includes(t.id))
       )
     : [];
 
@@ -211,16 +210,17 @@ export default function DayView({
           const draggedPri = draggedTask?.priority ?? null;
           if (draggedPri === 'maya') {
             if (needsZoneChange) {
-              // Initial assignment: link to day via scheduledDate only — skip doMove to preserve
-              // MayaPanel star-group order. activeSorted will render it at top on next render.
+              // Initial assignment: schedule and position at top of effective rank group
               updateTask(id, { scheduledDate: focusDate, isFrog: false });
+              const zone = activeSorted.filter(t => t.id !== id);
+              doMove(id, snapToZoneByRank(0, zone, taskRank(draggedTask)), zone);
             } else {
-              // Already on this day: allow repositioning within the maya group
+              // Already on this day: allow repositioning within the effective rank group
               const zoneList = activeSorted.filter(t => t.id !== id);
               const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
               if (targetIdx !== -1) {
                 let insertAt = before ? targetIdx : targetIdx + 1;
-                insertAt = snapToZone(insertAt, zoneList, 'maya');
+                insertAt = snapToZoneByRank(insertAt, zoneList, taskRank(draggedTask));
                 doMove(id, insertAt, zoneList);
               }
             }
@@ -229,15 +229,18 @@ export default function DayView({
             const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
             if (targetIdx !== -1) {
               let insertAt = before ? targetIdx : targetIdx + 1;
+              const prevRank = insertAt > 0 ? taskRank(zoneList[insertAt - 1]) : undefined;
+              const nextRank = insertAt < zoneList.length ? taskRank(zoneList[insertAt]) : undefined;
+              const draggedRank = taskRank(draggedTask ?? { priority: draggedPri });
+              // Recolor/decolor if sandwiched between two tasks of identical non-maya priority
               const prevPri = insertAt > 0 ? (zoneList[insertAt - 1]?.priority ?? null) : undefined;
               const nextPri = insertAt < zoneList.length ? (zoneList[insertAt]?.priority ?? null) : undefined;
-              // Recolor/decolor if sandwiched between two tasks of identical priority (both null → decolor); maya tasks are immune
               if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
                 const patch = { priority: prevPri };
                 if (needsZoneChange) { patch.scheduledDate = focusDate; patch.isFrog = false; }
                 updateTask(id, patch);
               } else {
-                insertAt = snapToZone(insertAt, zoneList, draggedPri);
+                insertAt = snapToZoneByRank(insertAt, zoneList, draggedRank);
                 if (needsZoneChange) updateTask(id, { scheduledDate: focusDate, isFrog: false });
               }
               doMove(id, insertAt, zoneList);
@@ -322,8 +325,17 @@ export default function DayView({
 
   function handleStarChange(taskId, n) {
     updateTask(taskId, { mayaPts: n });
-    const allMaya = tasks.filter(t => t.priority === 'maya' && !t.done && t.id !== taskId);
-    doMove(taskId, insertAtForStars(n, allMaya), allMaya);
+    const newRank = n >= 3 ? 1 : n >= 2 ? 2 : 3;
+    // If task is scheduled (in activeSorted), reposition to end of its new rank group
+    const zone = activeSorted.filter(t => t.id !== taskId);
+    if (activeSorted.some(t => t.id === taskId)) {
+      const insertAt = snapToZoneByRank(0, zone, newRank); // top of rank group
+      doMove(taskId, insertAt, zone);
+    } else {
+      // Unscheduled: reposition within MayaPanel star order
+      const allMaya = tasks.filter(t => t.priority === 'maya' && !t.done && t.id !== taskId);
+      doMove(taskId, insertAtForStars(n, allMaya), allMaya);
+    }
   }
 
   function handlePriorityChange(taskId, newPri) {
@@ -345,10 +357,10 @@ export default function DayView({
   function handleBump(taskId, dir) {
     const idx = activeSorted.findIndex(t => t.id === taskId);
     if (idx === -1) return;
-    const rank = priRank(activeSorted[idx].priority);
+    const rank = taskRank(activeSorted[idx]);
     let lo = 0, hi = activeSorted.length;
     for (let i = 0; i < activeSorted.length; i++) {
-      const r = priRank(activeSorted[i].priority);
+      const r = taskRank(activeSorted[i]);
       if (r < rank) lo = i + 1;
       if (r > rank && hi === activeSorted.length) hi = i;
     }
@@ -361,7 +373,7 @@ export default function DayView({
     doMove(taskId, targetPos, activeSorted.filter(t => t.id !== taskId));
   }
 
-  function renderCard(t, showAssign = false, onPriorityChange = null, onBump = null) {
+  function renderCard(t, showAssign = false, onPriorityChange = null, onBump = null, showBacklog = false) {
     return (
       <TaskCard
         key={t.id}
@@ -378,6 +390,7 @@ export default function DayView({
         showAssign={showAssign}
         onAssign={handleAssign}
         onDelete={t.priority === 'maya' ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
+        onMoveToBacklog={showBacklog ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
         onBump={onBump}
       />
     );
@@ -511,7 +524,7 @@ export default function DayView({
                 <button className={styles.qaBtn} onClick={handleAdd}>+</button>
               </div>
               <div className={styles.taskList + ' ' + styles.dropZone} onDragOver={makeDragOver(false)} onDragLeave={handleDragLeave} onDrop={makeDrop('day')}>
-                {activeSorted.length ? displayActive.map(t => renderCard(t, true, handlePriorityChange, handleBump)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
+                {activeSorted.length ? displayActive.map(t => renderCard(t, true, handlePriorityChange, handleBump, true)) : <div className={styles.empty}>add a task above or drag from backlog</div>}
               </div>
             </>
           )}
@@ -550,6 +563,16 @@ export default function DayView({
           x={assignPopup.x}
           y={assignPopup.y}
           onClose={() => setAssignPopup(null)}
+          onScheduled={(tid, date) => {
+            // For maya tasks scheduled onto today's view, reposition to top of rank group
+            if (date === focusDate) {
+              const t = tasks.find(x => x.id === tid);
+              if (t?.priority === 'maya') {
+                const zone = activeSorted.filter(x => x.id !== tid);
+                doMove(tid, snapToZoneByRank(0, zone, taskRank(t)), zone);
+              }
+            }
+          }}
         />
       )}
 

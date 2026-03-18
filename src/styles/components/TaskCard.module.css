@@ -121,6 +121,8 @@
 .del:hover     { color: var(--hot); }
 .iconBtnAssign { color: rgba(68,136,255,.42); }
 .iconBtnAssign:hover { color: var(--blu); }
+.iconBtnBack   { color: rgba(140,140,160,.42); }
+.iconBtnBack:hover   { color: var(--t2); }
 
 /* Priority backgrounds — no left bar, subtle tint only */
 .priHi { background: rgba(255,48,96,.04); border-color: rgba(255,48,96,.2); }
