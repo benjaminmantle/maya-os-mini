@@ -164,12 +164,12 @@ export default function TaskCard({
             )}
           </div>
         )}
-        {timerDisplay && (
-          <div className={`${styles.timer} ${timerDisplay.className === 'timer over' ? styles.over : ''} ${timerDisplay.className === 'timer open' ? styles.open : ''}`}>
-            {timerDisplay.text}
-          </div>
-        )}
       </div>
+      {timerDisplay && (
+        <div className={`${styles.timer} ${timerDisplay.className === 'timer over' ? styles.over : ''} ${timerDisplay.className === 'timer open' ? styles.open : ''}`}>
+          {timerDisplay.text}
+        </div>
+      )}
       <div className={styles.cardActions}>
         <div className={styles.cardActionsRow}>
           {onBump && inlineBump && (

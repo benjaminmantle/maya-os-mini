@@ -31,10 +31,10 @@
 .draggable { cursor: grab; }
 .draggable:active { cursor: grabbing; }
 .dragging { opacity: .2; }
-.activeTask { background: rgba(34,238,128,.06); border-color: rgba(34,238,128,.4); opacity: 1; }
-.activeTask::before { background: var(--grn); box-shadow: 0 0 16px var(--grn); }
-.activeTask:hover { border-color: rgba(34,238,128,.62); }
-.activeTask:hover::before { background: var(--grn); box-shadow: 0 0 24px var(--grn); }
+.activeTask { background: rgba(68,136,255,.06); border-color: rgba(68,136,255,.4); opacity: 1; }
+.activeTask::before { background: var(--blu); box-shadow: 0 0 16px var(--blu); }
+.activeTask:hover { border-color: rgba(68,136,255,.62); }
+.activeTask:hover::before { background: var(--blu); box-shadow: 0 0 24px var(--blu); }
 .focusedTask { background: rgba(240,176,48,.1); border-color: rgba(240,176,48,.55); opacity: 1; }
 .focusedTask::before { background: var(--gold); box-shadow: 0 0 18px var(--gold); }
 .focusedTask:hover { border-color: rgba(240,176,48,.78); }
@@ -66,8 +66,10 @@
   font-family: var(--fm);
   font-size: 11px;
   color: var(--gold);
-  margin-top: 3px;
   letter-spacing: .5px;
+  align-self: center;
+  flex-shrink: 0;
+  padding: 0 6px;
 }
 .over { color: var(--hot); }
 .open { color: var(--tel); }

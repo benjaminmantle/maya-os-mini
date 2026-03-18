@@ -117,7 +117,7 @@
 /* Section labels */
 .secLbl { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--t2); font-family: var(--fd); }
 .secLblFrog { color: var(--grn); text-shadow: 0 0 8px rgba(34,238,128,.5); }
-.secLblActive { color: var(--grn); text-shadow: 0 0 6px rgba(34,238,128,.4); }
+.secLblActive { color: var(--blu); text-shadow: 0 0 6px rgba(68,136,255,.4); }
 .secLblFocused { color: var(--gold); text-shadow: 0 0 6px rgba(240,176,48,.4); }
 
 /* Frog section */
