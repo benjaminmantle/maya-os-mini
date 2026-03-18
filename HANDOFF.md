@@ -100,6 +100,11 @@ New mid-tone theme — darker than Vanilla, less eye-shock than dark. Key decisi
 
 ---
 
+### Daily dot theme-switch bug fix
+`DailiesPanel` was reading `document.documentElement.className` directly to get the theme for `todColor()` — DOM reads don't trigger React re-renders, so dots stayed stale on theme switch until a tab toggle forced a re-render. Fixed by threading `theme` as a prop: `App.jsx → DayView → Sidebar → DailiesPanel`.
+
+---
+
 ## Not yet verified (Maya)
 - [ ] Frog section right-click complete/undo
 - [ ] Core tasks collapse toggle persists across navigation

@@ -200,8 +200,8 @@ The **focused task left strip** (`.focusedTask::before`) does NOT use `var(--gol
 ### Kraft frog pulse — must cover both done classes
 The kraft pulse animation for frogs only applies to `.frogSec .secLblFrog` (undone). The stop-animation rule covers BOTH `.frogSecDone .secLblFrog` AND `.frogSecAllDone .secLblFrog` — the parent div uses one of three classes (ternary, not additive), so both must be handled. The broad `:global(html.theme-kraft) .secLblFrog` selector was intentionally removed to prevent pulse bleeding into done states.
 
-### todColor theme parameter
-`todColor(i, n, theme?)` in `colors.js` accepts an optional theme string. Pass `document.documentElement.className.match(/theme-(\w+)/)?.[1]` from `DailiesPanel.jsx`. Returns `TOD_COLORS_KRAFT` palette for `theme === 'kraft'`, default neon palette otherwise.
+### todColor theme parameter — must be a React prop, not DOM read
+`todColor(i, n, theme?)` in `colors.js` accepts an optional theme string. The `theme` value must be passed as a React prop all the way down: `App.jsx → DayView → Sidebar → DailiesPanel`. Do NOT read `document.documentElement.className` inside `DailiesPanel` — that doesn't trigger re-renders on theme change, causing dots to stay stale until something else re-renders the component. The prop chain is already wired; preserve it when refactoring.
 
 ### Em dash — applyEmDash must be wired to all name inputs
 `applyEmDash(str)` in `parsing.js` converts `--X` to `—X`. Must be applied in `onChange` on every task/daily name input. Any new name input must wire `applyEmDash`.
