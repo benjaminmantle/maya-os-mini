@@ -10,7 +10,7 @@ import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
 import { parseInput, applyEmDash } from '../../utils/parsing.js';
-import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, insertAtForStars, taskRank, snapToZoneByRank } from '../../utils/taskPlacement.js';
+import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, taskRank, snapToZoneByRank } from '../../utils/taskPlacement.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
@@ -213,8 +213,8 @@ export default function DayView({
             if (needsZoneChange) {
               // Initial assignment: schedule and position at top of effective rank group
               updateTask(id, { scheduledDate: focusDate, isFrog: false });
-              const zone = activeSorted.filter(t => t.id !== id);
-              doMove(id, snapToZoneByRank(0, zone, taskRank(draggedTask)), zone);
+              const zoneList2 = activeSorted.filter(t => t.id !== id);
+              doMove(id, snapToZoneByRank(0, zoneList2, taskRank(draggedTask)), zoneList2);
             } else {
               // Already on this day: allow repositioning within the effective rank group
               const zoneList = activeSorted.filter(t => t.id !== id);
@@ -327,15 +327,11 @@ export default function DayView({
   function handleStarChange(taskId, n) {
     updateTask(taskId, { mayaPts: n });
     const newRank = n >= 3 ? 1 : n >= 2 ? 2 : 3;
-    // If task is scheduled (in activeSorted), reposition to end of its new rank group
-    const zone = activeSorted.filter(t => t.id !== taskId);
+    // Reposition within activeSorted to top of its new rank group
     if (activeSorted.some(t => t.id === taskId)) {
-      const insertAt = snapToZoneByRank(0, zone, newRank); // top of rank group
+      const zone = activeSorted.filter(t => t.id !== taskId);
+      const insertAt = snapToZoneByRank(0, zone, newRank);
       doMove(taskId, insertAt, zone);
-    } else {
-      // Unscheduled: reposition within MayaPanel star order
-      const allMaya = tasks.filter(t => t.priority === 'maya' && !t.done && t.id !== taskId);
-      doMove(taskId, insertAtForStars(n, allMaya), allMaya);
     }
   }
 

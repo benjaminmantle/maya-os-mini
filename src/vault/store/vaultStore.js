@@ -784,7 +784,7 @@ export async function importSectionCSV(sectionId, csvString, options = {}) {
           value = ['true', 'yes', '1'].includes(raw.toLowerCase());
           break;
         case 'letter_grade':
-          value = GRADE_SCALE.includes(raw.toUpperCase()) ? raw.toUpperCase() : raw;
+          value = GRADE_SCALE.includes(raw.toUpperCase()) ? raw.toUpperCase() : null;
           break;
         default:
           value = raw;

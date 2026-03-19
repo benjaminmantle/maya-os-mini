@@ -16,7 +16,15 @@ export default function App() {
   const [view, setView] = useState('day');
   const [activeTaskId, setActiveTaskId] = useState(null);
   const [activeStart, setActiveStart] = useState(null);
-  const [focusedTaskId, setFocusedTaskId] = useState(null);
+  const [focusedTaskId, _setFocusedTaskId] = useState(() => {
+    const saved = localStorage.getItem('maya_focusedTaskId');
+    return saved || null;
+  });
+  const setFocusedTaskId = useCallback((id) => {
+    _setFocusedTaskId(id);
+    if (id) localStorage.setItem('maya_focusedTaskId', id);
+    else localStorage.removeItem('maya_focusedTaskId');
+  }, []);
   const [weekNavDate, setWeekNavDate] = useState(null);
   const weekDays = getWeekDays();
   const [theme, setTheme] = useState(() => localStorage.getItem('maya_theme') || 'dark');
@@ -58,6 +66,15 @@ export default function App() {
     setFocusedTaskId(id);
   }, [focusedTaskId, activeTaskId]);
 
+  // Clear persisted focus if the task no longer exists or isn't scheduled today
+  useEffect(() => {
+    if (!focusedTaskId) return;
+    const task = state.tasks.find(t => t.id === focusedTaskId);
+    if (!task || task.done) {
+      setFocusedTaskId(null);
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
   function handleSwitchDay(date) {
     setWeekNavDate(date);
     setView('day');
@@ -93,7 +110,7 @@ export default function App() {
               focusedTaskId={focusedTaskId}
               onStartTask={handleStartTask}
               onFocusTask={handleFocusTask}
-              getTimerDisplay={(t) => getTimerDisplay(t)}
+              getTimerDisplay={getTimerDisplay}
               initialDate={weekNavDate}
               theme={theme}
             />

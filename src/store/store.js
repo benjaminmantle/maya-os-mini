@@ -70,7 +70,6 @@ load();
 if (!S.dailies.length) S.dailies = DEFAULT_DAILIES;
 if (!S.tasks.length) {
   S.tasks = seedTasks();
-  persist();
 }
 
 
@@ -265,7 +264,9 @@ function reverseScoreRecord(record) {
   } else {
     p.exp = Math.max(0, (p.exp || 0) - record.expDelta);
   }
-  if (record.streakIncremented) {
+  if (record.streakBefore !== undefined) {
+    p.streak = record.streakBefore;
+  } else if (record.streakIncremented) {
     p.streak = Math.max(0, (p.streak || 0) - 1);
   }
   p.longest = record.longestBefore;
@@ -281,6 +282,7 @@ export function closeDay(date) {
     day.scoreRecord = null;
   }
   const longestBefore = S.profile.longest || 0;
+  const streakBefore = S.profile.streak || 0;
   // Snapshot exp/level before scoring so reopen can restore them exactly,
   // even if a level-up occurred (level-up consumes exp, making the delta wrong).
   const expBefore = S.profile.exp || 0;
@@ -290,6 +292,7 @@ export function closeDay(date) {
     expDelta: result.gain,
     expBefore,
     levelBefore,
+    streakBefore,
     streakIncremented: result.tier === 'perfect',
     longestBefore,
     perfectDelta: result.tier === 'perfect' ? 1 : 0,

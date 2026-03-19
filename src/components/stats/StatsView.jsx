@@ -213,7 +213,7 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
 
   // ── Handlers ────────────────────────────────────────────────────────────
   function handleSaveTarget() {
-    const v = parseInt(targetVal);
+    const v = parseInt(targetVal, 10);
     if (v >= 1 && v <= 30) { setTarget(v); showToast('target updated'); }
   }
 

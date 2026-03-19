@@ -100,6 +100,22 @@ New mid-tone theme — darker than Vanilla, less eye-shock than dark. Key decisi
 
 ---
 
+### Focus task persistence (2026-03-18)
+`focusedTaskId` was only stored in React state (`useState(null)`) — lost on every reload/HMR. Now persisted to `localStorage` key `maya_focusedTaskId`. Restored on mount with validation (clears if task no longer exists or is done). Unfocusing clears the key.
+
+### Codebase audit bug fixes (2026-03-18)
+Two Sonnet audits + one Opus verification sweep. 8 bugs fixed:
+- **CRITICAL**: WeekView maya task completion — was using `cIds` instead of `task.done` for maya tasks (always showed incomplete)
+- **MODERATE**: Streak lost on non-perfect day reopen — `reverseScoreRecord` now restores `streakBefore` instead of only decrementing on perfect days
+- **Minor**: Variable shadowing in `DayView.makeDrop()` — inner `const zone` renamed to `zoneList2`
+- **Minor**: Invalid letter grades stored raw on CSV import — fallback changed from `raw` to `null`
+- **Minor**: Unnecessary `persist()` after empty `seedTasks()` — removed
+- **Minor**: `parseInt` missing radix in StatsView — added `, 10`
+- **Minor**: Unnecessary `(t) => getTimerDisplay(t)` wrapper in App.jsx — simplified to direct reference
+- **Minor**: Dead else-branch in `handleStarChange` — removed unreachable MayaPanel reposition code + cleaned up unused `insertAtForStars` import
+
+Deferred bugs documented in `KNOWN_BUGS.md`.
+
 ### Daily dot theme-switch bug fix
 `DailiesPanel` was reading `document.documentElement.className` directly to get the theme for `todColor()` — DOM reads don't trigger React re-renders, so dots stayed stale on theme switch until a tab toggle forced a re-render. Fixed by threading `theme` as a prop: `App.jsx → DayView → Sidebar → DailiesPanel`.
 
@@ -114,7 +130,7 @@ New mid-tone theme — darker than Vanilla, less eye-shock than dark. Key decisi
 ---
 
 ## Known issues
-- None currently.
+- See `KNOWN_BUGS.md` for deferred bugs (pre-Supabase items, acceptable limitations, nice-to-haves).
 
 ---
 

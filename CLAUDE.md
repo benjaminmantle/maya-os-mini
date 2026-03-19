@@ -151,6 +151,9 @@ Never pass `renderCard` directly as a `.map()` callback — map passes `(item, i
 ### HMR stability (dev only)
 `S` and `listeners` are stored on `window.__mayaS` and `window.__mayaListeners` so Vite HMR module re-evaluation doesn't wipe them. Hard reload fixes any remaining edge cases. No effect in production.
 
+### focusedTaskId persistence
+`focusedTaskId` is persisted to `localStorage` key `maya_focusedTaskId`. `App.jsx` restores it on mount and validates (clears if task deleted or done). The `setFocusedTaskId` wrapper in App.jsx handles both React state and localStorage — always use it, never call `_setFocusedTaskId` directly.
+
 ### Drag-and-drop group integrity
 Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `DayView.jsx` (`makeDrop('day')`) and `BacklogPanel.jsx` must not be removed.
 
