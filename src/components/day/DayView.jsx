@@ -394,9 +394,10 @@ export default function DayView({
   }
 
   const taskCtxItems = taskCtx.task ? [
-    { label: taskCtx.task.id === activeTaskId ? '\u23f9 Stop' : '\u25b6 Start', start: true, action: () => onStartTask(taskCtx.task.id) },
-    { label: taskCtx.task.id === focusedTaskId ? '\u25c7 Unfocus' : '\u25c6 Focus', action: () => onFocusTask(taskCtx.task.id) },
-    { label: '\u270e Edit', action: () => setEditTask(taskCtx.task) },
+    { label: taskCtx.task.id === activeTaskId ? '⏹️ Stop' : '▶️ Start', start: true, action: () => onStartTask(taskCtx.task.id) },
+    { label: taskCtx.task.id === focusedTaskId ? '☁️ Unfocus' : '⚡ Focus', action: () => onFocusTask(taskCtx.task.id) },
+    { label: taskCtx.task.isFrog ? '🐸 Unfrog' : '🐸 Frog', active: taskCtx.task.isFrog, action: () => updateTask(taskCtx.task.id, { isFrog: !taskCtx.task.isFrog }) },
+    { label: '✏️ Edit', action: () => setEditTask(taskCtx.task) },
     ...taskCtx.task.priority !== 'maya' ? [
       { separator: true },
       { label: '\uD83D\uDD34 High priority', active: taskCtx.task.priority === 'hi', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'hi' ? null : 'hi') },
@@ -404,8 +405,8 @@ export default function DayView({
       { label: '\uD83D\uDD35 Low priority',  active: taskCtx.task.priority === 'lo', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'lo' ? null : 'lo') },
     ] : [],
     taskCtx.task.priority === 'maya'
-      ? { label: '\uD83D\uDCC5 Remove from day', danger: true, action: () => updateTask(taskCtx.task.id, { scheduledDate: null }) }
-      : { label: '\u2715 Delete', danger: true, action: () => deleteTask(taskCtx.task.id) },
+      ? { label: '🗓️ Remove from day', danger: true, action: () => updateTask(taskCtx.task.id, { scheduledDate: null }) }
+      : { label: '🗑️ Delete', danger: true, action: () => deleteTask(taskCtx.task.id) },
   ] : [];
 
   const dailyCtxItems = dailyCtx.daily ? [
