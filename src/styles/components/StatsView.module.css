@@ -53,15 +53,19 @@
 .xpBarTrack { height: 4px; background: var(--s3); border-radius: 2px; overflow: hidden; }
 .xpBarFill { height: 100%; background: var(--gold); border-radius: 2px; box-shadow: 0 0 6px rgba(240,176,48,.4); transition: width .5s ease; }
 
-/* ── Activity Heatmap ──────────────────────────────────────── */
-.heatmapWrap { display: flex; gap: 5px; align-items: flex-start; overflow-x: auto; }
-.heatDayLabels { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; }
-.heatDayLbl { height: 10px; font-size: 8px; font-family: var(--fm); color: var(--t3); line-height: 10px; }
+/* ── Activity Heatmaps ─────────────────────────────────────── */
+.heatPair { display: flex; gap: 30px; align-items: flex-start; flex-wrap: wrap; }
+.heatInner { display: flex; flex-direction: column; gap: 4px; }
+.heatMonthRow { display: flex; font-size: 8px; font-family: var(--fm); color: var(--t3); line-height: 1; }
+.heatMonthLbl { text-align: left; }
+.heatmapWrap { display: flex; gap: 3px; align-items: flex-start; overflow-x: auto; }
+.heatDayLabels { display: flex; flex-direction: column; gap: 2px; flex-shrink: 0; width: 16px; }
+.heatDayLbl { height: 10px; font-size: 8px; font-family: var(--fm); color: var(--t3); line-height: 10px; display: flex; align-items: center; justify-content: flex-end; }
 .heatGrid { display: flex; gap: 2px; }
 .heatCol { display: flex; flex-direction: column; gap: 2px; }
 .heatCell { width: 10px; height: 10px; border-radius: 2px; background: var(--s2); flex-shrink: 0; cursor: default; }
 .heatCellFuture { opacity: 0; pointer-events: none; }
-.heatLegend { display: flex; align-items: center; gap: 8px; margin-top: 6px; flex-wrap: wrap; }
+.heatLegend { display: flex; align-items: center; gap: 5px; margin-top: 6px; flex-wrap: wrap; }
 .heatLegendItem { display: flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--fm); color: var(--t2); }
 .heatLegendDot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
 

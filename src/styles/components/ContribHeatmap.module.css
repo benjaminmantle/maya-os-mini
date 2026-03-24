@@ -1,0 +1,40 @@
+.wrap { display: flex; flex-direction: column; gap: 4px; }
+
+.monthRow {
+  display: flex;
+  font-size: 8px;
+  font-family: var(--fm);
+  color: var(--t3);
+  line-height: 1;
+}
+.monthSpacer { flex-shrink: 0; }
+.monthLbl { text-align: left; }
+
+.body { display: flex; gap: 3px; align-items: flex-start; }
+
+.dayLabels { display: flex; flex-direction: column; flex-shrink: 0; }
+.dayLbl {
+  font-size: 8px;
+  font-family: var(--fm);
+  color: var(--t3);
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+}
+
+.grid { display: flex; }
+.col { display: flex; flex-direction: column; }
+.cell { border-radius: 2px; background: var(--s2); flex-shrink: 0; cursor: default; }
+.cellFuture { opacity: 0; pointer-events: none; }
+
+.legend {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  font-size: 10px;
+  font-family: var(--fm);
+  color: var(--t2);
+}
+.legendCell { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }

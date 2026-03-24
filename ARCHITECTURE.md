@@ -42,6 +42,7 @@ maya-os-mini/               ← repo root (.git lives here)
         │       ├── WeekView.module.css
         │       ├── StatsView.module.css
         │       ├── Modals.module.css
+        │       ├── ContribHeatmap.module.css
         │       ├── Topbar.module.css
         │       └── Shell.module.css
         │
@@ -70,12 +71,14 @@ maya-os-mini/               ← repo root (.git lives here)
         │   │
         │   ├── stats/
         │   │   └── StatsView.jsx      ← Progression cards, XP bar, activity heatmap,
+        │   │                            GitHub-green contributions heatmap,
         │   │                            adaptive bar chart (first-tracked-day window),
         │   │                            Balance section (radar + weekly rhythm bars),
         │   │                            60-day trend line chart, daily consistency,
         │   │                            tasks-only export/import, danger zone
         │   │
         │   └── shared/
+        │       ├── ContribHeatmap.jsx ← GitHub-style green contributions heatmap (reusable)
         │       ├── ContextMenu.jsx    ← Generic positioned context menu
         │       ├── Modal.jsx          ← Generic modal overlay wrapper
         │       ├── Toast.jsx          ← Bottom toast notifications (ToastProvider + useToast)

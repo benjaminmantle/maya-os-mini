@@ -6,6 +6,7 @@ import TaskEditModal from '../task/TaskEditModal.jsx';
 import AssignPopup from '../task/AssignPopup.jsx';
 import ContextMenu from '../shared/ContextMenu.jsx';
 import LevelUpOverlay from '../shared/LevelUpOverlay.jsx';
+import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
@@ -457,6 +458,11 @@ export default function DayView({
               <button className={styles.closeBtn} onClick={handleCloseDay}>{dayRecord.closed ? 'Reopen Day' : 'Close Day'}</button>
             </div>
           </div>
+        </div>
+
+        {/* Contributions heatmap */}
+        <div className={styles.contribStrip}>
+          <ContribHeatmap weeks={20} cellSize={10} gap={2} showDayLabels showMonthLabels showLegend />
         </div>
 
         {/* Frogs */}

@@ -119,6 +119,23 @@ Deferred bugs documented in `KNOWN_BUGS.md`.
 ### Daily dot theme-switch bug fix
 `DailiesPanel` was reading `document.documentElement.className` directly to get the theme for `todColor()` — DOM reads don't trigger React re-renders, so dots stayed stale on theme switch until a tab toggle forced a re-render. Fixed by threading `theme` as a prop: `App.jsx → DayView → Sidebar → DailiesPanel`.
 
+### GitHub-style contributions heatmap (2026-03-24)
+Added a GitHub-green contributions heatmap showing day quality over time. Shared `ContribHeatmap` component (`src/components/shared/ContribHeatmap.jsx`) with configurable props (weeks, cellSize, gap, showDayLabels, showMonthLabels, showLegend).
+
+**Green logic** (strict — maps from `scoreDay()` tiers):
+- perfect → `#39d353` (darkest green)
+- good → `#26a641` (medium green)
+- decent → `#006d32` (dim green — floor for any green)
+- half/poor/fail → gray (`var(--s2)`)
+- no data/future → gray or invisible
+
+**DayView placement**: Compact strip (16 weeks, 8px cells, no labels/legend) between score block and frogs section.
+**StatsView placement**: Full version (20 weeks, 10px cells, with month labels, day labels M/W/F, and Less→More legend) below the existing Activity tier heatmap. Both heatmaps kept.
+
+No outlines on cells (unlike GitHub). Flat colors, no glow/box-shadow.
+
+Files: `ContribHeatmap.jsx`, `ContribHeatmap.module.css`, edits to `DayView.jsx`, `DayView.module.css`, `StatsView.jsx`.
+
 ---
 
 ## Not yet verified (Maya)

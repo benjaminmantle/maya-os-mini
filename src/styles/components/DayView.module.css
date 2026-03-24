@@ -53,6 +53,10 @@
 .barDly { background: linear-gradient(90deg, var(--pur), var(--hot)); }
 .scoreNum { font-size: 11px; color: var(--t3); width: 36px; text-align: right; flex-shrink: 0; font-family: var(--fm); }
 .scoreFoot { display: flex; justify-content: space-between; align-items: center; margin-top: 2px; }
+
+/* Contributions heatmap strip */
+.contribStrip { margin: 8px 0 4px; }
+
 .workoutBtn {
   font-size: 9px;
   padding: 4px 10px;

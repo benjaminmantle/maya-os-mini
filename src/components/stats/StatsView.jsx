@@ -5,6 +5,7 @@ import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
 import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
+import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 
 // Tier → neon color for heatmap and bar chart
 const TIER_CLR = {
@@ -12,7 +13,7 @@ const TIER_CLR = {
   good: 'var(--grn)',
   decent: 'var(--tel)',
   half: 'var(--slv)',
-  poor: 'rgba(255,48,96,0.5)',
+  poor: '#a855a0',
   fail: 'var(--hot)',
 };
 
@@ -21,7 +22,7 @@ const TIER_LEGEND = [
   ['good', 'var(--grn)'],
   ['decent', 'var(--tel)'],
   ['half', 'var(--slv)'],
-  ['poor', 'rgba(255,48,96,0.5)'],
+  ['poor', '#a855a0'],
   ['fail', 'var(--hot)'],
 ];
 
@@ -74,13 +75,26 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
     else break;
   }
 
-  // ── Heatmap: 13 weeks × 7 days (Mon–Sun columns) ────────────────────────
+  // ── Heatmap: 20 weeks × 7 days (Mon–Sun columns) ────────────────────────
+  const HEAT_WEEKS = 20;
   const dow = new Date(todayStr + 'T12:00:00').getDay(); // 0=Sun
   const currentMonday = addDays(todayStr, dow === 0 ? -6 : 1 - dow);
-  const heatStart = addDays(currentMonday, -12 * 7);     // 13 weeks back
-  const heatGrid = Array.from({ length: 13 }, (_, wi) =>
+  const heatStart = addDays(currentMonday, -(HEAT_WEEKS - 1) * 7);
+  const heatGrid = Array.from({ length: HEAT_WEEKS }, (_, wi) =>
     Array.from({ length: 7 }, (_, di) => addDays(heatStart, wi * 7 + di))
   );
+
+  const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
+  const heatMonthMarkers = (() => {
+    const markers = [];
+    for (let wi = 0; wi < HEAT_WEEKS; wi++) {
+      const mon = heatGrid[wi][0]; // Monday of this week
+      const m = new Date(mon + 'T12:00:00').getMonth();
+      const d = new Date(mon + 'T12:00:00').getDate();
+      if (d <= 7 || wi === 0) markers.push({ week: wi, label: MONTH_NAMES[m] });
+    }
+    return markers;
+  })();
 
   function getHeatColor(date) {
     if (date > todayStr) return 'future';
@@ -308,40 +322,55 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
 
       <div className={styles.divider} />
 
-      {/* ── Activity Heatmap ───────────────────────────────────── */}
-      <div className={styles.sg}>
-        <div className={styles.sgTitle}>Activity — Last 13 Weeks</div>
-        <div className={styles.heatmapWrap}>
-          <div className={styles.heatDayLabels}>
-            {['M','T','W','T','F','S','S'].map((d, i) => (
-              <div key={i} className={styles.heatDayLbl}>{d}</div>
-            ))}
-          </div>
-          <div className={styles.heatGrid}>
-            {heatGrid.map((week, wi) => (
-              <div key={wi} className={styles.heatCol}>
-                {week.map((date, di) => {
-                  const clr = getHeatColor(date);
-                  return (
-                    <div
-                      key={di}
-                      className={`${styles.heatCell}${clr === 'future' ? ` ${styles.heatCellFuture}` : ''}`}
-                      style={clr && clr !== 'future' ? { background: clr, boxShadow: `0 0 3px ${clr}55` } : {}}
-                      title={date}
-                    />
-                  );
-                })}
+      {/* ── Activity Heatmaps (side by side) ─────────────────── */}
+      <div className={styles.heatPair}>
+        <div className={styles.sg}>
+          <div className={styles.sgTitle}>Activity — Last {HEAT_WEEKS} Weeks</div>
+          <div className={styles.heatInner}>
+            <div className={styles.heatMonthRow} style={{ paddingLeft: 19 }}>
+              {heatMonthMarkers.map((m, i) => {
+                const next = i < heatMonthMarkers.length - 1 ? heatMonthMarkers[i + 1].week : HEAT_WEEKS;
+                return <div key={i} className={styles.heatMonthLbl} style={{ width: (next - m.week) * 12 }}>{m.label}</div>;
+              })}
+            </div>
+            <div className={styles.heatmapWrap}>
+              <div className={styles.heatDayLabels}>
+                {['M','T','W','T','F','S','S'].map((d, i) => (
+                  <div key={i} className={styles.heatDayLbl}>{d}</div>
+                ))}
               </div>
-            ))}
+              <div className={styles.heatGrid}>
+                {heatGrid.map((week, wi) => (
+                  <div key={wi} className={styles.heatCol}>
+                    {week.map((date, di) => {
+                      const clr = getHeatColor(date);
+                      return (
+                        <div
+                          key={di}
+                          className={`${styles.heatCell}${clr === 'future' ? ` ${styles.heatCellFuture}` : ''}`}
+                          style={clr && clr !== 'future' ? { background: clr } : {}}
+                          title={date}
+                        />
+                      );
+                    })}
+                  </div>
+                ))}
+              </div>
+            </div>
+            <div className={styles.heatLegend}>
+              {TIER_LEGEND.map(([label, clr]) => (
+                <span key={label} className={styles.heatLegendItem}>
+                  <span className={styles.heatLegendDot} style={{ background: clr }} />
+                  {label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
-        <div className={styles.heatLegend}>
-          {TIER_LEGEND.map(([label, clr]) => (
-            <span key={label} className={styles.heatLegendItem}>
-              <span className={styles.heatLegendDot} style={{ background: clr }} />
-              {label}
-            </span>
-          ))}
+
+        <div className={styles.sg}>
+          <div className={styles.sgTitle}>Activity — Last {HEAT_WEEKS} Weeks</div>
+          <ContribHeatmap weeks={HEAT_WEEKS} cellSize={10} gap={2} showDayLabels showMonthLabels showLegend />
         </div>
       </div>
 
