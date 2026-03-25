@@ -17,6 +17,7 @@
   top: 0;
   background: var(--s0);
   z-index: 1;
+  position: relative;
 }
 
 .colName {
@@ -36,6 +37,33 @@
 
 .colName:hover {
   color: var(--t2);
+}
+
+/* ── Column resize handle ─────────────────── */
+.resizeHandle {
+  position: absolute;
+  right: 0;
+  top: 0;
+  bottom: 0;
+  width: 6px;
+  cursor: col-resize;
+  z-index: 2;
+}
+
+.resizeHandle::after {
+  content: '';
+  position: absolute;
+  right: 2px;
+  top: 4px;
+  bottom: 4px;
+  width: 2px;
+  border-radius: 1px;
+  background: transparent;
+  transition: background var(--tr);
+}
+
+.resizeHandle:hover::after {
+  background: var(--gold);
 }
 
 .sortArrow {

@@ -23,19 +23,20 @@ src/vault/
 │   │   ├── ListSection.jsx    ✅  Checkable list, inline edit, add/delete, clear checked, drag-to-reorder
 │   │   └── TextSection.jsx    ✅  contenteditable, debounced autosave, placeholder, rich text toolbar (B/I/U/link)
 │   ├── table/
-│   │   ├── TableGrid.jsx      ✅  Grid with inline editing, add/delete rows+cols, column sorting, add column panel, drag-to-reorder rows
+│   │   ├── TableGrid.jsx      ✅  Grid with inline editing, add/delete rows+cols, column sorting, column resize drag handles, drag-to-reorder rows, double-click row for detail modal
 │   │   ├── TableGallery.jsx   ✅  Card grid view: responsive, auto-fill, shows all field types, click-to-expand detail modal
-│   │   ├── CellRenderer.jsx   ✅  Read-mode: text, number, select (TagChip), checkbox, rating, date, url, letter_grade (GradeBadge)
-│   │   ├── CellEditor.jsx     ✅  Edit-mode: inputs, select/multi-select dropdowns, date picker, rating, letter grade picker
+│   │   ├── RowDetailModal.jsx ✅  Shared row detail overlay (frosted blur, editable fields). Used by both TableGrid and TableGallery.
+│   │   ├── CellRenderer.jsx   ✅  Read-mode: text, number, select (TagChip), checkbox, rating, date, url, letter_grade (GradeBadge), relation (TagChips of linked row names)
+│   │   ├── CellEditor.jsx     ✅  Edit-mode: inputs, select/multi-select dropdowns, date picker, rating, letter grade picker, relation toggle picker
 │   │   ├── ImportModal.jsx    ✅  CSV import: drop zone → preview with type detection → additive import
 │   │   ├── RelationGraph.jsx  ✅  Force-directed SVG graph: nodes=rows, edges=relations, drag/zoom/pan
 │   │   ├── ColumnHeader.jsx       Extracted header cell (planned; currently inline in TableGrid)
 │   │   └── NewColumnPanel.jsx     Extracted add-column panel (planned; currently inline in TableGrid)
 │   ├── showcase/
 │   │   ├── ShowcaseRegistry.js ✅  Template registry: registerShowcase(key, component) / getShowcase(key)
-│   │   ├── ShowcaseView.jsx   ✅  Split layout: name list (180px) + template render area
+│   │   ├── ShowcaseView.jsx   ✅  Split layout: name list (180px) + template render area. Passes allRows + onSelectRow to template.
 │   │   └── templates/
-│   │       └── CharacterShowcase.jsx ✅  Character sheet: header, identity grid, radar chart, D&D block, tabs
+│   │       └── CharacterShowcase.jsx ✅  Character wiki: hero banner, identity grid w/ HUD corners, 2-col layout, enhanced radar chart (gradient+glow+pulse), power gauge (SVG arc), stat power bars (animated), ability cards (2-col grid), D&D stat block (3x2 colored cards), relations section (clickable avatars), tabbed content
 │   ├── focus/
 │   │   └── FocusMode.jsx          Full-screen editor (planned)
 │   └── shared/
@@ -375,6 +376,14 @@ All color/spacing values must reference tokens from `src/styles/tokens.css`.
 export const GRADE_SCALE = ['F-','F','F+','D-','D','D+','C-','C','C+','B-','B','B+','A-','A','A+','S','S+','GLITCH'];
 export function gradeToNum(g) { return GRADE_SCALE.indexOf(g); }
 export function gradeColor(g) { /* returns token name: t3/brn/grn/blu/pur/gold/hot */ }
+
+// Power rating: weighted average of stat grades → 0-100 index → tier label
+export function computePowerRating(statGrades) { /* returns { index, tier, color } */ }
+// Tiers: E-CLASS (0-20), D-CLASS (21-40), C-CLASS (41-55), B-CLASS (56-70), A-CLASS (71-85), S-CLASS (86-95), S+-CLASS (96+)
+
+// Row lookup helpers
+export function getRowName(rowId) { /* searches all C.rows, returns first text column value */ }
+export function getRowsForSection(sectionId) { /* returns C.rows[sectionId] || [] */ }
 
 // GradeBadge component uses color-mix with the tier token:
 // background: color-mix(in srgb, var(--${color}) 18%, transparent)

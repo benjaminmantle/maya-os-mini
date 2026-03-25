@@ -246,6 +246,39 @@ The bubble and launcher are rendered inside the per-app wrapper div (`.appWrapCe
 ### Shell.module.css :global overrides — fragile selectors
 Shell.module.css uses `:global([class^="_topbar_"])` and `:global([class^="_nav_"])` to override padding/border on Maya's topbar and nav from the Shell layer. These selectors depend on Vite CSS Modules naming format (`_className_hash`). They work because Shell.module.css is the only allowed file for Portal work. If Vite's CSS Modules naming changes, these selectors will break. Also overrides: `border-bottom-color: transparent` (removes topbar divider line) and `padding-bottom: 14px` (extra breathing room below title).
 
+### RowDetailModal is shared between TableGrid and TableGallery
+`RowDetailModal.jsx` is extracted into its own file with its own CSS module. Both TableGrid (double-click row) and TableGallery (click card) import and render it. Do not inline it back into either file.
+
+### CellRenderer/CellEditor receive rowId and sectionId for relation columns
+`rowId` and `sectionId` are optional props on CellRenderer and CellEditor. Only used when `column.type === 'relation'`. TableGrid threads these through the Row component. Do not remove.
+
+### computePowerRating uses weighted stat averages
+Physical stats (STR, END, AGI) weight 1.0, mental stats (INT, WIS) weight 0.9, special stats (MAG, CHA, TAR) weight 1.1. GLITCH grade counts as 17 (max). Returns `{ index, tier, color }`.
+
+### CharacterShowcase mount animation uses delayed state
+`mounted` state flips from false to true after 60ms timeout. Power bars and gauge use this for CSS width transitions. The timeout resets on `row.id` change.
+
+### CharacterShowcase edit mode — E hotkey + pencil button
+`editing` state toggles inline editors across the showcase. The `E` key listener skips when focus is in `INPUT`, `TEXTAREA`, or `contentEditable`. Edit button is absolutely positioned in `.heroBanner`. All edits save via `setCellValue(rowId, colId, value)` on blur. Select/grade fields use `editingField` state to track which dropdown is open (only one at a time).
+
+### Quick Facts and Story Arc use new seed data columns
+Quick facts strip reads: Title, Affiliation, Class, Signature Move, Weapon, Weakness, Goal, Fear. Story Arc block reads: Story Arc column. These are text/select columns added to the Characters table in seedLocalData. The showcase gracefully hides these sections when no data exists.
+
+### TAB_COL_MAP expanded for Story and Moments tabs
+`Story` tab maps to `['Story Arc', 'Arc']`. `Moments` tab maps to `['Key Moments', 'Moments', 'Timeline']`. `Relations` tab now prioritizes `'Relationships Detail'` over `'Bonds'`. Moments tab detects `- ` prefixed lines and renders as `<ul>` with styled gold bullet markers.
+
+### Timeline/Era system — JSON column + effectiveCells
+`Timeline` column (col-timeline, type text) stores a JSON array: `[{ id, label, overrides: { colName: value } }]`. Override keys are column names (not IDs). Select column overrides must store option IDs. `effectiveCells` via `useMemo` merges base `row.cells` with era overrides by mapping column names to IDs. `getField()` uses `effectiveCells` instead of `row.cells`. `activeEra` resets to null on `row.id` change. Era bar is sticky at top of scroll container.
+
+### Collapsible section state is local, not persisted
+`collapsed` state in CharacterShowcase is a local useState object. Not saved to localStorage or DB. Sections re-expand on character switch or page reload.
+
+### Image columns store URLs, Gallery stores JSON array
+`col-profileimg` and `col-fullimg` store single URL strings. `col-gallery` stores a JSON array of URL strings. All null in seed data (no real images yet). Profile image falls back to initials circle. Gallery tab shows "No gallery images" when null/empty.
+
+### Lightbox z-index is 8000
+The image gallery lightbox overlay uses `z-index: 8000`, safely below the Shell bubble's 9999 cap.
+
 ### ToastProvider scope
 `ToastProvider` wraps Shell in `main.jsx`. All apps share it. Never add a second ToastProvider inside Shell, VaultApp, or App.
 
@@ -273,11 +306,13 @@ Run from the project root (`maya-os-mini/`).
 
 ## Key files — Vault
 - `src/vault/VaultApp.jsx` — Vault root, layout, active page state
-- `src/vault/store/vaultStore.js` — ALL Vault data access (Supabase)
+- `src/vault/store/vaultStore.js` — ALL Vault data access (Supabase); grade utilities; `computePowerRating()`; `getRowName()`; seed data
 - `src/vault/hooks/useVault.js` — Vault store subscription
 - `src/vault/components/layout/CommandPalette.jsx` — Cmd+K search
+- `src/vault/components/table/RowDetailModal.jsx` — shared row detail overlay (used by grid + gallery)
 - `src/vault/components/showcase/ShowcaseRegistry.js` — template registry
-- `src/vault/components/showcase/templates/CharacterShowcase.jsx` — Endless Sky character layout
+- `src/vault/components/showcase/ShowcaseView.jsx` — split layout: name list + template (passes allRows + onSelectRow)
+- `src/vault/components/showcase/templates/CharacterShowcase.jsx` — full character wiki (hero, radar, power gauge, stat bars, ability cards, D&D, relations, tabs)
 
 See ARCHITECTURE.md for Maya file tree and patterns.
 See VAULT_ARCHITECTURE.md for Vault file tree, store API, and patterns.

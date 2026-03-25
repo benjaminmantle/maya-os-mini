@@ -1,7 +1,8 @@
-import { useState, useRef } from 'react';
+import { useState, useRef, useCallback } from 'react';
 import CellRenderer from './CellRenderer.jsx';
 import CellEditor from './CellEditor.jsx';
-import { setCellValue, addRow, deleteRow, addColumn, renameColumn, deleteColumn, reorderRows, defaultForType, gradeToNum } from '../../store/vaultStore.js';
+import RowDetailModal from './RowDetailModal.jsx';
+import { setCellValue, addRow, deleteRow, addColumn, renameColumn, deleteColumn, reorderRows, resizeColumn, defaultForType, gradeToNum } from '../../store/vaultStore.js';
 import s from '../../styles/TableGrid.module.css';
 
 export default function TableGrid({ sectionId, columns, rows }) {
@@ -13,7 +14,35 @@ export default function TableGrid({ sectionId, columns, rows }) {
   const [newColType, setNewColType] = useState('text');
   const [sort, setSort] = useState(null); // { colId, dir: 'asc' | 'desc' }
   const [dragOverRowId, setDragOverRowId] = useState(null);
+  const [expandedRowId, setExpandedRowId] = useState(null);
   const dragSrcRef = useRef(null);
+  const resizeRef = useRef(null); // { colId, startX, startWidth }
+  const [resizeDelta, setResizeDelta] = useState(null); // { colId, width } during drag
+
+  const handleResizeStart = useCallback((e, col) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const startX = e.clientX;
+    const startWidth = col.width || 160;
+    resizeRef.current = { colId: col.id, startX, startWidth };
+
+    const onMove = (ev) => {
+      const delta = ev.clientX - startX;
+      const newW = Math.max(60, startWidth + delta);
+      setResizeDelta({ colId: col.id, width: newW });
+    };
+    const onUp = (ev) => {
+      document.removeEventListener('mousemove', onMove);
+      document.removeEventListener('mouseup', onUp);
+      const delta = ev.clientX - startX;
+      const finalW = Math.max(60, startWidth + delta);
+      resizeColumn(col.id, finalW);
+      setResizeDelta(null);
+      resizeRef.current = null;
+    };
+    document.addEventListener('mousemove', onMove);
+    document.addEventListener('mouseup', onUp);
+  }, []);
 
   // Sort rows if a sort is active
   const sortedRows = (() => {
@@ -126,9 +155,14 @@ export default function TableGrid({ sectionId, columns, rows }) {
     setNewColType('text');
   };
 
+  const getColWidth = (col) => {
+    if (resizeDelta && resizeDelta.colId === col.id) return resizeDelta.width;
+    return col.width || 160;
+  };
+
   return (
     <div className={s.gridWrap}>
-      <div className={s.grid} style={{ gridTemplateColumns: `32px ${columns.map(c => `${c.width || 160}px`).join(' ')} 40px` }}>
+      <div className={s.grid} style={{ gridTemplateColumns: `32px ${columns.map(c => `${getColWidth(c)}px`).join(' ')} 40px` }}>
         {/* Header row */}
         <div className={`${s.headerCell} ${s.rowActions}`} />
         {columns.map(col => (
@@ -159,6 +193,10 @@ export default function TableGrid({ sectionId, columns, rows }) {
                 )}
               </span>
             )}
+            <div
+              className={s.resizeHandle}
+              onMouseDown={e => handleResizeStart(e, col)}
+            />
           </div>
         ))}
         <div className={s.headerCell}>
@@ -175,12 +213,14 @@ export default function TableGrid({ sectionId, columns, rows }) {
             key={row.id}
             row={row}
             columns={columns}
+            sectionId={sectionId}
             ri={ri}
             isEditing={isEditing}
             onCellClick={handleCellClick}
             onSave={handleSave}
             onCancel={() => setEditingCell(null)}
             onDelete={() => handleDeleteRow(row.id)}
+            onExpand={() => setExpandedRowId(row.id)}
             canDrag={canDrag}
             isDragOver={dragOverRowId === row.id}
             onDragStart={handleDragStart}
@@ -223,17 +263,32 @@ export default function TableGrid({ sectionId, columns, rows }) {
           <button className={s.addColCancel} onClick={() => setAddingCol(false)}>✕</button>
         </div>
       )}
+
+      {/* Row detail modal (double-click row to open) */}
+      {expandedRowId && (() => {
+        const expandedRow = rows.find(r => r.id === expandedRowId);
+        const titleCol = columns.find(c => c.type === 'text') || columns[0];
+        return expandedRow ? (
+          <RowDetailModal
+            row={expandedRow}
+            titleCol={titleCol}
+            columns={columns}
+            onClose={() => setExpandedRowId(null)}
+          />
+        ) : null;
+      })()}
     </div>
   );
 }
 
-function Row({ row, columns, ri, isEditing, onCellClick, onSave, onCancel, onDelete, canDrag, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }) {
+function Row({ row, columns, sectionId, ri, isEditing, onCellClick, onSave, onCancel, onDelete, onExpand, canDrag, isDragOver, onDragStart, onDragOver, onDrop, onDragEnd }) {
   return (
     <>
       <div
         className={`${s.cell} ${s.rowActions} ${ri % 2 ? s.altRow : ''} ${isDragOver ? s.dragOver : ''}`}
         onDragOver={canDrag ? (e) => onDragOver(e, row.id) : undefined}
         onDrop={canDrag ? (e) => onDrop(e, row.id) : undefined}
+        onDoubleClick={onExpand}
       >
         {canDrag && (
           <span
@@ -253,6 +308,7 @@ function Row({ row, columns, ri, isEditing, onCellClick, onSave, onCancel, onDel
             key={col.id}
             className={`${s.cell} ${ri % 2 ? s.altRow : ''} ${isDragOver ? s.dragOver : ''}`}
             onClick={() => !isEditing(row.id, col.id) && onCellClick(row.id, col.id, col)}
+            onDoubleClick={(e) => { e.stopPropagation(); onExpand(); }}
             onDragOver={canDrag ? (e) => onDragOver(e, row.id) : undefined}
             onDrop={canDrag ? (e) => onDrop(e, row.id) : undefined}
           >
@@ -262,9 +318,11 @@ function Row({ row, columns, ri, isEditing, onCellClick, onSave, onCancel, onDel
                 column={col}
                 onSave={val => onSave(row.id, col.id, val)}
                 onCancel={onCancel}
+                rowId={row.id}
+                sectionId={sectionId}
               />
             ) : (
-              <CellRenderer value={value} column={col} />
+              <CellRenderer value={value} column={col} rowId={row.id} sectionId={sectionId} />
             )}
           </div>
         );

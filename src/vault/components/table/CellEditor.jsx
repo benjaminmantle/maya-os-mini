@@ -1,10 +1,10 @@
 import { useState, useRef, useEffect } from 'react';
 import StarRating from '../shared/StarRating.jsx';
 import GradeBadge from '../shared/GradeBadge.jsx';
-import { defaultForType, GRADE_SCALE, gradeColor } from '../../store/vaultStore.js';
+import { defaultForType, GRADE_SCALE, gradeColor, getRelationsSync, addRelation, removeRelation, getRowsForSection, getRowName } from '../../store/vaultStore.js';
 import s from '../../styles/TableGrid.module.css';
 
-export default function CellEditor({ value, column, onSave, onCancel }) {
+export default function CellEditor({ value, column, onSave, onCancel, rowId, sectionId }) {
   const v = value ?? defaultForType(column.type);
   const inputRef = useRef(null);
 
@@ -81,6 +81,9 @@ export default function CellEditor({ value, column, onSave, onCancel }) {
 
     case 'letter_grade':
       return <GradeEditor value={v} onSave={commit} onCancel={onCancel} />;
+
+    case 'relation':
+      return <RelationEditor rowId={rowId} colId={column.id} sectionId={sectionId} onCancel={onCancel} />;
 
     default:
       return (
@@ -190,6 +193,50 @@ function GradeEditor({ value, onSave, onCancel }) {
           <GradeBadge grade={grade} small />
         </button>
       ))}
+    </div>
+  );
+}
+
+function RelationEditor({ rowId, colId, sectionId, onCancel }) {
+  const ref = useRef(null);
+  const linked = getRelationsSync(rowId, colId);
+  const allRows = getRowsForSection(sectionId).filter(r => r.id !== rowId);
+
+  useEffect(() => {
+    const handleClickOutside = (e) => {
+      if (ref.current && !ref.current.contains(e.target)) onCancel();
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, [onCancel]);
+
+  const toggle = (targetId) => {
+    if (linked.includes(targetId)) {
+      removeRelation(rowId, colId, targetId);
+    } else {
+      addRelation(rowId, colId, targetId);
+    }
+  };
+
+  return (
+    <div ref={ref} className={s.selectDropdown}>
+      {allRows.length === 0 && (
+        <div className={s.selectOption} style={{ color: 'var(--t3)', cursor: 'default' }}>No other rows</div>
+      )}
+      {allRows.map(r => {
+        const name = getRowName(r.id);
+        const isLinked = linked.includes(r.id);
+        return (
+          <button
+            key={r.id}
+            className={`${s.selectOption} ${isLinked ? s.selectActive : ''}`}
+            onClick={() => toggle(r.id)}
+          >
+            <span className={s.selectCheck}>{isLinked ? '☑' : '☐'}</span>
+            {name}
+          </button>
+        );
+      })}
     </div>
   );
 }

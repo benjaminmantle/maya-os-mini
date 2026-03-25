@@ -31,7 +31,7 @@ export default function ShowcaseView({ rows, columns, templateKey }) {
       </div>
       <div className={s.showcaseContent}>
         {selectedRow ? (
-          <Template row={selectedRow} columns={columns} />
+          <Template row={selectedRow} columns={columns} allRows={rows} onSelectRow={(id) => setSelectedRowId(id)} />
         ) : (
           <div className={s.empty}>Select a character</div>
         )}

@@ -1,10 +1,10 @@
 import TagChip from '../shared/TagChip.jsx';
 import StarRating from '../shared/StarRating.jsx';
 import GradeBadge from '../shared/GradeBadge.jsx';
-import { defaultForType } from '../../store/vaultStore.js';
+import { defaultForType, getRelationsSync, getRowName } from '../../store/vaultStore.js';
 import s from '../../styles/TableGrid.module.css';
 
-export default function CellRenderer({ value, column }) {
+export default function CellRenderer({ value, column, rowId, sectionId }) {
   const v = value ?? defaultForType(column.type);
 
   switch (column.type) {
@@ -51,6 +51,19 @@ export default function CellRenderer({ value, column }) {
 
     case 'letter_grade':
       return <GradeBadge grade={v} small />;
+
+    case 'relation': {
+      if (!rowId) return null;
+      const targetIds = getRelationsSync(rowId, column.id);
+      if (!targetIds.length) return <span className={s.cellText} style={{ color: 'var(--t3)', fontSize: '0.75rem' }}>—</span>;
+      return (
+        <span className={s.cellTags}>
+          {targetIds.map(tid => (
+            <TagChip key={tid} label={getRowName(tid)} color="slv" small />
+          ))}
+        </span>
+      );
+    }
 
     default:
       return <span>{typeof v === 'object' ? JSON.stringify(v) : String(v ?? '')}</span>;
