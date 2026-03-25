@@ -122,15 +122,15 @@ Deferred bugs documented in `KNOWN_BUGS.md`.
 ### GitHub-style contributions heatmap (2026-03-24)
 Added a GitHub-green contributions heatmap showing day quality over time. Shared `ContribHeatmap` component (`src/components/shared/ContribHeatmap.jsx`) with configurable props (weeks, cellSize, gap, showDayLabels, showMonthLabels, showLegend).
 
-**Green logic** (strict — maps from `scoreDay()` tiers):
-- perfect → `#39d353` (darkest green)
-- good → `#26a641` (medium green)
-- decent → `#006d32` (dim green — floor for any green)
-- half/poor/fail → gray (`var(--s2)`)
+**Green logic** (fraction-based from `scoreDay().frac`):
+- 100% → `#006d32` (darkest green)
+- 80%+ → `#26a641` (medium green)
+- 60%+ → `#7bc96f` (lightest green — floor for any green)
+- Below 60% → gray (`var(--s2)`)
 - no data/future → gray or invisible
 
-**DayView placement**: Compact strip (16 weeks, 8px cells, no labels/legend) between score block and frogs section.
-**StatsView placement**: Full version (20 weeks, 10px cells, with month labels, day labels M/W/F, and Less→More legend) below the existing Activity tier heatmap. Both heatmaps kept.
+**DayView placement**: Full version (20 weeks, 10px cells, day labels, month labels, legend) between score block and frogs section.
+**StatsView placement**: Full version (20 weeks, 10px cells, day labels, month labels, legend) side-by-side with the existing colorful Activity tier heatmap. Both heatmaps kept.
 
 No outlines on cells (unlike GitHub). Flat colors, no glow/box-shadow.
 

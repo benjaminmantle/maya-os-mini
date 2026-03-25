@@ -4,11 +4,14 @@ import { useStore } from '../../hooks/useStore.js';
 import { scoreDay } from '../../utils/scoring.js';
 import { today, addDays } from '../../utils/dates.js';
 
-const GREEN = {
-  perfect: '#006d32',
-  good:    '#26a641',
-  decent:  '#7bc96f',
-};
+const GREEN = ['#7bc96f', '#26a641', '#006d32']; // light → dark
+
+function fracToGreen(frac) {
+  if (frac >= 1)   return GREEN[2]; // 100% → darkest
+  if (frac >= 0.8) return GREEN[1]; // 80%+ → medium
+  if (frac >= 0.6) return GREEN[0]; // 60%+ → lightest
+  return null; // gray
+}
 
 const MONTH_NAMES = ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'];
 
@@ -33,8 +36,8 @@ export default function ContribHeatmap({
       Array.from({ length: 7 }, (_, di) => {
         const date = addDays(start, wi * 7 + di);
         if (date > todayStr) return { date, color: null, future: true };
-        const { tier } = scoreDay(date, fakeState);
-        return { date, color: GREEN[tier] || null, future: false };
+        const { frac } = scoreDay(date, fakeState);
+        return { date, color: fracToGreen(frac), future: false };
       })
     );
 
@@ -108,9 +111,9 @@ export default function ContribHeatmap({
         <div className={styles.legend} style={{ paddingLeft: dayLabelWidth + (showDayLabels ? 3 : 0) }}>
           <span>Less</span>
           <div className={styles.legendCell} style={{ background: 'var(--s2)' }} />
-          <div className={styles.legendCell} style={{ background: GREEN.decent }} />
-          <div className={styles.legendCell} style={{ background: GREEN.good }} />
-          <div className={styles.legendCell} style={{ background: GREEN.perfect }} />
+          <div className={styles.legendCell} style={{ background: GREEN[0] }} />
+          <div className={styles.legendCell} style={{ background: GREEN[1] }} />
+          <div className={styles.legendCell} style={{ background: GREEN[2] }} />
           <span>Best</span>
         </div>
       )}
