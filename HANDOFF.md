@@ -3,7 +3,8 @@
 ## Status
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
 **Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
-**Vault: Step 7 + UI polish + 5 major features + DB improvements + Showcase overhaul + Timeline/Era system complete.** Full interactive skeleton with local/mock mode. 8 characters with rich data. Awaiting Supabase setup to persist data.
+**Vault: Step 7 + UI polish + 5 major features + DB improvements + Showcase overhaul (4 rounds) + Timeline/Era system complete.** 8 characters with 47 columns of data. Full interactive skeleton with local/mock mode. Awaiting Supabase setup to persist data.
+**CosmiCanvas: Spec complete, not yet implemented.** See WHITEBOARD_SPEC.md for full spec. Excalidraw-inspired infinite canvas. Ready for Phase 1.
 
 ---
 
@@ -12,10 +13,11 @@
 1. **CLAUDE.md** — working rules, critical gotchas, app isolation rules, commands. Follow exactly.
 2. **ARCHITECTURE.md** — Maya file structure, store API, patterns.
 3. **VAULT_ARCHITECTURE.md** — Vault file structure, store API, patterns.
-4. **SPEC.md** — Maya feature behavior reference.
-5. **VAULT_SPEC.md** — Vault feature behavior reference.
-6. **PORTAL_SPEC.md** — Shell/bubble spec.
-7. **TODO.md** — user-managed. Do not touch without explicit direction.
+4. **WHITEBOARD_SPEC.md** — CosmiCanvas file structure, element model, render architecture, phases.
+5. **SPEC.md** — Maya feature behavior reference.
+6. **VAULT_SPEC.md** — Vault feature behavior reference.
+7. **PORTAL_SPEC.md** — Shell/bubble spec.
+8. **TODO.md** — user-managed. Do not touch without explicit direction.
 
 **Do not start coding until the user asks you to.** Orient, then wait.
 
@@ -61,6 +63,15 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - [x] Letter grade column type, CSV import, character showcase, relationship graph
 - [ ] Focus Mode
 - [ ] Remaining column types (image upload, relation picker UI)
+
+### CosmiCanvas (not started)
+- [x] WHITEBOARD_SPEC.md — full spec with file structure, element model, render architecture, 5 phases
+- [x] CLAUDE.md updated — app isolation rules, critical rules, gotchas, key files
+- [ ] Phase 1 — Canvas + camera + IndexedDB storage + board picker
+- [ ] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
+- [ ] Phase 3 — Arrows + context menu + groups
+- [ ] Phase 4 — Images + export (PNG/SVG/JSON) + minimap
+- [ ] Phase 5 — Polish (alignment guides, keyboard help, additional render styles)
 
 ---
 
@@ -119,97 +130,6 @@ Deferred bugs documented in `KNOWN_BUGS.md`.
 ### Daily dot theme-switch bug fix
 `DailiesPanel` was reading `document.documentElement.className` directly to get the theme for `todColor()` — DOM reads don't trigger React re-renders, so dots stayed stale on theme switch until a tab toggle forced a re-render. Fixed by threading `theme` as a prop: `App.jsx → DayView → Sidebar → DailiesPanel`.
 
-### GitHub-style contributions heatmap (2026-03-24)
-Added a GitHub-green contributions heatmap showing day quality over time. Shared `ContribHeatmap` component (`src/components/shared/ContribHeatmap.jsx`) with configurable props (weeks, cellSize, gap, showDayLabels, showMonthLabels, showLegend).
-
-**Green logic** (fraction-based from `scoreDay().frac`):
-- 100% → `#006d32` (darkest green)
-- 80%+ → `#26a641` (medium green)
-- 60%+ → `#7bc96f` (lightest green — floor for any green)
-- Below 60% → gray (`var(--s2)`)
-- no data/future → gray or invisible
-
-**DayView placement**: Full version (20 weeks, 10px cells, day labels, month labels, legend) between score block and frogs section.
-**StatsView placement**: Full version (20 weeks, 10px cells, day labels, month labels, legend) side-by-side with the existing colorful Activity tier heatmap. Both heatmaps kept.
-
-No outlines on cells (unlike GitHub). Flat colors, no glow/box-shadow.
-
-Files: `ContribHeatmap.jsx`, `ContribHeatmap.module.css`, edits to `DayView.jsx`, `DayView.module.css`, `StatsView.jsx`.
-
-### Vault DB improvements + Showcase overhaul (2026-03-25)
-
-**DB-like table improvements:**
-- **Column resize drag handles** — drag column header borders to resize. Uses `resizeColumn()` store API. Min width 60px. Gold line on hover.
-- **Row detail modal in grid view** — double-click any row to open a frosted overlay with all fields editable. Extracted `RowDetailModal` into shared component (`src/vault/components/table/RowDetailModal.jsx`), used by both TableGrid and TableGallery.
-- **Relation picker UI** — CellRenderer shows linked row names as TagChips; CellEditor has a dropdown to toggle relations on/off. New store helpers: `getRowName(rowId)`, `getRowsForSection(sectionId)`. Props `rowId`/`sectionId` threaded through TableGrid → CellRenderer/CellEditor.
-
-**Richer seed data:**
-- **Characters table** — 4 new text columns (Personality Traits, Combat Abilities, World Info, Work Notes) with 2-3 sentences per character. All 6 showcase tabs now have content.
-- **Places table** — expanded from 3 to 7 columns (added Climate, Danger Level, Population, Faction) and from 2 to 6 rows.
-- **Items table** — new section on pg-items with 8 columns (Name, Rarity, Type, Power, Value, Owner, Description, Special Effect) and 6 items (Starbreaker, Oathbreaker, Veil Shard, Whisperwood, Luminari Vestments, Soul Compass).
-
-**Character Showcase overhaul** — complete rewrite of `CharacterShowcase.jsx` + CSS:
-- **Hero banner** — full-width gradient bg, 96px portrait with character-color glow ring, name with gold text-shadow, badges row with stars, power tier label
-- **Two-column layout** — left column (identity, radar, D&D), right column (power gauge, stat bars, ability cards)
-- **Enhanced radar chart** — 280px, gradient gold→orange fill, glow layer, reference octagon at 50%, color-coded labels, pulse animation
-- **Power rating gauge** — circular SVG arc, `computePowerRating()` in vaultStore (weighted average → 0-100 index → E/D/C/B/A/S/S+-CLASS tier). Pulse on S+ tier.
-- **Stat power bars** — horizontal bars per stat with fill animation, dot + name + flavor text + grade badge
-- **Ability cards** — 2-column grid, each card has accent border, name, grade badge, mini bar, flavor text (Transcendent/Legendary/etc.)
-- **D&D stat block** — 3x2 grid of cards with color-coded values (dim→normal→blue→purple→gold→hot), modifier display, top accent line
-- **Relations section** — clickable 48px avatar circles for bonded characters, click navigates to that character
-- **Tab content** — improved typography, Relations tab renders bond portraits
-- **Visual flourishes** — gradient dividers, HUD corner tick marks on identity panel, hover effects on cards
-
-Files: `CharacterShowcase.jsx`, `CharacterShowcase.module.css`, `ShowcaseView.jsx`, `RowDetailModal.jsx`, `RowDetailModal.module.css`, `TableGrid.jsx`, `TableGrid.module.css`, `TableGallery.jsx`, `CellRenderer.jsx`, `CellEditor.jsx`, `vaultStore.js`.
-
-### Showcase Round 2: Edit Mode, Richer Content, Fixes (2026-03-25)
-
-**Portrait fix**: Removed `justify-content: space-between` from `.heroContent` — portrait no longer shifts on resize. Added responsive stacking at 480px.
-
-**13 new character columns**: Title (epithet), Affiliation (select), Class, Signature Move, Weapon, Weakness, Goal, Fear, Theme Song, Voice Claim, Story Arc (3-5 sentence narrative), Key Moments (bullet-style), Relationships Detail (paragraph descriptions of each bond). All 5 characters have full content for every column.
-
-**New showcase sections**:
-- **Hero title/epithet** — rendered below character name ("The Frost Prodigy", "Knight of the Broken Oath", etc.)
-- **Quick Facts Strip** — horizontal row of compact data chips: Class, Affiliation, Weapon, Signature Move, Weakness, Goal, Fear. Each with thin left border accent.
-- **Story Arc Block** — full-width section with gold left border accent and tinted background
-- **2 new tabs** — "Story" (maps to Story Arc column) and "Moments" (maps to Key Moments, renders as styled bullet list with gold dot markers)
-- **Enhanced Relations tab** — shows both detail text paragraphs AND bond portrait circles
-
-**Edit mode** — toggle via `E` hotkey or pencil button (top-right of hero banner):
-- Text fields become `<input>` (short) or `<textarea>` (long)
-- Select fields show dropdown pickers
-- Letter grades show grade picker
-- Ratings become interactive StarRating
-- Checkboxes toggle directly
-- D&D stats become number inputs
-- Tab content becomes textarea
-- All saves via `setCellValue()` — immediate persist, no page reload
-- Gold top border + shadow visual cue when editing active
-
-**Responsive improvements**: tabs scroll horizontally on narrow viewports, ability cards go 1-column below 480px, D&D grid goes 2-column below 400px, hero stacks portrait below name at 480px.
-
-### Showcase Round 3: Timeline System, Layout Fix, More Characters (2026-03-25)
-
-**Layout fix**: Added `width: 100%` to `.sheet` — content no longer squeezes right. Changed `.abilityCard` overflow from hidden to visible — cards no longer clipped.
-
-**Timeline/Era system**: Characters can have multiple timeline entries representing different points in their story. Stored as JSON in a `Timeline` text column. Eras override any column values — stats, title, class, goals, etc. Sticky era bar between hero banner and quick facts. Click an era to view the character at that point; click again (or "Current") to return to base data. Scroll position preserved on switch. Tsukasa has 3 eras (Childhood/Apprentice/Awakening + Current). Valdora has 2 eras (Knight-Commander/Desertion + Current).
-
-**3 new characters**: Lyra Ashford (Tsukasa's rival, Arcanist-Scholar, high INT/WIS), Commander Draven (Valdora's former superior, Warlord, high STR/TAR), Nyx (mysterious Veil entity, Oracle, GLITCH WIS). All with full data for every column. 2 new affiliation options (Iron Crown, Shattered Veil). Updated relations graph. 2 new items (Null Prism, Soul-Chain Halberd).
-
-### Showcase Round 4: Collapsible Sections, Quote, Media, Images, Gallery (2026-03-25)
-
-**Collapsible sections**: Identity, Stat Profile, Attribute Scores, Power Rating, Abilities, Story Arc, and Bonds sections now have clickable headers with chevron indicators. Click to collapse/expand. Uses local state (not persisted).
-
-**Stat Breakdown removed**: The horizontal power bars section was redundant with Abilities cards. Removed. Right column is now Power Gauge + Abilities only.
-
-**Theme Song + Voice Claim**: Displayed as compact chips (♫ / 🎤) in the hero area below the power tier. Editable in edit mode.
-
-**Character Quote**: Gold-bordered blockquote between hero banner and era bar. Shows featured quote + attribution. All 8 characters have unique quotes.
-
-**Image system**: Profile image (replaces initials circle when URL present), full-body image (optional hero area), Gallery tab (JSON array of image URLs → thumbnail grid → lightbox). All image columns are null for now (falls back to initials). Lightbox has prev/next navigation, z-index 8000.
-
-**4 new columns**: Featured Quote (col-quote), Profile Image (col-profileimg), Full Body Image (col-fullimg), Gallery (col-gallery). Total: 47 columns + Bonds relation.
-
 ---
 
 ## Not yet verified (Maya)
@@ -225,10 +145,13 @@ Files: `CharacterShowcase.jsx`, `CharacterShowcase.module.css`, `ShowcaseView.js
 
 ---
 
+## Recommended next (CosmiCanvas)
+1. **Phase 1**: Canvas + camera + IndexedDB + board picker + Shell registration. See WHITEBOARD_SPEC.md Phase 1 for detailed steps.
+2. **Phase 2**: Drawing primitives + select + roughjs + toolbar + undo/redo.
+
 ## Recommended next (Vault)
 1. Focus Mode
-2. Image upload column type (relation picker UI is now done)
-3. Connect to Supabase (schema SQL + .env.local)
+2. Remaining column types (image upload, relation picker UI)
 
 ---
 

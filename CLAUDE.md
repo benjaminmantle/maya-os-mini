@@ -9,6 +9,7 @@ maya-os-mini/        ← git root, Claude CWD — everything lives here
 ├── SPEC.md
 ├── VAULT_SPEC.md
 ├── VAULT_ARCHITECTURE.md
+├── WHITEBOARD_SPEC.md
 ├── PORTAL_SPEC.md
 ├── TODO.md
 ├── package.json
@@ -20,6 +21,7 @@ Docs and source are all at the same level. Source files are at `src/...`.
 A personal hub of apps. The root is `maya-os-mini` (the git repo name). It contains:
 - **Maya OS** — personal productivity OS (tasks, habits, gamification). Single-user, local-first, localStorage.
 - **Vault** — personal information store (tables, lists, text, showcases). Supabase backend.
+- **CosmiCanvas** — infinite-canvas whiteboard (shapes, arrows, freehand, text, images). Excalidraw-inspired. Single-user, local-first, IndexedDB.
 - **Portal Shell** — a tiny bubble in the upper-left that lets you switch between apps.
 
 Dark gamer/cyberpunk UI shared across all apps. CSS tokens in `src/styles/tokens.css` are the single source of truth.
@@ -49,8 +51,9 @@ src/styles/**   ← tokens.css may be READ but only new tokens may be ADDED, nev
 
 The ONLY Maya file that may change for Portal work is `src/main.jsx` — and only to swap `<App />` for `<Shell />`.
 
-When the user asks to work on **Maya OS**: touch only Maya files. Ignore Vault and Shell.
-When the user asks to work on **Vault or Portal**: touch only `src/Shell.jsx`, `src/vault/**`, and `src/styles/Shell.module.css`. Never touch Maya internals.
+When the user asks to work on **Maya OS**: touch only Maya files. Ignore Vault, Shell, and CosmiCanvas.
+When the user asks to work on **Vault or Portal**: touch only `src/Shell.jsx`, `src/vault/**`, and `src/styles/Shell.module.css`. Never touch Maya or CosmiCanvas internals.
+When the user asks to work on **CosmiCanvas**: touch only `src/Shell.jsx` (for registration only), `src/whiteboard/**`, and `src/styles/Shell.module.css`. Never touch Maya or Vault internals.
 
 If a task would require touching files in both zones, **stop and ask** before proceeding.
 
@@ -123,7 +126,25 @@ Err on the side of over-documenting. Even small changes should be noted if they'
 
 ---
 
-## Known Gotchas & Traps — Maya OS
+## Critical Rules — CosmiCanvas
+
+**Store discipline** — ALL whiteboard data access goes through `src/whiteboard/store/whiteboardStore.js`. No direct IndexedDB calls in components.
+
+**IndexedDB only** — board data and image blobs go to IndexedDB (`maya_whiteboard` database). No localStorage for whiteboard data. Only tiny config (last-opened board ID) may use localStorage with `maya_board_` prefix.
+
+**Canvas is imperative** — the `<canvas>` element is created once via `useRef`, never re-rendered by React. All drawing is Canvas 2D API. React manages only overlay UI (toolbar, menus). Do not wrap canvas operations in React state.
+
+**Debounced persistence** — mutations queue a 200ms trailing debounce to IndexedDB. Never write on every mousemove during drag. Persist immediately on board switch, `beforeunload`, and Ctrl+S.
+
+**Image blobs are separate** — board JSON stores `blobKey` references. Blobs live in a separate IndexedDB object store. Never inline base64 in the element data.
+
+**Render style abstraction** — element data is style-agnostic. Style renderers (`sketchStyle.js`, `cleanStyle.js`) interpret element data independently. Never store style-specific rendering data on elements.
+
+**No confirm() dialogs** — same rule as Maya and Vault.
+
+**Z-index budget** — whiteboard overlays (toolbar, context menu, minimap) must stay below z-index 9000. Shell bubble is 9999.
+
+**Roughjs is the only new dependency** — do not add Canvas abstraction libraries (Fabric.js, Konva, Paper.js). Full control over the render pipeline.
 
 ### renderCard as a map callback — CRITICAL
 Never pass `renderCard` directly as a `.map()` callback — map passes `(item, index, array)` and index corrupts the `showAssign` param:
@@ -246,41 +267,33 @@ The bubble and launcher are rendered inside the per-app wrapper div (`.appWrapCe
 ### Shell.module.css :global overrides — fragile selectors
 Shell.module.css uses `:global([class^="_topbar_"])` and `:global([class^="_nav_"])` to override padding/border on Maya's topbar and nav from the Shell layer. These selectors depend on Vite CSS Modules naming format (`_className_hash`). They work because Shell.module.css is the only allowed file for Portal work. If Vite's CSS Modules naming changes, these selectors will break. Also overrides: `border-bottom-color: transparent` (removes topbar divider line) and `padding-bottom: 14px` (extra breathing room below title).
 
-### RowDetailModal is shared between TableGrid and TableGallery
-`RowDetailModal.jsx` is extracted into its own file with its own CSS module. Both TableGrid (double-click row) and TableGallery (click card) import and render it. Do not inline it back into either file.
-
-### CellRenderer/CellEditor receive rowId and sectionId for relation columns
-`rowId` and `sectionId` are optional props on CellRenderer and CellEditor. Only used when `column.type === 'relation'`. TableGrid threads these through the Row component. Do not remove.
-
-### computePowerRating uses weighted stat averages
-Physical stats (STR, END, AGI) weight 1.0, mental stats (INT, WIS) weight 0.9, special stats (MAG, CHA, TAR) weight 1.1. GLITCH grade counts as 17 (max). Returns `{ index, tier, color }`.
-
-### CharacterShowcase mount animation uses delayed state
-`mounted` state flips from false to true after 60ms timeout. Power bars and gauge use this for CSS width transitions. The timeout resets on `row.id` change.
-
-### CharacterShowcase edit mode — E hotkey + pencil button
-`editing` state toggles inline editors across the showcase. The `E` key listener skips when focus is in `INPUT`, `TEXTAREA`, or `contentEditable`. Edit button is absolutely positioned in `.heroBanner`. All edits save via `setCellValue(rowId, colId, value)` on blur. Select/grade fields use `editingField` state to track which dropdown is open (only one at a time).
-
-### Quick Facts and Story Arc use new seed data columns
-Quick facts strip reads: Title, Affiliation, Class, Signature Move, Weapon, Weakness, Goal, Fear. Story Arc block reads: Story Arc column. These are text/select columns added to the Characters table in seedLocalData. The showcase gracefully hides these sections when no data exists.
-
-### TAB_COL_MAP expanded for Story and Moments tabs
-`Story` tab maps to `['Story Arc', 'Arc']`. `Moments` tab maps to `['Key Moments', 'Moments', 'Timeline']`. `Relations` tab now prioritizes `'Relationships Detail'` over `'Bonds'`. Moments tab detects `- ` prefixed lines and renders as `<ul>` with styled gold bullet markers.
-
-### Timeline/Era system — JSON column + effectiveCells
-`Timeline` column (col-timeline, type text) stores a JSON array: `[{ id, label, overrides: { colName: value } }]`. Override keys are column names (not IDs). Select column overrides must store option IDs. `effectiveCells` via `useMemo` merges base `row.cells` with era overrides by mapping column names to IDs. `getField()` uses `effectiveCells` instead of `row.cells`. `activeEra` resets to null on `row.id` change. Era bar is sticky at top of scroll container.
-
-### Collapsible section state is local, not persisted
-`collapsed` state in CharacterShowcase is a local useState object. Not saved to localStorage or DB. Sections re-expand on character switch or page reload.
-
-### Image columns store URLs, Gallery stores JSON array
-`col-profileimg` and `col-fullimg` store single URL strings. `col-gallery` stores a JSON array of URL strings. All null in seed data (no real images yet). Profile image falls back to initials circle. Gallery tab shows "No gallery images" when null/empty.
-
-### Lightbox z-index is 8000
-The image gallery lightbox overlay uses `z-index: 8000`, safely below the Shell bubble's 9999 cap.
-
 ### ToastProvider scope
 `ToastProvider` wraps Shell in `main.jsx`. All apps share it. Never add a second ToastProvider inside Shell, VaultApp, or App.
+
+---
+
+## Known Gotchas & Traps — CosmiCanvas
+
+### Canvas must not be React-controlled
+The `<canvas>` element is mounted once via `useRef` and drawn to imperatively. Never set canvas width/height via JSX props in a way that causes React re-renders — this clears the canvas. Set dimensions via `canvas.width = ...` in an effect or resize handler.
+
+### IndexedDB is async — don't block render
+All IndexedDB operations are async. Board load shows a loading state. Never `await` IndexedDB in the render loop. The in-memory `S` state is the source of truth during a session; IndexedDB is the persistence layer, not the read path.
+
+### Roughjs caches — clear on style change
+Roughjs generates and caches drawable objects. When an element's style properties change, the roughjs drawable must be regenerated. Don't assume stale drawables will pick up property changes.
+
+### Coordinate systems — screen vs world
+All element positions are in world coordinates. Mouse events give screen coordinates. Always convert via `screenToWorld` / `worldToScreen` in `camera.js`. Mixing these is the #1 source of bugs in canvas apps.
+
+### Debounced save + beforeunload
+The 200ms debounce means unsaved changes can exist briefly. The `beforeunload` handler must flush pending saves synchronously (or via `navigator.sendBeacon` if needed). Test by making a change and immediately closing the tab.
+
+### Image blob lifecycle
+When an image element is deleted, the blob is NOT immediately deleted (undo might restore it). Run `deleteOrphanedBlobs` on board load or periodically to clean up unreferenced blobs. Never delete blobs inside undo/redo logic.
+
+### Shell appWrapFull — no topbar padding override needed
+The `.appWrapFull` wrapper (used by Vault and CosmiCanvas) does NOT have the `:global([class^="_topbar_"])` padding override. CosmiCanvas has no topbar — it's full canvas. The portal bubble still appears (absolutely positioned in the wrapper div) but there's no Maya-style topbar to push over.
 
 ---
 
@@ -306,13 +319,24 @@ Run from the project root (`maya-os-mini/`).
 
 ## Key files — Vault
 - `src/vault/VaultApp.jsx` — Vault root, layout, active page state
-- `src/vault/store/vaultStore.js` — ALL Vault data access (Supabase); grade utilities; `computePowerRating()`; `getRowName()`; seed data
+- `src/vault/store/vaultStore.js` — ALL Vault data access (Supabase)
 - `src/vault/hooks/useVault.js` — Vault store subscription
 - `src/vault/components/layout/CommandPalette.jsx` — Cmd+K search
-- `src/vault/components/table/RowDetailModal.jsx` — shared row detail overlay (used by grid + gallery)
 - `src/vault/components/showcase/ShowcaseRegistry.js` — template registry
-- `src/vault/components/showcase/ShowcaseView.jsx` — split layout: name list + template (passes allRows + onSelectRow)
-- `src/vault/components/showcase/templates/CharacterShowcase.jsx` — full character wiki (hero, radar, power gauge, stat bars, ability cards, D&D, relations, tabs)
+- `src/vault/components/showcase/templates/CharacterShowcase.jsx` — Endless Sky character layout
+
+## Key files — CosmiCanvas
+- `src/whiteboard/WhiteboardApp.jsx` — CosmiCanvas root, board picker, canvas mount
+- `src/whiteboard/store/whiteboardStore.js` — ALL whiteboard data access
+- `src/whiteboard/store/idb.js` — IndexedDB wrapper (boards + image blobs)
+- `src/whiteboard/core/canvas.js` — canvas setup, render loop
+- `src/whiteboard/core/camera.js` — pan/zoom transform
+- `src/whiteboard/core/spatialIndex.js` — quadtree for hit-testing and culling
+- `src/whiteboard/core/history.js` — undo/redo command stack
+- `src/whiteboard/render/renderer.js` — style orchestrator
+- `src/whiteboard/render/styles/sketchStyle.js` — roughjs renderer (default)
+- `src/whiteboard/render/styles/cleanStyle.js` — geometric renderer
 
 See ARCHITECTURE.md for Maya file tree and patterns.
 See VAULT_ARCHITECTURE.md for Vault file tree, store API, and patterns.
+See WHITEBOARD_SPEC.md for CosmiCanvas file tree, element model, phases, and patterns.
