@@ -10,7 +10,7 @@ import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 import { useToast } from '../shared/Toast.jsx';
 import { scoreDay } from '../../utils/scoring.js';
 import { addDays, dayLabel, today, uid } from '../../utils/dates.js';
-import { parseInput, applyEmDash } from '../../utils/parsing.js';
+import { parseInput, applyEmDash, timeToMins } from '../../utils/parsing.js';
 import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove, taskRank, snapToZoneByRank } from '../../utils/taskPlacement.js';
 import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
@@ -75,43 +75,33 @@ export default function DayView({
   const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => isDone(t));
 
   // ── Fasting timer ──────────────────────────────────────────────────────
+  const todayStr = today();
   const [nowTick, setNowTick] = useState(Date.now());
   useEffect(() => {
-    if (focusDate !== today()) return;
+    if (focusDate !== todayStr) return;
     const id = setInterval(() => setNowTick(Date.now()), 60_000);
     return () => clearInterval(id);
   }, [focusDate]);
 
   const { fastStart, fastEnd } = getFastingSettings();
+  const startMins = timeToMins(fastStart);
+  const endMins = timeToMins(fastEnd);
+  const nowMins = (() => { const n = new Date(nowTick); return n.getHours() * 60 + n.getMinutes(); })();
+  const isToday = focusDate === todayStr;
+
   const fastState = (() => {
-    const isToday = focusDate === today();
     if (dayRecord.fastBroken) return 'broken';
-    if (!isToday) {
-      // Past or future date
-      if (focusDate < today()) return dayRecord.fastBroken ? 'broken' : 'done';
-      return 'pre'; // future
-    }
-    // Today — compute based on current time
-    const now = new Date(nowTick);
-    const [sh, sm] = fastStart.split(':').map(Number);
-    const [eh, em] = fastEnd.split(':').map(Number);
-    const mins = now.getHours() * 60 + now.getMinutes();
-    const startMins = sh * 60 + sm;
-    const endMins = eh * 60 + em;
-    if (mins < startMins) return 'pre';
-    if (mins < endMins) return 'active';
+    if (!isToday) return focusDate < todayStr ? 'done' : 'pre';
+    if (nowMins < startMins) return 'pre';
+    if (nowMins < endMins) return 'active';
     return 'done';
   })();
 
   const fastTimerText = (() => {
     if (fastState === 'broken') return 'Fast broken';
-    if (fastState === 'done') return focusDate === today() ? 'Fast locked' : 'Fasted';
-    const now = new Date(nowTick);
-    const [sh, sm] = fastStart.split(':').map(Number);
-    const [eh, em] = fastEnd.split(':').map(Number);
-    const mins = now.getHours() * 60 + now.getMinutes();
-    const targetMins = fastState === 'pre' ? sh * 60 + sm : eh * 60 + em;
-    const diff = targetMins - mins;
+    if (fastState === 'done') return isToday ? 'Fast locked' : 'Fasted';
+    const targetMins = fastState === 'pre' ? startMins : endMins;
+    const diff = targetMins - nowMins;
     const h = Math.floor(diff / 60);
     const m = diff % 60;
     if (fastState === 'pre') return `Opens in ${h > 0 ? h + 'h ' : ''}${m}m`;
@@ -120,18 +110,12 @@ export default function DayView({
 
   const fastProgress = (() => {
     if (fastState !== 'active') return 0;
-    const now = new Date(nowTick);
-    const [sh, sm] = fastStart.split(':').map(Number);
-    const [eh, em] = fastEnd.split(':').map(Number);
-    const mins = now.getHours() * 60 + now.getMinutes();
-    const total = (eh * 60 + em) - (sh * 60 + sm);
-    const elapsed = mins - (sh * 60 + sm);
+    const total = endMins - startMins;
+    const elapsed = nowMins - startMins;
     return total > 0 ? Math.min(100, (elapsed / total) * 100) : 0;
   })();
 
   function handleBreakFast() { toggleFastBroken(focusDate); }
-
-  const todayStr = today();
   const pastPending = focusDate === todayStr
     ? tasks.filter(t =>
         t.scheduledDate &&

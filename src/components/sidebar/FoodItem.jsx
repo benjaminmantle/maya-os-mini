@@ -28,12 +28,13 @@ export default function FoodItem({ item, onUpdate, onDelete }) {
 
   if (editing) {
     return (
-      <div className={styles.foodItem}>
+      <div className={styles.foodItem}
+        onBlur={e => { if (!e.currentTarget.contains(e.relatedTarget)) handleSave(); }}
+      >
         <input
           className={styles.foodNameInput}
           value={editName}
           onChange={e => setEditName(applyEmDash(e.target.value))}
-          onBlur={handleSave}
           onKeyDown={handleKeyDown}
           autoFocus
         />
@@ -43,7 +44,6 @@ export default function FoodItem({ item, onUpdate, onDelete }) {
           min="0"
           value={editCal}
           onChange={e => setEditCal(e.target.value)}
-          onBlur={handleSave}
           onKeyDown={handleKeyDown}
         />
         <span className={styles.foodCalUnit}>cal</span>

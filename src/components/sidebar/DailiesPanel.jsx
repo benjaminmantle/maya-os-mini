@@ -4,7 +4,7 @@ import DailyItem from './DailyItem.jsx';
 import FoodItem from './FoodItem.jsx';
 import { todColor } from '../../utils/colors.js';
 import { uid } from '../../utils/dates.js';
-import { applyEmDash, parseFoodInput } from '../../utils/parsing.js';
+import { applyEmDash, parseFoodInput, sumCalories } from '../../utils/parsing.js';
 import {
   markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily,
   addFoodItem, updateFoodItem, deleteFoodItem, toggleFoodDone, getCalorieTarget,
@@ -52,7 +52,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
   // ── Food log ──────────────────────────────────────────────────
   const foodLog = dayRecord.foodLog || [];
   const foodDone = !!dayRecord.foodDone;
-  const totalCal = foodLog.reduce((s, f) => s + (f.cal || 0), 0);
+  const totalCal = sumCalories(foodLog);
   const calorieTarget = getCalorieTarget();
 
   function handleAddFood() {

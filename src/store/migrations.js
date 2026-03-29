@@ -31,7 +31,7 @@ export function migrateV5toV6() {
       profile: d.profile || { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' },
       target: d.target || 10,
       frogsComplete: d.frogsComplete || {},
-      settings: { fastStart: '13:00', fastEnd: '21:00' },
+      settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000 },
     };
   } catch (e) {
     console.warn('v5→v6 migration failed:', e);

@@ -1,6 +1,7 @@
 import { closeDayScoring, expForLevel } from '../utils/scoring.js';
 import { today, uid } from '../utils/dates.js';
 import { parseDurMs } from '../utils/duration.js';
+import { timeToMins } from '../utils/parsing.js';
 import { DEFAULT_DAILIES, seedTasks } from './defaults.js';
 import { migrateV4toV5, migrateV5toV6 } from './migrations.js';
 
@@ -460,8 +461,8 @@ export function isFastWindowPassed(date) {
   if (date > todayStr) return false;
   // Today — compare current time to fastEnd
   const now = new Date();
-  const [h, m] = S.settings.fastEnd.split(':').map(Number);
-  return now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m);
+  const nowM = now.getHours() * 60 + now.getMinutes();
+  return nowM >= timeToMins(S.settings.fastEnd);
 }
 
 // ── Food log ─────────────────────────────────────────────────────────────

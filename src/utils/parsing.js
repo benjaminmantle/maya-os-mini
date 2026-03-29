@@ -35,6 +35,17 @@ export function parseInput(raw) {
   return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, priority };
 }
 
+// Sum calories from a food log array (handles null/undefined)
+export function sumCalories(foodLog) {
+  return (foodLog || []).reduce((s, f) => s + (f.cal || 0), 0);
+}
+
+// Parse "HH:MM" time string to minutes since midnight
+export function timeToMins(hhmm) {
+  const [h, m] = hhmm.split(':').map(Number);
+  return h * 60 + m;
+}
+
 // Parse food input: "chicken breast 300cal" → { name: "chicken breast", cal: 300 }
 export function parseFoodInput(raw) {
   const t = raw.trim();

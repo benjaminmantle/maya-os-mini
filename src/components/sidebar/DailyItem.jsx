@@ -9,6 +9,7 @@ export default function DailyItem({ daily, index, total, done, color, onToggle, 
   const [nameVal, setNameVal] = useState(daily.name);
 
   function handleNameClick(e) {
+    if (done) return;
     e.stopPropagation();
     setNameVal(daily.name);
     setEditingName(true);
@@ -52,7 +53,7 @@ export default function DailyItem({ daily, index, total, done, color, onToggle, 
         />
       ) : (
         <span
-          className={`${styles.dName} ${done ? styles.dailyItemDoneName : ''} ${styles.dNameClickable}`}
+          className={`${styles.dName} ${done ? styles.dailyItemDoneName : ''} ${!done ? styles.dNameClickable : ''}`}
           onClick={handleNameClick}
         >
           {daily.name}

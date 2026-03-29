@@ -4,6 +4,7 @@ import { TITLES, scoreDay, expForLevel } from '../../utils/scoring.js';
 import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
 import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget } from '../../store/store.js';
+import { sumCalories } from '../../utils/parsing.js';
 import { useToast } from '../shared/Toast.jsx';
 import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 
@@ -97,29 +98,22 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
     .filter(d => d <= todayStr && days[d] && !days[d].fastBroken && (days[d].cIds?.length || days[d].dIds?.length || days[d].workout)).length;
 
   // ── Calorie / Nutrition stats ──────────────────────────────────────────
-  // Include all days with food log data, not just those with task/daily activity
+  const dayCal = (d) => sumCalories(days[d]?.foodLog);
   const calDayKeys = dayKeys.filter(dk => dk <= todayStr && days[dk]?.foodLog?.length > 0);
-  const calToday = (days[todayStr]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0);
+  const calToday = dayCal(todayStr);
   const cal7 = Array.from({ length: 7 }, (_, i) => addDays(todayStr, -(6 - i)))
-    .map(d => (days[d]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0))
-    .filter(c => c > 0);
+    .map(dayCal).filter(c => c > 0);
   const cal7Avg = cal7.length > 0 ? Math.round(cal7.reduce((a, b) => a + b, 0) / cal7.length) : 0;
   const cal30 = Array.from({ length: 30 }, (_, i) => addDays(todayStr, -(29 - i)))
-    .map(d => (days[d]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0))
-    .filter(c => c > 0);
+    .map(dayCal).filter(c => c > 0);
   const cal30Avg = cal30.length > 0 ? Math.round(cal30.reduce((a, b) => a + b, 0) / cal30.length) : 0;
-  const calUnderTarget = calDayKeys.filter(dk => {
-    const total = (days[dk]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0);
-    return total <= currentCalTarget;
-  }).length;
+  const calUnderTarget = calDayKeys.filter(dk => dayCal(dk) <= currentCalTarget).length;
 
   // Calorie bar chart — last 14 days
   const CAL_BAR_DAYS = 14;
   const calBarData = Array.from({ length: CAL_BAR_DAYS }, (_, i) => {
     const date = addDays(todayStr, -(CAL_BAR_DAYS - 1 - i));
-    const foodLog = days[date]?.foodLog || [];
-    const total = foodLog.reduce((s, f) => s + (f.cal || 0), 0);
-    return { date, total };
+    return { date, total: dayCal(date) };
   });
   const calBarMax = Math.max(currentCalTarget, ...calBarData.map(d => d.total), 1);
 
