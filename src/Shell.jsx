@@ -1,11 +1,13 @@
 import { useState, useRef, useEffect } from 'react';
 import App from './App.jsx';
 import VaultApp from './vault/VaultApp.jsx';
+import WhiteboardApp from './whiteboard/WhiteboardApp.jsx';
 import s from './styles/components/Shell.module.css';
 
 const APPS = [
-  { id: 'maya',  label: 'Maya OS', icon: '◆', component: App,      wrap: 'center' },
-  { id: 'vault', label: 'Vault',   icon: '⬡', component: VaultApp, wrap: 'full' },
+  { id: 'maya',  label: 'Maya OS',     icon: '◆', component: App,           wrap: 'center' },
+  { id: 'vault', label: 'Vault',       icon: '⬡', component: VaultApp,      wrap: 'full'   },
+  { id: 'board', label: 'CosmiCanvas', icon: '▦', component: WhiteboardApp, wrap: 'full'   },
 ];
 
 export default function Shell() {
