@@ -15,7 +15,7 @@ if (!window.__mayaS) window.__mayaS = {
   profile: { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' },
   target: 10,
   frogsComplete: {},
-  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000 },
+  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false },
 };
 let S = window.__mayaS;
 
@@ -72,10 +72,11 @@ function load() {
     if (d.frogsComplete) S.frogsComplete = d.frogsComplete;
     if (d.settings) S.settings = d.settings;
     // Ensure settings defaults exist
-    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000 };
+    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false };
     if (!S.settings.fastStart) S.settings.fastStart = '13:00';
     if (!S.settings.fastEnd) S.settings.fastEnd = '21:00';
     if (!S.settings.calorieTarget) S.settings.calorieTarget = 2000;
+    // fastingEnabled and caloriesEnabled default to false (undefined is falsy, fine)
   } catch (e) {
     console.warn('Failed to load state:', e);
   }
@@ -308,7 +309,7 @@ export function closeDay(date) {
   // Bonus XP for habits (workout + fasting) — additive, doesn't affect tier
   let habitBonus = 0;
   if (day.workout) habitBonus += 8;
-  if (!day.fastBroken && isFastWindowPassed(date)) habitBonus += 8;
+  if (S.settings.fastingEnabled && !day.fastBroken && isFastWindowPassed(date)) habitBonus += 8;
   if (habitBonus > 0) {
     result.gain += habitBonus;
     result.profile.exp = Math.max(0, (result.profile.exp || 0) + habitBonus);
@@ -499,6 +500,16 @@ export function getCalorieTarget() {
 
 export function setCalorieTarget(n) {
   S.settings.calorieTarget = n;
+  save();
+}
+
+export function toggleFastingEnabled() {
+  S.settings.fastingEnabled = !S.settings.fastingEnabled;
+  save();
+}
+
+export function toggleCaloriesEnabled() {
+  S.settings.caloriesEnabled = !S.settings.caloriesEnabled;
   save();
 }
 

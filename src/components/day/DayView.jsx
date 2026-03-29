@@ -16,7 +16,7 @@ import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
   setFrogsComplete, deleteDaily, saveDaily, toggleWorkout, carryForwardTasks,
-  toggleFastBroken, getFastingSettings, isFastWindowPassed,
+  toggleFastBroken, getFastingSettings, isFastWindowPassed, getState,
 } from '../../store/store.js';
 
 const PRI_ORDER = ['hi', 'md', 'lo'];
@@ -32,6 +32,7 @@ export default function DayView({
   initialDate,
   theme,
 }) {
+  const { settings } = getState();
   const [focusDate, setFocusDate] = useState(initialDate || today());
   const [inputVal, setInputVal] = useState('');
   const [coreHidden, setCoreHidden] = useState(false);
@@ -508,6 +509,7 @@ export default function DayView({
         </div>
 
         {/* Fasting widget */}
+        {settings.fastingEnabled && (
         <div className={styles.fastingStrip}>
           <span className={styles.fastIcon}>🍽</span>
           <span className={`${styles.fastLabel} ${
@@ -529,6 +531,7 @@ export default function DayView({
             <button className={styles.fastBreakBtn} onClick={handleBreakFast} title="Mark fast as broken">✗</button>
           )}
         </div>
+        )}
 
         {/* Frogs */}
         <div className={allFrogsDoneAuto ? styles.frogSecAllDone : (frogsDone ? styles.frogSecDone : styles.frogSec)} onContextMenu={handleFrogContextMenu}>

@@ -7,7 +7,7 @@ import { uid } from '../../utils/dates.js';
 import { applyEmDash, parseFoodInput, sumCalories } from '../../utils/parsing.js';
 import {
   markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily,
-  addFoodItem, updateFoodItem, deleteFoodItem, toggleFoodDone, getCalorieTarget,
+  addFoodItem, updateFoodItem, deleteFoodItem, toggleFoodDone, getCalorieTarget, getState,
 } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 
@@ -118,6 +118,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
         </div>
 
         {/* ── Food Log ──────────────────────────────────────── */}
+        {getState().settings.caloriesEnabled && <>
         <div className={styles.foodDivider} />
         <div className={foodDone ? styles.foodSectionDone : styles.foodSection}>
           <div className={styles.foodHeader}>
@@ -152,6 +153,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
             <button className={styles.qaBtn} onClick={handleAddFood}>+</button>
           </div>
         </div>
+        </>}
       </div>
     </div>
   );
