@@ -257,6 +257,9 @@ NavTabs.jsx renders the stats/settings tab as "Backend" (was "Settings"). The vi
 ### Inline name editing — click name text on tasks and dailies
 TaskCard and DailyItem support click-to-edit on the name text. `editingName` state controls input display. Blur saves, Escape cancels, Enter triggers blur. Priority paint mode and done state disable name editing. Drag is disabled while editing (`draggable={!editingName}`). DailyItem name click no longer toggles completion — use the dot for that.
 
+### DailyItem dot — large hit target wrapper, not the dot itself
+The colored dot in DailyItem is wrapped in a `.dDotBtn` span with `8px/6px` padding (negative margin compensates so layout is unchanged). `pointer-events: none` on the inner `.dDot` — clicks must land on the wrapper. Both dot button and name span use `e.stopPropagation()` so they can never trigger each other. Do not remove the wrapper or shrink its padding.
+
 ### FUTURE_IDEAS.md — user-managed ideas
 `FUTURE_IDEAS.md` stores ideas for future implementation (food timestamps, exception days, Claude API calorie estimation). Do not start on these without explicit direction. Similar to TODO.md.
 

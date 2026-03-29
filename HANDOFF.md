@@ -77,6 +77,20 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
+### Daily dot hit target expanded (2026-03-29)
+
+Clicking the colored dot to mark a daily done/undone was too fiddly after inline name editing was added (clicking the name now opens an edit input). Fixed:
+- Dot wrapped in `.dDotBtn` — a larger hit target with `8px` vertical / `6px` horizontal padding (effectively ~28×22px clickable zone vs the original 6×6px dot)
+- Negative margin on wrapper compensates so card layout is unchanged
+- `pointer-events: none` on the inner dot; clicks register on the wrapper only
+- `e.stopPropagation()` on both dot button and name span — the two zones are fully isolated
+- Hover feedback: subtle `var(--s2)` bg on dot area; tooltip "Mark complete" / "Mark incomplete"
+- `cursor: default` on card row (was `pointer`); only dot and name text have their own cursor hints
+
+**Files changed**: `src/components/sidebar/DailyItem.jsx`, `src/styles/components/Sidebar.module.css`
+
+---
+
 ### Food log + inline name editing (2026-03-29)
 
 **Food log in Dailies tab** — below dailies list, separated by divider. Quick-add input parses calorie syntax (`chicken breast 300cal`, `coffee`). Food items show name + teal calorie badge. Click name for inline edit (name + cal inputs). Delete button on hover. Calorie total in header (teal, turns orange when over target). Click total to toggle "done eating" (section fades to 0.35 + checkmark).

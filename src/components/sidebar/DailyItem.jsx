@@ -34,10 +34,15 @@ export default function DailyItem({ daily, index, total, done, color, onToggle, 
       onContextMenu={onContextMenu}
     >
       <span
-        className={styles.dDot}
-        style={{ background: color, boxShadow: `0 0 5px ${color}88` }}
-        onClick={onToggle}
-      />
+        className={styles.dDotBtn}
+        onClick={(e) => { e.stopPropagation(); onToggle(); }}
+        title={done ? 'Mark incomplete' : 'Mark complete'}
+      >
+        <span
+          className={styles.dDot}
+          style={{ background: color, boxShadow: `0 0 5px ${color}88` }}
+        />
+      </span>
       {editingName ? (
         <input
           className={styles.dNameInput}
