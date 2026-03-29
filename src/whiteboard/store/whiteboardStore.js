@@ -191,6 +191,51 @@ export function getNextZIndex() {
   return Math.max(...S.board.elements.map(e => e.zIndex || 0)) + 1;
 }
 
+/* ---- undo/redo apply ---- */
+
+export function applyUndo(cmd) {
+  if (!S.board) return;
+  if (cmd.type === 'create') {
+    // undo create = delete
+    const ids = new Set(cmd.elementIds);
+    S.board.elements = S.board.elements.filter(e => !ids.has(e.id));
+  } else if (cmd.type === 'delete') {
+    // undo delete = restore
+    for (const snap of cmd.before) {
+      S.board.elements.push(JSON.parse(JSON.stringify(snap)));
+    }
+  } else if (cmd.type === 'move' || cmd.type === 'resize' || cmd.type === 'style') {
+    // restore before state
+    for (const snap of cmd.before) {
+      const el = S.board.elements.find(e => e.id === snap.id);
+      if (el) Object.assign(el, snap);
+    }
+  }
+  _queueSave();
+  notify();
+}
+
+export function applyRedo(cmd) {
+  if (!S.board) return;
+  if (cmd.type === 'create') {
+    // redo create = re-add
+    for (const snap of cmd.after) {
+      S.board.elements.push(JSON.parse(JSON.stringify(snap)));
+    }
+  } else if (cmd.type === 'delete') {
+    // redo delete = remove again
+    const ids = new Set(cmd.elementIds);
+    S.board.elements = S.board.elements.filter(e => !ids.has(e.id));
+  } else if (cmd.type === 'move' || cmd.type === 'resize' || cmd.type === 'style') {
+    for (const snap of cmd.after) {
+      const el = S.board.elements.find(e => e.id === snap.id);
+      if (el) Object.assign(el, snap);
+    }
+  }
+  _queueSave();
+  notify();
+}
+
 /* ---- last opened ---- */
 export function getLastBoardId() {
   return localStorage.getItem('maya_board_lastId');

@@ -138,3 +138,22 @@
   padding: 2px 8px;
   pointer-events: none;
 }
+
+/* ---- text editing overlay ---- */
+
+.textOverlay {
+  position: fixed;
+  z-index: 200;
+  background: transparent;
+  border: 1px dashed var(--blu);
+  color: var(--text);
+  font-family: 'Segoe Print', 'Comic Sans MS', cursive;
+  padding: 2px 4px;
+  min-width: 40px;
+  min-height: 1.4em;
+  resize: none;
+  outline: none;
+  overflow: hidden;
+  white-space: pre;
+  line-height: 1.4;
+}
