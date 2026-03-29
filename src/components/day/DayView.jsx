@@ -16,6 +16,7 @@ import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
   setFrogsComplete, deleteDaily, saveDaily, toggleWorkout, carryForwardTasks,
+  toggleFastBroken, getFastingSettings, isFastWindowPassed,
 } from '../../store/store.js';
 
 const PRI_ORDER = ['hi', 'md', 'lo'];
@@ -72,6 +73,63 @@ export default function DayView({
   const frogsDone = !!frogsComplete[focusDate];
   const allFrogsForDay = allForDay.filter(t => t.isFrog);
   const allFrogsDoneAuto = allFrogsForDay.length > 0 && allFrogsForDay.every(t => isDone(t));
+
+  // ── Fasting timer ──────────────────────────────────────────────────────
+  const [nowTick, setNowTick] = useState(Date.now());
+  useEffect(() => {
+    if (focusDate !== today()) return;
+    const id = setInterval(() => setNowTick(Date.now()), 60_000);
+    return () => clearInterval(id);
+  }, [focusDate]);
+
+  const { fastStart, fastEnd } = getFastingSettings();
+  const fastState = (() => {
+    const isToday = focusDate === today();
+    if (dayRecord.fastBroken) return 'broken';
+    if (!isToday) {
+      // Past or future date
+      if (focusDate < today()) return dayRecord.fastBroken ? 'broken' : 'done';
+      return 'pre'; // future
+    }
+    // Today — compute based on current time
+    const now = new Date(nowTick);
+    const [sh, sm] = fastStart.split(':').map(Number);
+    const [eh, em] = fastEnd.split(':').map(Number);
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const startMins = sh * 60 + sm;
+    const endMins = eh * 60 + em;
+    if (mins < startMins) return 'pre';
+    if (mins < endMins) return 'active';
+    return 'done';
+  })();
+
+  const fastTimerText = (() => {
+    if (fastState === 'broken') return 'Fast broken';
+    if (fastState === 'done') return focusDate === today() ? 'Fast locked' : 'Fasted';
+    const now = new Date(nowTick);
+    const [sh, sm] = fastStart.split(':').map(Number);
+    const [eh, em] = fastEnd.split(':').map(Number);
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const targetMins = fastState === 'pre' ? sh * 60 + sm : eh * 60 + em;
+    const diff = targetMins - mins;
+    const h = Math.floor(diff / 60);
+    const m = diff % 60;
+    if (fastState === 'pre') return `Opens in ${h > 0 ? h + 'h ' : ''}${m}m`;
+    return `Closes in ${h > 0 ? h + 'h ' : ''}${m}m`;
+  })();
+
+  const fastProgress = (() => {
+    if (fastState !== 'active') return 0;
+    const now = new Date(nowTick);
+    const [sh, sm] = fastStart.split(':').map(Number);
+    const [eh, em] = fastEnd.split(':').map(Number);
+    const mins = now.getHours() * 60 + now.getMinutes();
+    const total = (eh * 60 + em) - (sh * 60 + sm);
+    const elapsed = mins - (sh * 60 + sm);
+    return total > 0 ? Math.min(100, (elapsed / total) * 100) : 0;
+  })();
+
+  function handleBreakFast() { toggleFastBroken(focusDate); }
 
   const todayStr = today();
   const pastPending = focusDate === todayStr
@@ -463,6 +521,29 @@ export default function DayView({
         {/* Contributions heatmap */}
         <div className={styles.contribStrip}>
           <ContribHeatmap weeks={20} cellSize={10} gap={2} showDayLabels showMonthLabels showLegend />
+        </div>
+
+        {/* Fasting widget */}
+        <div className={styles.fastingStrip}>
+          <span className={styles.fastIcon}>🍽</span>
+          <span className={`${styles.fastLabel} ${
+            fastState === 'pre' ? styles.fastLabelPre :
+            fastState === 'active' ? styles.fastLabelActive :
+            fastState === 'broken' ? styles.fastLabelBroken :
+            styles.fastLabelDone
+          }`}>
+            {fastTimerText}
+            {fastState === 'done' && <span className={styles.fastCheck}> ✓</span>}
+            {fastState === 'broken' && <span className={styles.fastBroken}> ✗</span>}
+          </span>
+          {fastState === 'active' && (
+            <div className={styles.fastProgress}>
+              <div className={styles.fastProgressFill} style={{ width: fastProgress + '%' }} />
+            </div>
+          )}
+          {(fastState === 'active' || fastState === 'done') && !dayRecord.fastBroken && focusDate === todayStr && (
+            <button className={styles.fastBreakBtn} onClick={handleBreakFast} title="Mark fast as broken">✗</button>
+          )}
         </div>
 
         {/* Frogs */}

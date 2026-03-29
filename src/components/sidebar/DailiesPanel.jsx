@@ -1,10 +1,14 @@
 import { useState, useCallback } from 'react';
 import styles from '../../styles/components/Sidebar.module.css';
 import DailyItem from './DailyItem.jsx';
+import FoodItem from './FoodItem.jsx';
 import { todColor } from '../../utils/colors.js';
 import { uid } from '../../utils/dates.js';
-import { applyEmDash } from '../../utils/parsing.js';
-import { markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily } from '../../store/store.js';
+import { applyEmDash, parseFoodInput } from '../../utils/parsing.js';
+import {
+  markDailyComplete, saveDailies, saveDaily, deleteDaily as storeDeleteDaily,
+  addFoodItem, updateFoodItem, deleteFoodItem, toggleFoodDone, getCalorieTarget,
+} from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 
 export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDaily, onContextMenu, theme }) {
@@ -12,6 +16,7 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
   const [newName, setNewName] = useState('');
   const [newType, setNewType] = useState('general');
   const [dragSrcId, setDragSrcId] = useState(null);
+  const [foodInput, setFoodInput] = useState('');
   const showToast = useToast();
 
   const n = dailies.length;
@@ -42,6 +47,23 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
     const [moved] = reordered.splice(fromIdx, 1);
     reordered.splice(toIdx, 0, moved);
     saveDailies(reordered);
+  }
+
+  // ── Food log ──────────────────────────────────────────────────
+  const foodLog = dayRecord.foodLog || [];
+  const foodDone = !!dayRecord.foodDone;
+  const totalCal = foodLog.reduce((s, f) => s + (f.cal || 0), 0);
+  const calorieTarget = getCalorieTarget();
+
+  function handleAddFood() {
+    const parsed = parseFoodInput(foodInput);
+    if (!parsed) return;
+    addFoodItem(focusDate, parsed.name, parsed.cal);
+    setFoodInput('');
+  }
+
+  function handleFoodDone() {
+    toggleFoodDone(focusDate);
   }
 
   return (
@@ -93,6 +115,42 @@ export default function DailiesPanel({ dailies, dayRecord, focusDate, onEditDail
               </div>
             </div>
           )}
+        </div>
+
+        {/* ── Food Log ──────────────────────────────────────── */}
+        <div className={styles.foodDivider} />
+        <div className={foodDone ? styles.foodSectionDone : styles.foodSection}>
+          <div className={styles.foodHeader}>
+            <span className={styles.foodTitle}>🍽 Food Log</span>
+            <span
+              className={foodDone ? styles.foodTotalDone : (totalCal > calorieTarget ? styles.foodTotalOver : styles.foodTotal)}
+              onClick={handleFoodDone}
+              title="Click to mark done eating"
+            >
+              {totalCal} / {calorieTarget} cal
+              {foodDone && <span className={styles.foodCheck}> ✓</span>}
+            </span>
+          </div>
+
+          {foodLog.map(item => (
+            <FoodItem
+              key={item.id}
+              item={item}
+              onUpdate={(id, patch) => updateFoodItem(focusDate, id, patch)}
+              onDelete={(id) => deleteFoodItem(focusDate, id)}
+            />
+          ))}
+
+          <div className={styles.qaRow}>
+            <input
+              className={styles.qaInput}
+              placeholder="food item 300cal"
+              value={foodInput}
+              onChange={e => setFoodInput(e.target.value)}
+              onKeyDown={e => { if (e.key === 'Enter') handleAddFood(); }}
+            />
+            <button className={styles.qaBtn} onClick={handleAddFood}>+</button>
+          </div>
         </div>
       </div>
     </div>

@@ -106,7 +106,7 @@ Err on the side of over-documenting. Even small changes should be noted if they'
 
 **Preserve existing features** — read SPEC.md before modifying any feature. Don't silently remove behavior.
 
-**Schema versioning** — localStorage key is `maya_os_v5`. Breaking schema changes must increment the version and add a migration in `src/store/migrations.js`.
+**Schema versioning** — localStorage key is `maya_os_v6`. Breaking schema changes must increment the version and add a migration in `src/store/migrations.js`.
 
 ---
 
@@ -232,6 +232,33 @@ The kraft pulse animation for frogs only applies to `.frogSec .secLblFrog` (undo
 
 ### Done section and Core Tasks — both have collapse state
 `DayView.jsx` has `coreHidden` and `doneHidden` boolean states (both start `false`). Do not merge or remove either.
+
+### Fasting — optimistic model with fastBroken flag
+`days[date].fastBroken` is `undefined` by default (falsy = successful fast). Only set to `true` if the user explicitly marks their fast as broken. Do NOT require users to confirm success — the optimistic model assumes success unless told otherwise.
+
+### Fasting — isFastWindowPassed(date) is time-sensitive
+For past dates, always returns `true`. For today, compares current time to `S.settings.fastEnd`. For future dates, always `false`. Used in `closeDay()` to determine fasting XP bonus — do not call it for historical scoring (past dates always count).
+
+### Habit XP bonuses live in closeDay(), not closeDayScoring()
+`closeDayScoring()` is a pure function of tier. The +8 XP for workout and +8 XP for fasting are added in `closeDay()` in `store.js` AFTER tier scoring. The bonus is included in `scoreRecord.expDelta` so `reverseScoreRecord` handles it correctly via `expBefore`/`levelBefore` snapshots.
+
+### S.settings — fasting configuration
+`S.settings = { fastStart: '13:00', fastEnd: '21:00' }` stores eating window times as HH:MM strings. Added in schema v6. Defaults ensured in `load()`. Persisted alongside other state fields.
+
+### Backend tab — was "Settings"
+NavTabs.jsx renders the stats/settings tab as "Backend" (was "Settings"). The view key is still `'stats'` — only the label changed.
+
+### Food log lives on day record, not top-level state
+`days[date].foodLog` is an array of `{ id, name, cal }` objects. `days[date].foodDone` is the done-eating toggle. These are optional — undefined by default, only created when the first food item is added. Do NOT add `foodLog: []` to `getDayRecord()` defaults (avoids bloating every day record).
+
+### parseFoodInput syntax
+`parseFoodInput(str)` in `parsing.js` strips trailing `(\d+)(c|cal|calories?)` from input. Returns `{ name, cal }`. No calories specified = `cal: 0`. Always returns an object (never null for non-empty input).
+
+### Inline name editing — click name text on tasks and dailies
+TaskCard and DailyItem support click-to-edit on the name text. `editingName` state controls input display. Blur saves, Escape cancels, Enter triggers blur. Priority paint mode and done state disable name editing. Drag is disabled while editing (`draggable={!editingName}`). DailyItem name click no longer toggles completion — use the dot for that.
+
+### FUTURE_IDEAS.md — user-managed ideas
+`FUTURE_IDEAS.md` stores ideas for future implementation (food timestamps, exception days, Claude API calorie estimation). Do not start on these without explicit direction. Similar to TODO.md.
 
 ---
 

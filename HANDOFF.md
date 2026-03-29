@@ -35,15 +35,15 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ## What's implemented
 
 ### Maya OS (complete)
-- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), frogs section, spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
+- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section, spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
 - **Sidebar** — Dailies tab (color-coded dots, drag reorder), Backlog tab, Maya tab (star rating, quick-add)
 - **Maya task system** — `priority: 'maya'` tasks; star rating (1–3 stars); completion via `task.done`; drag to DayView = scheduled; grouped by star level with hi/md/lo tasks in DayView
 - **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya tasks) to today; preserves isFrog status
 - **Drag and drop** — all zones; group integrity enforced; sandwich recolor; day-tab drag
 - **Timer** — countdown / open-ended / countup; focus vs start distinction
 - **Week View** — 7-day grid, drag to reschedule, click to navigate
-- **Stats View** — progression cards, XP bar, heatmap, bar chart, radar, weekly rhythm, trend line, daily consistency, export/import
-- **Scoring** — 6 tiers, XP awards, streak multiplier, idempotent close/reopen, momentum
+- **Stats View (Backend tab)** — progression cards, XP bar, workout stats, fasting stats (streak, ring chart), heatmap, bar chart, radar (6-axis hexagon), weekly rhythm, trend line, daily consistency, fasting config (eating window), export/import
+- **Scoring** — 6 tiers, XP awards, streak multiplier, +8 XP habit bonuses (workout + fasting), idempotent close/reopen, momentum
 - **Leveling** — 100 levels, 100 titles
 - **Quick-add syntax** — `!hi/!md/!lo`, `@N`, `Nh/Nm`, `frog`
 - **Export/import** — full backup + tasks-only; always additive with fresh IDs
@@ -76,6 +76,38 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ---
 
 ## Recent session changes
+
+### Food log + inline name editing (2026-03-29)
+
+**Food log in Dailies tab** — below dailies list, separated by divider. Quick-add input parses calorie syntax (`chicken breast 300cal`, `coffee`). Food items show name + teal calorie badge. Click name for inline edit (name + cal inputs). Delete button on hover. Calorie total in header (teal, turns orange when over target). Click total to toggle "done eating" (section fades to 0.35 + checkmark).
+
+**Data model**: `days[date].foodLog = [{ id, name, cal }]`, `days[date].foodDone` boolean. `S.settings.calorieTarget = 2000`. No schema bump — optional fields.
+
+**Backend Nutrition section** — Today's cal / target, 7-day avg, 30-day avg, days under target. 14-day calorie bar chart (green = under target, orange = over, red = way over). Dashed target line. Calorie target setting in Backend settings area.
+
+**Inline name editing** — Click task name text → inline input with gold border. Blur saves, Escape cancels, Enter triggers blur. Priority paint mode and done state disable editing. Drag disabled while editing. DailyItem: same pattern; name click now edits (dot click still toggles completion). Maya tasks: strips/re-adds "MAYA — " prefix during editing.
+
+**New files**: `src/components/sidebar/FoodItem.jsx`, `FUTURE_IDEAS.md`
+
+**Store additions**: `addFoodItem`, `updateFoodItem`, `deleteFoodItem`, `toggleFoodDone`, `getCalorieTarget`, `setCalorieTarget`. `parseFoodInput()` in parsing.js.
+
+---
+
+### Intermittent fasting feature + habit XP bonuses (2026-03-29)
+
+**Schema v5 → v6** — new `S.settings` object (`{ fastStart: '13:00', fastEnd: '21:00' }`), `days[date].fastBroken` flag. Migration in `migrations.js`.
+
+**Fasting widget in Day View** — placed between heatmap and frogs section. States: pre-window (dim, "Opens in Xh Xm"), active (teal pulse, "Closes in Xh Xm" + progress bar), done (fade + ✓), broken (red ✗). Auto-timer updates every 60s on today's date. Break button (✗) visible only during/after eating window. Optimistic model — success assumed unless explicitly broken.
+
+**Habit XP bonuses** — `closeDay()` now adds +8 XP for workout and +8 XP for successful fast (eating window passed + not broken), applied after tier scoring. Included in `scoreRecord.expDelta` for correct reopen reversal. Re-checks leveling after bonus.
+
+**Radar chart 5 → 6 axes** — hexagon. New FASTING axis (orange, `var(--ora)`). Value = active days without `fastBroken` / 30.
+
+**Backend tab** — "Settings" renamed to "Backend" in NavTabs. New Fasting stats section: Fast Streak, Longest Streak, Total Fast Days, 30-day ring chart (orange SVG arc). Eating window config (time pickers) in Settings section.
+
+**Kraft theme overrides** — fasting widget colors adapted for kraft palette.
+
+---
 
 ### Maya task grouping overhaul
 - **Maya tasks now grouped by star level** in DayView core tasks — 3★ sorts with hi (pink), 2★ with md (gold), 1★ with lo (blue). Previously had a separate top-most Maya section. `taskRank()` helper maps star count to rank 1/2/3; used in `snapToZoneByRank` and drag logic.

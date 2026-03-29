@@ -3,7 +3,7 @@ import styles from '../../styles/components/StatsView.module.css';
 import { TITLES, scoreDay, expForLevel } from '../../utils/scoring.js';
 import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
-import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll } from '../../store/store.js';
+import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget } from '../../store/store.js';
 import { useToast } from '../shared/Toast.jsx';
 import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 
@@ -28,6 +28,11 @@ const TIER_LEGEND = [
 
 export default function StatsView({ profile, dailies, days, target: currentTarget, tasks }) {
   const [targetVal, setTargetVal] = useState(currentTarget);
+  const fastSettings = getFastingSettings();
+  const [fastStartVal, setFastStartVal] = useState(fastSettings.fastStart);
+  const [fastEndVal, setFastEndVal] = useState(fastSettings.fastEnd);
+  const currentCalTarget = getCalorieTarget();
+  const [calTargetVal, setCalTargetVal] = useState(currentCalTarget);
   const fileRef = useRef(null);
   const taskFileRef = useRef(null);
   const showToast = useToast();
@@ -74,6 +79,49 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
     if (days[dk]?.workout) workoutStreak++;
     else break;
   }
+
+  // ── Fasting stats ──────────────────────────────────────────────────────
+  const fastDayKeys = pastDayKeys.filter(dk => !days[dk]?.fastBroken);
+  const totalFastDays = fastDayKeys.length;
+  let fastStreak = 0;
+  for (const dk of [...pastDayKeys].reverse()) {
+    if (!days[dk]?.fastBroken) fastStreak++;
+    else break;
+  }
+  let longestFastStreak = 0, currentRun = 0;
+  for (const dk of pastDayKeys) {
+    if (!days[dk]?.fastBroken) { currentRun++; longestFastStreak = Math.max(longestFastStreak, currentRun); }
+    else currentRun = 0;
+  }
+  const fastLast30 = Array.from({ length: 30 }, (_, i) => addDays(todayStr, -(29 - i)))
+    .filter(d => d <= todayStr && days[d] && !days[d].fastBroken && (days[d].cIds?.length || days[d].dIds?.length || days[d].workout)).length;
+
+  // ── Calorie / Nutrition stats ──────────────────────────────────────────
+  // Include all days with food log data, not just those with task/daily activity
+  const calDayKeys = dayKeys.filter(dk => dk <= todayStr && days[dk]?.foodLog?.length > 0);
+  const calToday = (days[todayStr]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0);
+  const cal7 = Array.from({ length: 7 }, (_, i) => addDays(todayStr, -(6 - i)))
+    .map(d => (days[d]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0))
+    .filter(c => c > 0);
+  const cal7Avg = cal7.length > 0 ? Math.round(cal7.reduce((a, b) => a + b, 0) / cal7.length) : 0;
+  const cal30 = Array.from({ length: 30 }, (_, i) => addDays(todayStr, -(29 - i)))
+    .map(d => (days[d]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0))
+    .filter(c => c > 0);
+  const cal30Avg = cal30.length > 0 ? Math.round(cal30.reduce((a, b) => a + b, 0) / cal30.length) : 0;
+  const calUnderTarget = calDayKeys.filter(dk => {
+    const total = (days[dk]?.foodLog || []).reduce((s, f) => s + (f.cal || 0), 0);
+    return total <= currentCalTarget;
+  }).length;
+
+  // Calorie bar chart — last 14 days
+  const CAL_BAR_DAYS = 14;
+  const calBarData = Array.from({ length: CAL_BAR_DAYS }, (_, i) => {
+    const date = addDays(todayStr, -(CAL_BAR_DAYS - 1 - i));
+    const foodLog = days[date]?.foodLog || [];
+    const total = foodLog.reduce((s, f) => s + (f.cal || 0), 0);
+    return { date, total };
+  });
+  const calBarMax = Math.max(currentCalTarget, ...calBarData.map(d => d.total), 1);
 
   // ── Heatmap: 20 weeks × 7 days (Mon–Sun columns) ────────────────────────
   const HEAT_WEEKS = 20;
@@ -139,11 +187,15 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   const radarDiscipline = active30.length > 0
     ? active30.filter(d => days[d]?.closed).length / active30.length
     : 0;
-  const radarValues = [radarTasks, radarDailies, radarWorkout, radarFrogs, radarDiscipline];
+  // Fasting: days without fastBroken (only count days that have any activity)
+  const radarFasting = active30.length > 0
+    ? active30.filter(d => !days[d]?.fastBroken).length / 30
+    : 0;
+  const radarValues = [radarTasks, radarDailies, radarWorkout, radarFrogs, radarDiscipline, radarFasting];
 
-  const RADAR_AXES   = ['TASKS', 'DAILIES', 'WORKOUT', 'FROGS', 'DISCIPLINE'];
-  const RADAR_COLORS = ['var(--gold)', 'var(--pur)', 'var(--hot)', 'var(--grn)', 'var(--tel)'];
-  const RADAR_N = 5, RADAR_CX = 90, RADAR_CY = 90, RADAR_R = 68;
+  const RADAR_AXES   = ['TASKS', 'DAILIES', 'WORKOUT', 'FROGS', 'DISCIPLINE', 'FASTING'];
+  const RADAR_COLORS = ['var(--gold)', 'var(--pur)', 'var(--hot)', 'var(--grn)', 'var(--tel)', 'var(--ora)'];
+  const RADAR_N = 6, RADAR_CX = 90, RADAR_CY = 90, RADAR_R = 68;
 
   function radarTip(i, scale = 1) {
     const angle = -Math.PI / 2 + (2 * Math.PI / RADAR_N) * i;
@@ -277,6 +329,14 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
     reader.readAsText(file);
   }
 
+  function handleSaveFasting() {
+    setFastingSettings(fastStartVal, fastEndVal);
+    showToast('fasting window updated');
+  }
+  function handleSaveCalTarget() {
+    const v = parseInt(calTargetVal, 10);
+    if (v >= 100 && v <= 10000) { setCalorieTarget(v); showToast('calorie target updated'); }
+  }
   function handleResetToday() { resetToday(); showToast('today reset'); }
   function handleClearAll() { clearAll(); }
 
@@ -318,6 +378,72 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
           <div className={styles.statCell}><div className={styles.scVal}>{totalWorkouts}</div><div className={styles.scLbl}>Total Workouts</div></div>
           <div className={styles.statCell}><div className={styles.scVal}>{workoutStreak}</div><div className={styles.scLbl}>Workout Streak</div></div>
         </div>
+      </div>
+
+      <div className={styles.divider} />
+
+      {/* ── Fasting ───────────────────────────────────────────── */}
+      <div className={styles.sg}>
+        <div className={styles.sgTitle}>Fasting</div>
+        <div className={styles.statGrid}>
+          <div className={styles.statCell}><div className={styles.scVal}>{fastStreak}</div><div className={styles.scLbl}>Fast Streak</div></div>
+          <div className={styles.statCell}><div className={styles.scVal}>{longestFastStreak}</div><div className={styles.scLbl}>Longest Streak</div></div>
+          <div className={styles.statCell}><div className={styles.scVal}>{totalFastDays}</div><div className={styles.scLbl}>Total Fast Days</div></div>
+        </div>
+        {/* 30-day ring chart */}
+        <div className={styles.fastRingWrap}>
+          <svg className={styles.fastRing} viewBox="0 0 100 100" width="90" height="90">
+            <circle cx="50" cy="50" r="40" stroke="var(--s2)" fill="none" strokeWidth="6" />
+            <circle cx="50" cy="50" r="40" stroke="var(--ora)" fill="none" strokeWidth="6"
+              strokeDasharray={`${fastLast30 / 30 * 251.3} 251.3`} strokeLinecap="round"
+              transform="rotate(-90 50 50)"
+              style={{ filter: 'drop-shadow(0 0 4px var(--ora))' }} />
+            <text x="50" y="46" textAnchor="middle" dominantBaseline="central"
+              className={styles.fastRingNum}>{fastLast30}</text>
+            <text x="50" y="60" textAnchor="middle" dominantBaseline="central"
+              className={styles.fastRingLabel}>/ 30</text>
+          </svg>
+          <div className={styles.fastRingCaption}>Last 30 days</div>
+        </div>
+      </div>
+
+      <div className={styles.divider} />
+
+      {/* ── Nutrition ─────────────────────────────────────────── */}
+      <div className={styles.sg}>
+        <div className={styles.sgTitle}>Nutrition</div>
+        <div className={styles.statGrid}>
+          <div className={styles.statCell}>
+            <div className={styles.scVal} style={calToday > currentCalTarget ? { color: 'var(--ora)' } : {}}>
+              {calToday > 0 ? calToday : '—'}
+            </div>
+            <div className={styles.scLbl}>Today / {currentCalTarget}</div>
+          </div>
+          <div className={styles.statCell}><div className={styles.scVal}>{cal7Avg || '—'}</div><div className={styles.scLbl}>7-Day Avg</div></div>
+          <div className={styles.statCell}><div className={styles.scVal}>{cal30Avg || '—'}</div><div className={styles.scLbl}>30-Day Avg</div></div>
+          <div className={styles.statCell}><div className={styles.scVal}>{calUnderTarget}</div><div className={styles.scLbl}>Days Under Target</div></div>
+        </div>
+        {/* Calorie bar chart — last 14 days */}
+        {calBarData.some(d => d.total > 0) && (
+          <div className={styles.calBarWrap}>
+            <div className={styles.calBarChart}>
+              <div className={styles.calTargetLine} style={{ bottom: `${(currentCalTarget / calBarMax) * 100}%` }} />
+              {calBarData.map(({ date, total }) => {
+                const pct = calBarMax > 0 ? (total / calBarMax) * 100 : 0;
+                const clr = total === 0 ? 'transparent' :
+                  total <= currentCalTarget ? 'var(--grn)' :
+                  total <= currentCalTarget * 1.3 ? 'var(--ora)' : 'var(--hot)';
+                return (
+                  <div key={date} className={styles.calBar}
+                    style={{ height: `${Math.max(pct, total > 0 ? 3 : 0)}%`, background: clr }}
+                    title={`${date}: ${total} cal`}
+                  />
+                );
+              })}
+            </div>
+            <div className={styles.calBarLabel}>Last {CAL_BAR_DAYS} days</div>
+          </div>
+        )}
       </div>
 
       <div className={styles.divider} />
@@ -574,6 +700,35 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
             onChange={e => setTargetVal(e.target.value)}
           />
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveTarget}>Save</button>
+        </div>
+        <div className={styles.flexRow} style={{ marginTop: 8 }}>
+          <span className={styles.targetLabel}>Eating window:</span>
+          <input
+            type="time"
+            className={`${styles.mi} ${styles.timeInput}`}
+            value={fastStartVal}
+            onChange={e => setFastStartVal(e.target.value)}
+          />
+          <span className={styles.targetLabel} style={{ letterSpacing: 0 }}>to</span>
+          <input
+            type="time"
+            className={`${styles.mi} ${styles.timeInput}`}
+            value={fastEndVal}
+            onChange={e => setFastEndVal(e.target.value)}
+          />
+          <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveFasting}>Save</button>
+        </div>
+        <div className={styles.flexRow} style={{ marginTop: 8 }}>
+          <span className={styles.targetLabel}>Calorie target / day:</span>
+          <input
+            type="number"
+            className={`${styles.mi} ${styles.targetInput}`}
+            min="100"
+            max="10000"
+            value={calTargetVal}
+            onChange={e => setCalTargetVal(e.target.value)}
+          />
+          <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveCalTarget}>Save</button>
         </div>
       </div>
 

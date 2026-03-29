@@ -48,7 +48,7 @@ maya-os-mini/               ← repo root (.git lives here)
         │
         ├── components/
         │   ├── Topbar.jsx             ← Level, streak, momentum chip; SKIN theme picker dropdown
-        │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / SETTINGS
+        │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / BACKEND
         │   │
         │   ├── day/
         │   │   └── DayView.jsx        ← Monolithic: date nav, score block, frogs,
@@ -59,7 +59,8 @@ maya-os-mini/               ← repo root (.git lives here)
         │   │   ├── DailiesPanel.jsx   ← Daily list, drag reorder, add form
         │   │   ├── DailyItem.jsx      ← Single daily row with actions
         │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes maya)
-        │   │   └── MayaPanel.jsx      ← Maya task backlog, quick-add, star rating
+        │   │   ├── MayaPanel.jsx      ← Maya task backlog, quick-add, star rating
+        │   │   └── FoodItem.jsx       ← Food log item card (inline edit, delete)
         │   │
         │   ├── task/
         │   │   ├── TaskCard.jsx       ← Full task card (all contexts)
@@ -104,7 +105,7 @@ maya-os-mini/               ← repo root (.git lives here)
 
 | State | Lives in | Why |
 |---|---|---|
-| All persisted data (tasks, dailies, profile, days) | `store.js` | Single seam for future DB migration |
+| All persisted data (tasks, dailies, profile, days, settings) | `store.js` | Single seam for future DB migration |
 | Active timer (`activeTaskId`, `activeStart`) | `App.jsx` local state | Not persisted — resets on reload |
 | Focused task (`focusedTaskId`) | `App.jsx` local state | Ephemeral UI state |
 | Current view (`view`) | `App.jsx` local state | Navigation state |
@@ -156,15 +157,29 @@ export function deleteDaily(id)
 export function markDailyComplete(dailyId, date, done)
 
 // ── Day mutators ──────────────────────────────────────────
-export function closeDay(date)          // scores day, awards XP, stores scoreRecord delta
+export function closeDay(date)          // scores day, awards XP + habit bonuses, stores scoreRecord delta
 export function reopenDay(date)         // reverses XP/streak delta via scoreRecord
 export function setFrogsComplete(date, done)
 export function toggleWorkout(date)
+export function toggleFastBroken(date)  // flips fastBroken on day record
 export function resetToday()
+
+// ── Fasting ──────────────────────────────────────────────
+export function getFastingSettings()           // returns { fastStart, fastEnd }
+export function setFastingSettings(start, end) // validates HH:MM, saves to S.settings
+export function isFastWindowPassed(date)       // true if eating window has closed for that date
+
+// ── Food log ─────────────────────────────────────────────
+export function addFoodItem(date, name, cal)    // pushes to days[date].foodLog
+export function updateFoodItem(date, id, patch) // updates name/cal on a food item
+export function deleteFoodItem(date, id)        // removes by id
+export function toggleFoodDone(date)            // flips days[date].foodDone
+export function getCalorieTarget()              // returns S.settings.calorieTarget
+export function setCalorieTarget(n)             // sets calorie target in settings
 
 // ── Settings ──────────────────────────────────────────────
 export function setTarget(n)
-export function exportData()            // full state → JSON string
+export function exportData()            // full state → JSON string (v6)
 export function importData(json)        // full replace
 export function exportTasks()           // unfinished tasks only → maya_os_tasks_v1 JSON string
 export function importTasks(json)       // merge/append with fresh IDs; returns count or false

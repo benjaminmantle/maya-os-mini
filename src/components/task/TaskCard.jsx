@@ -2,6 +2,7 @@ import { useState } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
 import { updateTask, deleteTask, markTaskComplete, markMayaDone } from '../../store/store.js';
+import { applyEmDash } from '../../utils/parsing.js';
 
 export default function TaskCard({
   task,
@@ -23,6 +24,8 @@ export default function TaskCard({
   inlineBump,
 }) {
   const [hovered, setHovered] = useState(false);
+  const [editingName, setEditingName] = useState(false);
+  const [nameVal, setNameVal] = useState(task.name);
   const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya'
   // Maya tasks use task.done as their single done flag everywhere
   const done = pri === 'maya'
@@ -94,6 +97,24 @@ export default function TaskCard({
     else deleteTask(task.id);
   }
 
+  function handleNameClick(e) {
+    if (done || activePriColor) return; // don't edit done tasks or in paint mode
+    e.stopPropagation();
+    // Strip "MAYA — " prefix for editing, like TaskEditModal
+    const display = pri === 'maya' ? task.name.replace(/^MAYA\s*—\s*/, '') : task.name;
+    setNameVal(display);
+    setEditingName(true);
+  }
+
+  function handleNameSave() {
+    const trimmed = nameVal.trim();
+    if (trimmed && trimmed !== task.name && trimmed !== task.name.replace(/^MAYA\s*—\s*/, '')) {
+      const finalName = pri === 'maya' ? `MAYA — ${trimmed}` : trimmed;
+      updateTask(task.id, { name: finalName });
+    }
+    setEditingName(false);
+  }
+
   function handleDragStart(e) {
     e.dataTransfer.setData('tid', task.id);
     e.target.classList.add(styles.dragging);
@@ -107,7 +128,7 @@ export default function TaskCard({
     <div
       className={cardClass}
       data-taskid={task.id}
-      draggable="true"
+      draggable={!editingName}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onContextMenu={onContextMenu}
@@ -122,7 +143,27 @@ export default function TaskCard({
         />
       )}
       <div className={styles.taskBody}>
-        <div className={`${styles.taskName} ${done ? styles.doneName : ''}`}>{task.name}</div>
+        {editingName ? (
+          <input
+            className={styles.nameInput}
+            value={nameVal}
+            onChange={e => setNameVal(applyEmDash(e.target.value))}
+            onBlur={handleNameSave}
+            onKeyDown={e => {
+              if (e.key === 'Enter') e.target.blur();
+              if (e.key === 'Escape') { setNameVal(task.name); setEditingName(false); }
+            }}
+            onClick={e => e.stopPropagation()}
+            autoFocus
+          />
+        ) : (
+          <span
+            className={`${styles.taskName} ${done ? styles.doneName : ''} ${!done && !activePriColor ? styles.nameClickable : ''}`}
+            onClick={handleNameClick}
+          >
+            {task.name}
+          </span>
+        )}
         <div className={styles.taskMeta}>
           <span
             className={`${styles.badge} ${styles[task.pts === 0 ? 'p0' : task.pts === 0.5 ? 'p05' : `p${task.pts ?? 1}`]} ${styles.clickable}`}

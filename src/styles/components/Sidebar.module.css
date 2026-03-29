@@ -51,6 +51,13 @@
 .dailyItemDragging { opacity: .3; }
 .dDot { width: 6px; height: 6px; border-radius: 50%; flex-shrink: 0; }
 .dName { flex: 1; font-size: 13px; font-weight: 500; }
+.dNameClickable { cursor: text; border-radius: 2px; padding: 0 2px; margin: 0 -2px; }
+.dNameClickable:hover { background: var(--s2); }
+.dNameInput {
+  flex: 1; font-size: 13px; font-family: inherit; font-weight: 500; color: var(--text);
+  background: var(--s2); border: 1px solid var(--gold); border-radius: 2px;
+  padding: 1px 4px; outline: none; min-width: 0;
+}
 .dChk { font-size: 12px; color: var(--grn); }
 .dActions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--tr); flex-shrink: 0; }
 .dActionsVisible { opacity: 1; }
@@ -131,6 +138,132 @@
 :global(html.theme-kraft) .dailyItem { background: var(--s2); }
 /* Kraft: ink-tone dots don't need a neon glow halo */
 :global(html.theme-kraft) .dDot { box-shadow: none !important; }
+
+/* ── Food Log ────────────────────────────────────────────────────────────── */
+.foodDivider { height: 1px; background: var(--b1); margin: 10px 0 8px; }
+.foodSection { transition: opacity var(--tr); }
+.foodSectionDone { opacity: 0.35; transition: opacity var(--tr); }
+.foodHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+.foodTitle {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-family: var(--fd);
+  color: var(--t2);
+}
+.foodTotal {
+  font-size: 11px;
+  font-family: var(--fm);
+  font-weight: 600;
+  color: var(--tel);
+  cursor: pointer;
+  user-select: none;
+  transition: color var(--tr);
+}
+.foodTotal:hover { color: var(--grn); }
+.foodTotalOver {
+  font-size: 11px;
+  font-family: var(--fm);
+  font-weight: 600;
+  color: var(--ora);
+  cursor: pointer;
+  user-select: none;
+}
+.foodTotalDone {
+  font-size: 11px;
+  font-family: var(--fm);
+  font-weight: 600;
+  color: var(--t3);
+  cursor: pointer;
+  user-select: none;
+  opacity: 0.6;
+}
+.foodCheck {
+  color: var(--grn);
+  text-shadow: 0 0 8px rgba(34,238,128,.6);
+  margin-left: 2px;
+  font-size: 12px;
+}
+.foodItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: var(--rs);
+  padding: 5px 10px;
+  margin-bottom: 3px;
+  transition: border-color var(--tr);
+}
+.foodItem:hover { border-color: var(--b2); }
+.foodItem:hover .foodActions { opacity: 1; }
+.foodName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: text;
+  border-radius: 2px;
+  padding: 0 2px;
+  margin: 0 -2px;
+  min-width: 0;
+  word-break: break-word;
+}
+.foodName:hover { background: var(--s2); }
+.foodCal {
+  font-size: 10px;
+  font-family: var(--fm);
+  font-weight: 600;
+  color: var(--tel);
+  background: rgba(32,200,216,.08);
+  padding: 2px 6px;
+  border-radius: 8px;
+  flex-shrink: 0;
+  letter-spacing: 0.5px;
+}
+.foodCal::after { content: ' cal'; font-size: 8px; opacity: 0.7; }
+.foodActions { display: flex; gap: 2px; opacity: 0; transition: opacity var(--tr); flex-shrink: 0; }
+.foodNameInput {
+  flex: 1;
+  font-size: 13px;
+  font-family: inherit;
+  font-weight: 500;
+  color: var(--text);
+  background: var(--s2);
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+  min-width: 0;
+}
+.foodCalInput {
+  width: 52px;
+  font-size: 12px;
+  font-family: var(--fm);
+  color: var(--text);
+  background: var(--s2);
+  border: 1px solid var(--gold);
+  border-radius: 2px;
+  padding: 1px 4px;
+  outline: none;
+  text-align: right;
+}
+.foodCalUnit {
+  font-size: 10px;
+  font-family: var(--fm);
+  color: var(--t3);
+  flex-shrink: 0;
+}
+
+/* Kraft overrides for food log */
+:global(html.theme-kraft) .foodItem { background: var(--s2); }
+:global(html.theme-kraft) .foodCal { color: #0097a7; background: rgba(0,151,167,.08); }
+:global(html.theme-kraft) .foodCheck { color: #2e7d32; text-shadow: 0 0 6px rgba(46,125,50,.5); }
 
 @media(max-width: 680px) {
   .sidebar { border-right: none; border-top: 1px solid var(--b2); max-height: 280px; }

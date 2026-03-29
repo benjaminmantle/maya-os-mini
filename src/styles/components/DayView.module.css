@@ -359,3 +359,80 @@
   from { text-shadow: 0 0 8px rgba(255,48,96,.5); color: var(--hot); }
   to { text-shadow: 0 0 20px rgba(255,48,96,.9), 0 0 40px rgba(255,48,96,.35); color: #ff6080; }
 }
+
+/* ── Fasting widget ──────────────────────────────────────────── */
+.fastingStrip { display: flex; align-items: center; gap: 8px; margin: 4px 0 2px; }
+.fastIcon { font-size: 12px; line-height: 1; }
+.fastLabel {
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 2.5px;
+  text-transform: uppercase;
+  font-family: var(--fd);
+  color: var(--t2);
+  user-select: none;
+}
+.fastLabelPre { color: var(--t3); opacity: 0.55; }
+.fastLabelActive {
+  color: var(--tel);
+  text-shadow: 0 0 8px rgba(32,200,216,.5);
+  animation: fastPulse 1.6s ease-in-out infinite alternate;
+}
+.fastLabelDone {
+  color: var(--t3);
+  opacity: 0.35;
+}
+.fastLabelBroken {
+  color: var(--hot);
+  opacity: 0.35;
+}
+.fastCheck {
+  color: var(--grn);
+  text-shadow: 0 0 8px rgba(34,238,128,.6);
+  margin-left: 2px;
+  font-size: 12px;
+}
+.fastBroken {
+  color: var(--hot);
+  text-shadow: 0 0 6px rgba(255,48,96,.4);
+  margin-left: 2px;
+  font-size: 12px;
+}
+.fastBreakBtn {
+  background: none;
+  border: 1px solid rgba(255,48,96,.25);
+  color: var(--hot);
+  font-size: 10px;
+  font-family: var(--fd);
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 2px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: opacity var(--tr), background var(--tr);
+}
+.fastBreakBtn:hover { opacity: 1; background: rgba(255,48,96,.08); }
+.fastProgress {
+  flex: 1;
+  height: 2px;
+  background: var(--s3);
+  border-radius: 1px;
+  overflow: hidden;
+  max-width: 120px;
+}
+.fastProgressFill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--tel), var(--grn));
+  border-radius: 1px;
+  transition: width 60s linear;
+}
+@keyframes fastPulse {
+  from { text-shadow: 0 0 8px rgba(32,200,216,.5); }
+  to { text-shadow: 0 0 18px rgba(32,200,216,.8), 0 0 36px rgba(32,200,216,.3); }
+}
+
+/* Kraft theme overrides for fasting */
+:global(html.theme-kraft) .fastLabelActive { color: #0097a7; text-shadow: 0 0 8px rgba(0,151,167,.5); }
+:global(html.theme-kraft) .fastCheck { color: #2e7d32; text-shadow: 0 0 6px rgba(46,125,50,.5); }
+:global(html.theme-kraft) .fastBreakBtn { color: #8a0a1c; border-color: rgba(138,10,28,.25); }
+:global(html.theme-kraft) .fastBroken { color: #8a0a1c; text-shadow: 0 0 6px rgba(138,10,28,.4); }

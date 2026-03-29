@@ -106,3 +106,49 @@
 .trendLegItem { display: flex; align-items: center; gap: 5px; font-size: 10px; font-family: var(--fm); color: var(--t2); }
 .trendLegLine { width: 16px; height: 3px; border-radius: 1px; flex-shrink: 0; }
 .trendLegDot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; }
+
+/* ── Fasting ring chart ──────────────────────────────────────── */
+.fastRingWrap { display: flex; flex-direction: column; align-items: center; gap: 4px; margin-top: 4px; }
+.fastRing { overflow: visible; }
+.fastRingNum { font-size: 20px; font-weight: 700; font-family: var(--fd); fill: var(--ora); }
+.fastRingLabel { font-size: 9px; font-family: var(--fd); fill: var(--t3); letter-spacing: 1px; }
+.fastRingCaption { font-size: 9px; font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; color: var(--t3); }
+
+/* ── Time input for fasting settings ───────────────────────────── */
+.timeInput { width: 100px; text-align: center; }
+
+/* ── Calorie bar chart ───────────────────────────────────────────── */
+.calBarWrap { margin-top: 8px; }
+.calBarChart {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 60px;
+  position: relative;
+  border-bottom: 1px solid var(--b2);
+  padding: 0 2px;
+}
+.calBar {
+  flex: 1;
+  border-radius: 2px 2px 0 0;
+  min-width: 4px;
+  transition: height .4s ease;
+  cursor: default;
+}
+.calTargetLine {
+  position: absolute;
+  left: 0;
+  right: 0;
+  border-top: 1px dashed var(--t3);
+  opacity: 0.35;
+  pointer-events: none;
+}
+.calBarLabel {
+  font-size: 8px;
+  font-family: var(--fd);
+  color: var(--t3);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  text-align: center;
+  margin-top: 4px;
+}

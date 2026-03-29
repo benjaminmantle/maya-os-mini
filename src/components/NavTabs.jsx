@@ -67,7 +67,7 @@ export default function NavTabs({ activeView, weekDays, onSwitch, onSwitchDay, o
         className={`${styles.navTab} ${activeView === 'stats' ? styles.navTabActive : ''}`}
         onClick={() => onSwitch('stats')}
       >
-        Settings
+        Backend
       </button>
     </div>
   );

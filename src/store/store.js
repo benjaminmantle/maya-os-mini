@@ -1,10 +1,10 @@
-import { closeDayScoring } from '../utils/scoring.js';
+import { closeDayScoring, expForLevel } from '../utils/scoring.js';
 import { today, uid } from '../utils/dates.js';
 import { parseDurMs } from '../utils/duration.js';
 import { DEFAULT_DAILIES, seedTasks } from './defaults.js';
-import { migrateV4toV5 } from './migrations.js';
+import { migrateV4toV5, migrateV5toV6 } from './migrations.js';
 
-const STORAGE_KEY = 'maya_os_v5';
+const STORAGE_KEY = 'maya_os_v6';
 
 // Persist S on window so Vite HMR module re-evaluation doesn't reset in-memory state
 if (!window.__mayaS) window.__mayaS = {
@@ -14,6 +14,7 @@ if (!window.__mayaS) window.__mayaS = {
   profile: { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' },
   target: 10,
   frogsComplete: {},
+  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000 },
 };
 let S = window.__mayaS;
 
@@ -29,6 +30,7 @@ function persist() {
     profile: S.profile,
     target: S.target,
     frogsComplete: S.frogsComplete,
+    settings: S.settings,
   }));
 }
 
@@ -46,9 +48,16 @@ function load() {
   try {
     let raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) {
-      const migrated = migrateV4toV5();
+      // Try v5 → v6 migration first, then v4 → v5
+      const migrated = migrateV5toV6();
       if (migrated) {
         S = { ...S, ...migrated };
+        return;
+      }
+      const migratedV4 = migrateV4toV5();
+      if (migratedV4) {
+        migratedV4.settings = { fastStart: '13:00', fastEnd: '21:00' };
+        S = { ...S, ...migratedV4 };
         return;
       }
       return;
@@ -60,6 +69,12 @@ function load() {
     if (d.profile) S.profile = d.profile;
     if (d.target) S.target = d.target;
     if (d.frogsComplete) S.frogsComplete = d.frogsComplete;
+    if (d.settings) S.settings = d.settings;
+    // Ensure settings defaults exist
+    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000 };
+    if (!S.settings.fastStart) S.settings.fastStart = '13:00';
+    if (!S.settings.fastEnd) S.settings.fastEnd = '21:00';
+    if (!S.settings.calorieTarget) S.settings.calorieTarget = 2000;
   } catch (e) {
     console.warn('Failed to load state:', e);
   }
@@ -76,7 +91,7 @@ if (!S.tasks.length) {
 // --- Getters ---
 
 export function getState() {
-  return { ...S, tasks: [...S.tasks], days: { ...S.days } };
+  return { ...S, tasks: [...S.tasks], days: { ...S.days }, settings: { ...S.settings } };
 }
 
 export function getTasks() {
@@ -288,6 +303,22 @@ export function closeDay(date) {
   const expBefore = S.profile.exp || 0;
   const levelBefore = S.profile.level || 1;
   const result = closeDayScoring(date, S);
+
+  // Bonus XP for habits (workout + fasting) — additive, doesn't affect tier
+  let habitBonus = 0;
+  if (day.workout) habitBonus += 8;
+  if (!day.fastBroken && isFastWindowPassed(date)) habitBonus += 8;
+  if (habitBonus > 0) {
+    result.gain += habitBonus;
+    result.profile.exp = Math.max(0, (result.profile.exp || 0) + habitBonus);
+    // Re-check leveling after bonus
+    while ((result.profile.level || 1) < 100 && result.profile.exp >= expForLevel((result.profile.level || 1) + 1)) {
+      result.profile.exp -= expForLevel(result.profile.level + 1);
+      result.profile.level++;
+      result.leveled = true;
+    }
+  }
+
   day.scoreRecord = {
     expDelta: result.gain,
     expBefore,
@@ -326,13 +357,14 @@ export function setFrogsComplete(date, done) {
 
 export function exportData() {
   return JSON.stringify({
-    version: 'maya_os_v5',
+    version: 'maya_os_v6',
     tasks: S.tasks,
     dailies: S.dailies,
     days: S.days,
     profile: S.profile,
     target: S.target,
     frogsComplete: S.frogsComplete,
+    settings: S.settings,
   }, null, 2);
 }
 
@@ -346,6 +378,7 @@ export function importData(json) {
     if (d.profile !== undefined) S.profile = d.profile;
     if (d.target !== undefined) S.target = d.target;
     if (d.frogsComplete !== undefined) S.frogsComplete = d.frogsComplete;
+    if (d.settings !== undefined) S.settings = d.settings;
     save();
     return true;
   } catch (e) {
@@ -398,6 +431,73 @@ export function toggleWorkout(date) {
   if (!S.days[date]) S.days[date] = { cIds: [], dIds: [], closed: false, workout: false };
   if (S.days[date].workout === undefined) S.days[date].workout = false;
   S.days[date].workout = !S.days[date].workout;
+  save();
+}
+
+export function toggleFastBroken(date) {
+  const day = getDayRecord(date);
+  day.fastBroken = !day.fastBroken;
+  save();
+}
+
+export function getFastingSettings() {
+  return { fastStart: S.settings.fastStart, fastEnd: S.settings.fastEnd };
+}
+
+export function setFastingSettings(start, end) {
+  if (/^\d{2}:\d{2}$/.test(start)) S.settings.fastStart = start;
+  if (/^\d{2}:\d{2}$/.test(end)) S.settings.fastEnd = end;
+  save();
+}
+
+// Check if the eating window has fully passed for a given date.
+// For past dates: always true (window already passed).
+// For today: true only if current time > fastEnd.
+// For future dates: false.
+export function isFastWindowPassed(date) {
+  const todayStr = today();
+  if (date < todayStr) return true;
+  if (date > todayStr) return false;
+  // Today — compare current time to fastEnd
+  const now = new Date();
+  const [h, m] = S.settings.fastEnd.split(':').map(Number);
+  return now.getHours() > h || (now.getHours() === h && now.getMinutes() >= m);
+}
+
+// ── Food log ─────────────────────────────────────────────────────────────
+export function addFoodItem(date, name, cal) {
+  const day = getDayRecord(date);
+  if (!day.foodLog) day.foodLog = [];
+  day.foodLog.push({ id: uid(), name, cal: cal || 0 });
+  save();
+}
+
+export function updateFoodItem(date, id, patch) {
+  const day = getDayRecord(date);
+  if (!day.foodLog) return;
+  const item = day.foodLog.find(f => f.id === id);
+  if (item) { Object.assign(item, patch); save(); }
+}
+
+export function deleteFoodItem(date, id) {
+  const day = getDayRecord(date);
+  if (!day.foodLog) return;
+  day.foodLog = day.foodLog.filter(f => f.id !== id);
+  save();
+}
+
+export function toggleFoodDone(date) {
+  const day = getDayRecord(date);
+  day.foodDone = !day.foodDone;
+  save();
+}
+
+export function getCalorieTarget() {
+  return S.settings.calorieTarget || 2000;
+}
+
+export function setCalorieTarget(n) {
+  S.settings.calorieTarget = n;
   save();
 }
 

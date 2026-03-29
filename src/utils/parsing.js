@@ -34,3 +34,12 @@ export function parseInput(raw) {
 
   return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, priority };
 }
+
+// Parse food input: "chicken breast 300cal" → { name: "chicken breast", cal: 300 }
+export function parseFoodInput(raw) {
+  const t = raw.trim();
+  if (!t) return null;
+  const m = t.match(/^(.+?)\s+(\d+)\s*(c|cal|calories?)$/i);
+  if (m) return { name: m[1].trim(), cal: parseInt(m[2], 10) };
+  return { name: t, cal: 0 };
+}

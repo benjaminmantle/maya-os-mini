@@ -60,6 +60,13 @@
 
 .taskBody { flex: 1; min-width: 0; }
 .taskName { font-size: 14px; font-weight: 500; word-break: break-word; line-height: 1.35; }
+.nameClickable { cursor: text; border-radius: 2px; padding: 0 2px; margin: 0 -2px; }
+.nameClickable:hover { background: var(--s2); }
+.nameInput {
+  font-size: 14px; font-weight: 500; font-family: inherit; color: var(--text);
+  background: var(--s2); border: 1px solid var(--gold); border-radius: 2px;
+  padding: 1px 4px; width: 100%; outline: none; line-height: 1.35;
+}
 .taskMeta { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; margin-top: 4px; }
 
 .timer {

@@ -1,11 +1,31 @@
+import { useState } from 'react';
 import styles from '../../styles/components/Sidebar.module.css';
 import tStyles from '../../styles/components/TaskCard.module.css';
+import { saveDaily } from '../../store/store.js';
+import { applyEmDash } from '../../utils/parsing.js';
 
 export default function DailyItem({ daily, index, total, done, color, onToggle, onEdit, onDelete, onContextMenu, onDragStart, onDragOver, onDrop, onDragEnd }) {
+  const [editingName, setEditingName] = useState(false);
+  const [nameVal, setNameVal] = useState(daily.name);
+
+  function handleNameClick(e) {
+    e.stopPropagation();
+    setNameVal(daily.name);
+    setEditingName(true);
+  }
+
+  function handleNameSave() {
+    const trimmed = nameVal.trim();
+    if (trimmed && trimmed !== daily.name) {
+      saveDaily({ ...daily, name: trimmed });
+    }
+    setEditingName(false);
+  }
+
   return (
     <div
       className={`${styles.dailyItem} ${done ? styles.dailyItemDone : ''}`}
-      draggable="true"
+      draggable={!editingName}
       onDragStart={(e) => { e.dataTransfer.effectAllowed = 'move'; onDragStart(daily.id); e.target.style.opacity = '0.3'; }}
       onDragEnd={(e) => { e.target.style.opacity = ''; onDragEnd(); }}
       onDragOver={(e) => { e.preventDefault(); onDragOver(daily.id); }}
@@ -17,9 +37,27 @@ export default function DailyItem({ daily, index, total, done, color, onToggle, 
         style={{ background: color, boxShadow: `0 0 5px ${color}88` }}
         onClick={onToggle}
       />
-      <span className={`${styles.dName} ${done ? styles.dailyItemDoneName : ''}`} onClick={onToggle}>
-        {daily.name}
-      </span>
+      {editingName ? (
+        <input
+          className={styles.dNameInput}
+          value={nameVal}
+          onChange={e => setNameVal(applyEmDash(e.target.value))}
+          onBlur={handleNameSave}
+          onKeyDown={e => {
+            if (e.key === 'Enter') e.target.blur();
+            if (e.key === 'Escape') { setNameVal(daily.name); setEditingName(false); }
+          }}
+          onClick={e => e.stopPropagation()}
+          autoFocus
+        />
+      ) : (
+        <span
+          className={`${styles.dName} ${done ? styles.dailyItemDoneName : ''} ${styles.dNameClickable}`}
+          onClick={handleNameClick}
+        >
+          {daily.name}
+        </span>
+      )}
       {done && <span className={styles.dChk}>✓</span>}
       <span className={styles.dActions}>
         <button className={tStyles.iconBtn} onClick={(e) => { e.stopPropagation(); onEdit(); }} title="Edit">✎</button>
