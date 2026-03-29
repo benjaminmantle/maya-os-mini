@@ -38,10 +38,12 @@ export function createRenderer(canvas) {
     const br = screenToWorld(w, h, camera);
     const viewRect = { x: tl.x, y: tl.y, width: br.x - tl.x, height: br.y - tl.y };
 
-    // cull
+    // cull — use spatial index if available, fall back to all elements
     let visible;
-    if (spatialIdx) {
+    if (spatialIdx && elements.length > 0) {
       visible = spatialIdx.query(viewRect);
+      // fallback if spatial index returns nothing but elements exist
+      if (visible.length === 0) visible = elements;
     } else {
       visible = elements;
     }

@@ -27,6 +27,7 @@ export function setupCanvas(canvasEl) {
     if (g.renderStyle) _getRenderStyle = g.renderStyle;
     if (g.ghost)       _getGhost       = g.ghost;
     if (g.marquee)     _getMarquee     = g.marquee;
+    dirty = true; // re-render with new getters
   }
 
   /* ---- sizing ---- */
