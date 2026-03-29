@@ -191,6 +191,70 @@ export function getNextZIndex() {
   return Math.max(...S.board.elements.map(e => e.zIndex || 0)) + 1;
 }
 
+/* ---- z-ordering ---- */
+
+export function bringForward(ids) {
+  if (!S.board) return;
+  const set = new Set(ids);
+  const els = S.board.elements;
+  const sorted = [...els].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+  for (let i = sorted.length - 2; i >= 0; i--) {
+    if (set.has(sorted[i].id) && !set.has(sorted[i + 1].id)) {
+      const tmp = sorted[i].zIndex;
+      sorted[i].zIndex = sorted[i + 1].zIndex;
+      sorted[i + 1].zIndex = tmp;
+    }
+  }
+  _queueSave(); notify();
+}
+
+export function sendBackward(ids) {
+  if (!S.board) return;
+  const set = new Set(ids);
+  const els = S.board.elements;
+  const sorted = [...els].sort((a, b) => (a.zIndex || 0) - (b.zIndex || 0));
+  for (let i = 1; i < sorted.length; i++) {
+    if (set.has(sorted[i].id) && !set.has(sorted[i - 1].id)) {
+      const tmp = sorted[i].zIndex;
+      sorted[i].zIndex = sorted[i - 1].zIndex;
+      sorted[i - 1].zIndex = tmp;
+    }
+  }
+  _queueSave(); notify();
+}
+
+export function bringToFront(ids) {
+  if (!S.board) return;
+  let maxZ = Math.max(0, ...S.board.elements.map(e => e.zIndex || 0));
+  for (const id of ids) {
+    const el = S.board.elements.find(e => e.id === id);
+    if (el) el.zIndex = ++maxZ;
+  }
+  _queueSave(); notify();
+}
+
+export function sendToBack(ids) {
+  if (!S.board) return;
+  let minZ = Math.min(0, ...S.board.elements.map(e => e.zIndex || 0));
+  for (const id of [...ids].reverse()) {
+    const el = S.board.elements.find(e => e.id === id);
+    if (el) el.zIndex = --minZ;
+  }
+  _queueSave(); notify();
+}
+
+/* ---- groups ---- */
+
+export function getGroups() {
+  return S.board ? (S.board.groups || {}) : {};
+}
+
+export function setGroups(groups) {
+  if (!S.board) return;
+  S.board.groups = groups;
+  _queueSave(); notify();
+}
+
 /* ---- undo/redo apply ---- */
 
 export function applyUndo(cmd) {

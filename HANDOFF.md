@@ -1,7 +1,5 @@
 # Maya OS — Handoff
 
-<!-- git push test -->
-
 ## Status
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
 **Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
@@ -66,18 +64,43 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - [ ] Focus Mode
 - [ ] Remaining column types (image upload, relation picker UI)
 
-### CosmiCanvas (not started)
+### CosmiCanvas (Phases 1–3 complete)
 - [x] WHITEBOARD_SPEC.md — full spec with file structure, element model, render architecture, 5 phases
 - [x] CLAUDE.md updated — app isolation rules, critical rules, gotchas, key files
-- [ ] Phase 1 — Canvas + camera + IndexedDB storage + board picker
-- [ ] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
-- [ ] Phase 3 — Arrows + context menu + groups
+- [x] Phase 1 — Canvas + camera + IndexedDB storage + board picker
+- [x] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
+- [x] Phase 3 — Arrows + context menu + groups + color picker + copy/paste + z-ordering
 - [ ] Phase 4 — Images + export (PNG/SVG/JSON) + minimap
 - [ ] Phase 5 — Polish (alignment guides, keyboard help, additional render styles)
 
 ---
 
 ## Recent session changes
+
+### CosmiCanvas Phases 1–3 (2026-03-29)
+
+**Phase 1**: Registered CosmiCanvas in Shell (`id: 'board'`, `wrap: 'full'`). IndexedDB storage (`maya_whiteboard` DB with `boards` + `blobs` stores). Pub/sub store following Maya/Vault pattern (HMR-safe on `window.__boardS`/`window.__boardListeners`). Camera with pan (middle-click/space+drag) and zoom (scroll wheel, cursor-centered). Quadtree spatial index. rAF render loop with dirty flag and DPR scaling. Board picker (create/list/delete). Debounced 200ms persist with flush on beforeunload/Ctrl+S.
+
+**Phase 2**: Full element model (rectangle, ellipse, line, arrow, freehand, text). Select tool (click select, drag move, 8-handle resize, marquee multi-select, Shift+click toggle). Shape tool (Shift=constrain, Alt=center). Line/freehand tool (RDP simplification, Shift=45-degree snap). Text tool (click to place, textarea overlay, blur/Enter commits). Roughjs sketch style with drawable caching. Clean geometric style. Undo/redo command stack. Floating toolbar with keyboard shortcuts. Style switcher.
+
+**Phase 3**: Arrow connection logic (getConnectionPoints, snapToConnection, computeArrowPath). Group/ungroup. Right-click context menu with inline stroke/fill color controls, stroke width slider, arrange (forward/backward/front/back), group/ungroup, duplicate, copy, delete. Empty canvas context menu: paste, select all, zoom to fit. Color picker (12-swatch palette + hex input). Z-ordering (bringForward, sendBackward, bringToFront, sendToBack). Copy/paste/duplicate with offset. Select all (Ctrl+A). Full keyboard shortcuts: `]`/`[` z-order, Ctrl+`]`/`[` to front/back, Ctrl+G group, Ctrl+Shift+G ungroup, Ctrl+C/V/D copy/paste/duplicate, Ctrl+0 zoom to fit.
+
+**New dependency**: roughjs (hand-drawn style rendering).
+
+**Files created** (27 new files):
+- `src/whiteboard/core/` — constants.js, camera.js, canvas.js, spatialIndex.js, history.js
+- `src/whiteboard/store/` — idb.js, whiteboardStore.js
+- `src/whiteboard/hooks/` — useWhiteboardStore.js
+- `src/whiteboard/elements/` — types.js, bounds.js, arrows.js, groups.js
+- `src/whiteboard/render/` — renderer.js, styles/sketchStyle.js, styles/cleanStyle.js
+- `src/whiteboard/tools/` — selectTool.js, shapeTool.js, lineTool.js, textTool.js
+- `src/whiteboard/components/` — Toolbar.jsx, StyleSwitcher.jsx, ContextMenu.jsx, ColorPicker.jsx
+- `src/whiteboard/styles/` — Toolbar.module.css, ContextMenu.module.css
+- `src/whiteboard/` — WhiteboardApp.jsx, WhiteboardApp.module.css
+
+**Files modified**: `src/Shell.jsx` (added board app to APPS array), `package.json` (added roughjs)
+
+---
 
 ### Daily dot hit target expanded (2026-03-29)
 

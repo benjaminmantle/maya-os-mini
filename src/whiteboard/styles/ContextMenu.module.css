@@ -1,0 +1,140 @@
+/* CosmiCanvas context menu */
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 250;
+}
+
+.menu {
+  position: fixed;
+  z-index: 260;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: 6px;
+  padding: 4px;
+  min-width: 160px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.menuItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  padding: 6px 10px;
+  background: none;
+  border: none;
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 13px;
+  cursor: pointer;
+  text-align: left;
+  transition: background 0.1s;
+}
+
+.menuItem:hover {
+  background: var(--s3);
+}
+
+.menuItem:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.shortcut {
+  margin-left: auto;
+  font-size: 11px;
+  color: var(--dim);
+}
+
+.sep {
+  height: 1px;
+  background: var(--b1);
+  margin: 3px 6px;
+}
+
+/* ---- inline color controls ---- */
+
+.styleRow {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+}
+
+.styleLabel {
+  font-size: 11px;
+  color: var(--dim);
+  min-width: 36px;
+}
+
+.colorSwatch {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid var(--b1);
+  cursor: pointer;
+  transition: box-shadow 0.12s;
+}
+
+.colorSwatch:hover {
+  box-shadow: 0 0 0 2px var(--blu);
+}
+
+.widthSlider {
+  width: 80px;
+  accent-color: var(--blu);
+}
+
+/* ---- color picker ---- */
+
+.colorPicker {
+  position: fixed;
+  z-index: 270;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: 8px;
+  padding: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+.colorGrid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 4px;
+  margin-bottom: 6px;
+}
+
+.paletteSwatch {
+  width: 24px;
+  height: 24px;
+  border-radius: 4px;
+  border: 2px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.1s, transform 0.1s;
+}
+
+.paletteSwatch:hover {
+  transform: scale(1.15);
+}
+
+.paletteSwatch.activeSwatch {
+  border-color: var(--blu);
+}
+
+.transparentSwatch {
+  background: repeating-conic-gradient(#666 0% 25%, #999 0% 50%) 50% / 8px 8px;
+}
+
+.hexInput {
+  width: 100%;
+  padding: 3px 6px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 12px;
+}

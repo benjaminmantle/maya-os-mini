@@ -5,21 +5,29 @@ import {
   setCamera, getCamera, getElements, getRenderStyle, setRenderStyle,
   addElement, updateElement, updateElements, deleteElements,
   applyUndo, applyRedo,
+  bringForward, sendBackward, bringToFront, sendToBack,
+  getGroups, setGroups,
 } from './store/whiteboardStore.js';
 import { setupCanvas } from './core/canvas.js';
-import { zoomAtPoint, pan, screenToWorld } from './core/camera.js';
+import { zoomAtPoint, pan, screenToWorld, zoomToFit } from './core/camera.js';
 import { TOOL_IDS } from './core/constants.js';
 import { selectTool } from './tools/selectTool.js';
 import { createShapeTool } from './tools/shapeTool.js';
 import { createLineTool } from './tools/lineTool.js';
 import { textTool, commitText, editExistingText } from './tools/textTool.js';
 import { hitTest } from './elements/bounds.js';
-import { undo, redo, clearHistory, canUndo, canRedo } from './core/history.js';
+import { cloneElement } from './elements/types.js';
+import { groupElements, ungroupElements, expandSelectionToGroups } from './elements/groups.js';
+import { undo, redo, clearHistory, pushCommand } from './core/history.js';
 import * as sketchStyle from './render/styles/sketchStyle.js';
 import * as cleanStyle from './render/styles/cleanStyle.js';
 import Toolbar from './components/Toolbar.jsx';
 import StyleSwitcher from './components/StyleSwitcher.jsx';
+import ContextMenu from './components/ContextMenu.jsx';
 import s from './WhiteboardApp.module.css';
+
+/* ---- clipboard (module-level) ---- */
+let _clipboard = [];
 
 /* ---- tool registry ---- */
 const TOOLS = {
@@ -101,6 +109,7 @@ function CanvasView({ board }) {
   const [ghost, setGhost] = useState(null);
   const [marquee, setMarquee] = useState(null);
   const [textEditor, setTextEditor] = useState(null);
+  const [contextMenu, setContextMenu] = useState(null); // { x, y, elementIds }
 
   // mutable refs for the render loop getters
   const selRef = useRef(selection);
@@ -256,6 +265,98 @@ function CanvasView({ board }) {
     if (cmd) { applyRedo(cmd); setDirty(); }
   }, [setDirty]);
 
+  /* ---- clipboard / copy-paste ---- */
+  const doCopy = useCallback(() => {
+    const elements = getElements();
+    _clipboard = [...selection].map(id => {
+      const el = elements.find(e => e.id === id);
+      return el ? JSON.parse(JSON.stringify(el)) : null;
+    }).filter(Boolean);
+  }, [selection]);
+
+  const doPaste = useCallback(() => {
+    if (_clipboard.length === 0) return;
+    const newEls = _clipboard.map(snap => {
+      const el = cloneElement(snap);
+      el.x += 20; el.y += 20;
+      return el;
+    });
+    const newSel = new Set();
+    for (const el of newEls) {
+      addElement(el);
+      newSel.add(el.id);
+    }
+    pushCommand({
+      type: 'create',
+      elementIds: [...newSel],
+      before: [],
+      after: newEls.map(e => JSON.parse(JSON.stringify(e))),
+    });
+    setSelection(newSel);
+    // update clipboard positions for next paste
+    _clipboard = newEls.map(e => JSON.parse(JSON.stringify(e)));
+    setDirty();
+  }, [setDirty]);
+
+  const doDuplicate = useCallback(() => {
+    doCopy();
+    doPaste();
+  }, [doCopy, doPaste]);
+
+  /* ---- groups ---- */
+  const doGroup = useCallback(() => {
+    if (selection.size < 2) return;
+    const elements = getElements();
+    const groups = getGroups();
+    const gid = groupElements([...selection], elements, groups);
+    setGroups(groups);
+    pushCommand({ type: 'style', elementIds: [...selection],
+      before: [...selection].map(id => ({ id, groupId: null })),
+      after: [...selection].map(id => ({ id, groupId: gid })),
+    });
+    setDirty();
+  }, [selection, setDirty]);
+
+  const doUngroup = useCallback(() => {
+    const elements = getElements();
+    const groups = getGroups();
+    const groupIds = new Set();
+    for (const id of selection) {
+      const el = elements.find(e => e.id === id);
+      if (el && el.groupId) groupIds.add(el.groupId);
+    }
+    for (const gid of groupIds) {
+      ungroupElements(gid, elements, groups);
+    }
+    setGroups(groups);
+    setDirty();
+  }, [selection, setDirty]);
+
+  const canUngroup = (() => {
+    const elements = getElements();
+    for (const id of selection) {
+      const el = elements.find(e => e.id === id);
+      if (el && el.groupId) return true;
+    }
+    return false;
+  })();
+
+  /* ---- select all ---- */
+  const doSelectAll = useCallback(() => {
+    setSelection(new Set(getElements().map(e => e.id)));
+    setDirty();
+  }, [setDirty]);
+
+  /* ---- zoom to fit ---- */
+  const doZoomToFit = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas) return;
+    const parent = canvas.parentElement;
+    const cam = zoomToFit(getElements(), parent.clientWidth, parent.clientHeight);
+    setCamera(cam);
+    setDirty();
+  }, [setDirty]);
+
   /* ---- keyboard shortcuts ---- */
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -269,11 +370,20 @@ function CanvasView({ board }) {
       // don't capture if text editor is open
       if (textEditor) return;
 
-      // Ctrl shortcuts
+      // Ctrl/Cmd shortcuts
       if (e.ctrlKey || e.metaKey) {
         if (e.key === 'z' && !e.shiftKey) { e.preventDefault(); handleUndo(); return; }
         if (e.key === 'z' && e.shiftKey)  { e.preventDefault(); handleRedo(); return; }
         if (e.key === 'y')                { e.preventDefault(); handleRedo(); return; }
+        if (e.key === 'c')                { e.preventDefault(); doCopy(); return; }
+        if (e.key === 'v')                { e.preventDefault(); doPaste(); return; }
+        if (e.key === 'd')                { e.preventDefault(); doDuplicate(); return; }
+        if (e.key === 'a')                { e.preventDefault(); doSelectAll(); return; }
+        if (e.key === '0')               { e.preventDefault(); doZoomToFit(); return; }
+        if (e.key === 'g' && !e.shiftKey) { e.preventDefault(); doGroup(); return; }
+        if (e.key === 'g' && e.shiftKey)  { e.preventDefault(); doUngroup(); return; }
+        if (e.key === ']')               { e.preventDefault(); bringToFront([...selection]); setDirty(); return; }
+        if (e.key === '[')               { e.preventDefault(); sendToBack([...selection]); setDirty(); return; }
         return;
       }
 
@@ -288,6 +398,7 @@ function CanvasView({ board }) {
 
         // Escape
         if (e.key === 'Escape') {
+          setContextMenu(null);
           setSelection(new Set());
           setActiveTool(TOOL_IDS.SELECT);
           setDirty();
@@ -300,6 +411,10 @@ function CanvasView({ board }) {
           if (tool.onKeyDown) tool.onKeyDown(getToolCtx(), e);
           return;
         }
+
+        // z-order (no modifier)
+        if (e.key === ']') { bringForward([...selection]); setDirty(); return; }
+        if (e.key === '[') { sendBackward([...selection]); setDirty(); return; }
       }
     };
 
@@ -320,7 +435,8 @@ function CanvasView({ board }) {
       window.removeEventListener('keydown', onKeyDown);
       window.removeEventListener('keyup', onKeyUp);
     };
-  }, [activeTool, textEditor, handleUndo, handleRedo, getToolCtx, setDirty]);
+  }, [activeTool, textEditor, selection, handleUndo, handleRedo, getToolCtx, setDirty,
+      doCopy, doPaste, doDuplicate, doSelectAll, doZoomToFit, doGroup, doUngroup]);
 
   /* ---- cursor ---- */
   useEffect(() => {
@@ -362,7 +478,31 @@ function CanvasView({ board }) {
         onMouseMove={handleMouseMove}
         onMouseUp={handleMouseUp}
         onDoubleClick={handleDoubleClick}
-        onContextMenu={(e) => e.preventDefault()}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          const cam = getCamera();
+          const rect = canvasRef.current.getBoundingClientRect();
+          const sx = e.clientX - rect.left;
+          const sy = e.clientY - rect.top;
+          const w = screenToWorld(sx, sy, cam);
+          const elements = getElements();
+          // hit test to find element under cursor
+          const sorted = [...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
+          let hitIds = [];
+          for (const el of sorted) {
+            if (hitTest(el, w.x, w.y, 4 / cam.zoom)) {
+              // if element is in selection, use entire selection; otherwise just this element
+              if (selection.has(el.id)) {
+                hitIds = [...selection];
+              } else {
+                hitIds = [el.id];
+                setSelection(new Set([el.id]));
+              }
+              break;
+            }
+          }
+          setContextMenu({ x: e.clientX, y: e.clientY, elementIds: hitIds });
+        }}
       />
 
       <button className={s.backBtn} onClick={handleBack}>← Boards</button>
@@ -385,6 +525,53 @@ function CanvasView({ board }) {
           info={textEditor}
           onCommit={handleTextCommit}
           onCancel={handleTextCancel}
+        />
+      )}
+
+      {contextMenu && (
+        <ContextMenu
+          x={contextMenu.x}
+          y={contextMenu.y}
+          elementIds={contextMenu.elementIds}
+          elements={getElements()}
+          onClose={() => setContextMenu(null)}
+          onStyleChange={(prop, value) => {
+            for (const id of (contextMenu.elementIds || [])) {
+              updateElement(id, { [prop]: value });
+            }
+            setDirty();
+          }}
+          onArrange={(dir) => {
+            const ids = contextMenu.elementIds || [];
+            if (dir === 'forward') bringForward(ids);
+            else if (dir === 'backward') sendBackward(ids);
+            else if (dir === 'front') bringToFront(ids);
+            else if (dir === 'back') sendToBack(ids);
+            setDirty();
+          }}
+          onGroup={doGroup}
+          onUngroup={doUngroup}
+          canUngroup={canUngroup}
+          onDuplicate={() => { doCopy(); doPaste(); }}
+          onCopy={doCopy}
+          onPaste={doPaste}
+          canPaste={_clipboard.length > 0}
+          onDelete={() => {
+            const ids = contextMenu.elementIds || [];
+            if (ids.length === 0) return;
+            const elements = getElements();
+            const deleted = ids.map(id => elements.find(e => e.id === id)).filter(Boolean);
+            pushCommand({
+              type: 'delete', elementIds: ids,
+              before: deleted.map(el => JSON.parse(JSON.stringify(el))),
+              after: [],
+            });
+            deleteElements(ids);
+            setSelection(new Set());
+            setDirty();
+          }}
+          onSelectAll={doSelectAll}
+          onZoomToFit={doZoomToFit}
         />
       )}
     </div>
