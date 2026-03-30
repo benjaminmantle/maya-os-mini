@@ -71,6 +71,65 @@
   display: block;
 }
 
+/* ---- color swatches ---- */
+
+.colorRow {
+  display: flex;
+  gap: 4px;
+  padding: 2px 4px;
+  justify-content: center;
+}
+
+.swatchBtn {
+  width: 14px;
+  height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--dim);
+  cursor: pointer;
+  transition: border-color 0.1s, transform 0.1s;
+}
+
+.swatchBtn:hover {
+  border-color: var(--text);
+  transform: scale(1.15);
+}
+
+.swatchTransparent {
+  background: repeating-conic-gradient(#666 0% 25%, #999 0% 50%) 50% / 6px 6px !important;
+}
+
+.paletteDropdown {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 3px;
+  padding: 4px;
+  background: var(--s1);
+  border: 1px solid var(--b1);
+  border-radius: 4px;
+  margin: 0 2px;
+}
+
+.palDot {
+  width: 16px;
+  height: 16px;
+  border-radius: 3px;
+  border: 1.5px solid transparent;
+  cursor: pointer;
+  transition: border-color 0.1s, transform 0.1s;
+}
+
+.palDot:hover {
+  transform: scale(1.2);
+}
+
+.palDotActive {
+  border-color: var(--blu);
+}
+
+.palDotTransparent {
+  background: repeating-conic-gradient(#666 0% 25%, #999 0% 50%) 50% / 6px 6px;
+}
+
 /* ---- style switcher ---- */
 
 .styleSwitcher {

@@ -20,7 +20,10 @@ export function createShapeTool(shapeType) {
       startWorld = screenToWorld(sx, sy, camera);
 
       const factory = shapeType === TOOL_IDS.ELLIPSE ? createEllipse : createRectangle;
-      ghost = factory(startWorld.x, startWorld.y, 0, 0);
+      ghost = factory(startWorld.x, startWorld.y, 0, 0, {
+        strokeColor: ctx.defaultStroke || '#ddd9d6',
+        fillColor: ctx.defaultFill || 'transparent',
+      });
       ctx.setGhost(ghost);
       ctx.setDirty();
     },

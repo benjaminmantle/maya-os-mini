@@ -105,6 +105,8 @@ function CanvasView({ board }) {
   const panState = useRef({ panning: false, lastX: 0, lastY: 0, spaceDown: false });
 
   const [activeTool, setActiveTool] = useState(TOOL_IDS.SELECT);
+  const [defaultStroke, setDefaultStroke] = useState('#ddd9d6');
+  const [defaultFill, setDefaultFill] = useState('transparent');
   const [selection, setSelection] = useState(new Set());
   const [hoveredId, setHoveredId] = useState(null);
   const [ghost, setGhost] = useState(null);
@@ -165,12 +167,14 @@ function CanvasView({ board }) {
     updateElements,
     deleteElements,
     canvasEl: canvasRef.current,
+    defaultStroke,
+    defaultFill,
     setDirty,
     setGhost,
     setMarquee,
     setActiveTool,
     openTextEditor: setTextEditor,
-  }), [selection, setDirty]);
+  }), [selection, setDirty, defaultStroke, defaultFill]);
 
   /* ---- zoom (scroll wheel) ---- */
   const handleWheel = useCallback((e) => {
@@ -525,6 +529,23 @@ function CanvasView({ board }) {
         setActiveTool={setActiveTool}
         onUndo={handleUndo}
         onRedo={handleRedo}
+        strokeColor={defaultStroke}
+        fillColor={defaultFill}
+        onStrokeChange={setDefaultStroke}
+        onFillChange={setDefaultFill}
+        onClearBoard={() => {
+          const els = getElements();
+          if (els.length === 0) return;
+          pushCommand({
+            type: 'delete',
+            elementIds: els.map(e => e.id),
+            before: els.map(e => JSON.parse(JSON.stringify(e))),
+            after: [],
+          });
+          deleteElements(els.map(e => e.id));
+          setSelection(new Set());
+          setDirty();
+        }}
       />
 
       <StyleSwitcher

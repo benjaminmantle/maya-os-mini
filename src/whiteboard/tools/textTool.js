@@ -15,8 +15,10 @@ export const textTool = {
     const sy = e.clientY - rect.top;
     const w = screenToWorld(sx, sy, camera);
 
-    // create text element
-    const el = createText(w.x, w.y, '');
+    // create text element with default stroke color
+    const el = createText(w.x, w.y, '', {
+      strokeColor: ctx.defaultStroke || '#ddd9d6',
+    });
     ctx.addElement(el);
 
     // open text editor overlay

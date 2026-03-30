@@ -1,6 +1,7 @@
 /* Render orchestrator — delegates to active style renderer */
 
 import { screenToWorld } from '../core/camera.js';
+import { getBounds } from '../elements/bounds.js';
 
 /** Phase 1 stub: draws elements as simple colored rects */
 function stubRender(ctx, el) {
@@ -107,21 +108,19 @@ export function createRenderer(canvas) {
 }
 
 function _drawSelectionBox(ctx, el, camera) {
+  const b = getBounds(el);
   const pad = 4 / camera.zoom;
   const lw = 1.5 / camera.zoom;
   ctx.save();
   ctx.strokeStyle = '#4488ff';
   ctx.lineWidth = lw;
   ctx.setLineDash([6 / camera.zoom, 3 / camera.zoom]);
-  ctx.strokeRect(
-    el.x - pad, el.y - pad,
-    (el.width || 0) + pad * 2, (el.height || 0) + pad * 2,
-  );
+  ctx.strokeRect(b.x - pad, b.y - pad, b.width + pad * 2, b.height + pad * 2);
   ctx.setLineDash([]);
 
   // 8 handles
   const hs = 6 / camera.zoom;
-  const positions = _handlePositions(el, pad);
+  const positions = _handlePositions(b, pad);
   for (const [hx, hy] of positions) {
     ctx.fillStyle = '#fff';
     ctx.fillRect(hx - hs / 2, hy - hs / 2, hs, hs);
@@ -131,24 +130,23 @@ function _drawSelectionBox(ctx, el, camera) {
 }
 
 function _drawHoverBox(ctx, el, camera) {
+  const b = getBounds(el);
   const pad = 3 / camera.zoom;
   ctx.save();
   ctx.strokeStyle = '#4488ff';
   ctx.lineWidth = 1 / camera.zoom;
   ctx.setLineDash([4 / camera.zoom, 4 / camera.zoom]);
-  ctx.strokeRect(
-    el.x - pad, el.y - pad,
-    (el.width || 0) + pad * 2, (el.height || 0) + pad * 2,
-  );
+  ctx.strokeRect(b.x - pad, b.y - pad, b.width + pad * 2, b.height + pad * 2);
   ctx.setLineDash([]);
   ctx.restore();
 }
 
-function _handlePositions(el, pad) {
-  const x = el.x - pad;
-  const y = el.y - pad;
-  const w = (el.width || 0) + pad * 2;
-  const h = (el.height || 0) + pad * 2;
+/** b = { x, y, width, height } bounding box */
+function _handlePositions(b, pad) {
+  const x = b.x - pad;
+  const y = b.y - pad;
+  const w = b.width + pad * 2;
+  const h = b.height + pad * 2;
   return [
     [x, y],             // NW
     [x + w / 2, y],     // N

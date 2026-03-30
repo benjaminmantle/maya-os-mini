@@ -23,17 +23,18 @@ export function createLineTool(toolType) {
       const sy = e.clientY - rect.top;
       startWorld = screenToWorld(sx, sy, camera);
 
+      const sty = { strokeColor: ctx.defaultStroke || '#ddd9d6' };
       if (isFreehand) {
         freehandPoints = [{ x: 0, y: 0 }];
-        ghost = createFreehand(startWorld.x, startWorld.y, freehandPoints);
+        ghost = createFreehand(startWorld.x, startWorld.y, freehandPoints, sty);
       } else if (isArrow) {
         ghost = createArrow(startWorld.x, startWorld.y, [
           { x: 0, y: 0 }, { x: 0, y: 0 },
-        ]);
+        ], sty);
       } else {
         ghost = createLine(startWorld.x, startWorld.y, [
           { x: 0, y: 0 }, { x: 0, y: 0 },
-        ]);
+        ], sty);
       }
 
       ctx.setGhost(ghost);

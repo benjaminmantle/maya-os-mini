@@ -1,4 +1,5 @@
-import { TOOL_IDS } from '../core/constants.js';
+import { useState } from 'react';
+import { TOOL_IDS, COLOR_PALETTE } from '../core/constants.js';
 import { canUndo, canRedo } from '../core/history.js';
 import s from '../styles/Toolbar.module.css';
 
@@ -12,7 +13,14 @@ const TOOLS = [
   { id: TOOL_IDS.TEXT,     icon: 'T', key: 'T', label: 'Text' },
 ];
 
-export default function Toolbar({ activeTool, setActiveTool, onUndo, onRedo }) {
+export default function Toolbar({
+  activeTool, setActiveTool, onUndo, onRedo,
+  strokeColor, fillColor, onStrokeChange, onFillChange,
+  onClearBoard,
+}) {
+  const [strokeOpen, setStrokeOpen] = useState(false);
+  const [fillOpen, setFillOpen] = useState(false);
+
   return (
     <div className={s.toolbar}>
       {TOOLS.map(t => (
@@ -26,7 +34,55 @@ export default function Toolbar({ activeTool, setActiveTool, onUndo, onRedo }) {
           <span className={s.hint}>{t.label} ({t.key})</span>
         </button>
       ))}
+
       <div className={s.sep} />
+
+      {/* Stroke color */}
+      <div className={s.colorRow}>
+        <div
+          className={s.swatchBtn}
+          style={{ background: strokeColor || '#ddd9d6' }}
+          title="Stroke color"
+          onClick={() => { setStrokeOpen(o => !o); setFillOpen(false); }}
+        />
+        {/* Fill color */}
+        <div
+          className={`${s.swatchBtn} ${(!fillColor || fillColor === 'transparent') ? s.swatchTransparent : ''}`}
+          style={fillColor && fillColor !== 'transparent' ? { background: fillColor } : undefined}
+          title="Fill color"
+          onClick={() => { setFillOpen(o => !o); setStrokeOpen(false); }}
+        />
+      </div>
+
+      {/* Inline palette dropdown */}
+      {strokeOpen && (
+        <div className={s.paletteDropdown}>
+          {COLOR_PALETTE.filter(c => c !== 'transparent').map(c => (
+            <div
+              key={c}
+              className={`${s.palDot} ${c === strokeColor ? s.palDotActive : ''}`}
+              style={{ background: c }}
+              onClick={() => { onStrokeChange(c); setStrokeOpen(false); }}
+            />
+          ))}
+        </div>
+      )}
+      {fillOpen && (
+        <div className={s.paletteDropdown}>
+          {COLOR_PALETTE.map(c => (
+            <div
+              key={c}
+              className={`${s.palDot} ${c === fillColor ? s.palDotActive : ''} ${c === 'transparent' ? s.palDotTransparent : ''}`}
+              style={c !== 'transparent' ? { background: c } : undefined}
+              title={c === 'transparent' ? 'No fill' : c}
+              onClick={() => { onFillChange(c); setFillOpen(false); }}
+            />
+          ))}
+        </div>
+      )}
+
+      <div className={s.sep} />
+
       <button
         className={s.toolBtn}
         onClick={onUndo}
@@ -42,6 +98,17 @@ export default function Toolbar({ activeTool, setActiveTool, onUndo, onRedo }) {
         title="Redo (Ctrl+Shift+Z)"
       >
         ↪
+      </button>
+
+      <div className={s.sep} />
+
+      <button
+        className={s.toolBtn}
+        onClick={onClearBoard}
+        title="Clear board"
+        style={{ fontSize: 13 }}
+      >
+        🗑
       </button>
     </div>
   );
