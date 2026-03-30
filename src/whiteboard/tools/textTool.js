@@ -64,7 +64,7 @@ export function commitText(ctx, elementId, text) {
 
   ctx.setSelection(new Set([elementId]));
   ctx.setActiveTool(TOOL_IDS.SELECT);
-  ctx.setDirty();
+  if (ctx.setDirty) ctx.setDirty();
 }
 
 /** Called when editing existing text (double-click) */

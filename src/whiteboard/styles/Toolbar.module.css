@@ -130,6 +130,18 @@
   background: repeating-conic-gradient(#666 0% 25%, #999 0% 50%) 50% / 6px 6px;
 }
 
+.widthRow {
+  padding: 2px 2px;
+  display: flex;
+  justify-content: center;
+}
+
+.widthSlider {
+  width: 28px;
+  accent-color: var(--blu);
+  cursor: pointer;
+}
+
 /* ---- style switcher ---- */
 
 .styleSwitcher {

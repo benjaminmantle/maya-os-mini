@@ -64,6 +64,19 @@
   background: rgba(255, 48, 96, 0.12);
 }
 
+.bpNameInput {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 500;
+  font-family: var(--f);
+  background: var(--s1);
+  border: 1px solid var(--blu);
+  border-radius: 4px;
+  color: var(--text);
+  padding: 2px 6px;
+  outline: none;
+}
+
 .bpNew {
   display: inline-flex;
   align-items: center;
@@ -101,6 +114,7 @@
 
 .canvasEl {
   display: block;
+  background: var(--bg);
 }
 
 .backBtn {
@@ -122,6 +136,38 @@
 .backBtn:hover {
   opacity: 1;
   background: var(--s3);
+}
+
+.boardTitle {
+  position: absolute;
+  top: 12px;
+  left: 76px;
+  z-index: 100;
+  color: var(--dim);
+  font-family: var(--f);
+  font-size: 13px;
+  cursor: default;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+.boardTitle:hover {
+  opacity: 1;
+}
+
+.boardTitleInput {
+  position: absolute;
+  top: 10px;
+  left: 74px;
+  z-index: 100;
+  background: var(--s2);
+  border: 1px solid var(--blu);
+  border-radius: 4px;
+  color: var(--text);
+  font-family: var(--f);
+  font-size: 13px;
+  padding: 2px 8px;
+  outline: none;
+  width: 180px;
 }
 
 .zoomBadge {

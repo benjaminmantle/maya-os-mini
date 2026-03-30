@@ -4,6 +4,14 @@ import { hitTest, hitTestHandle, getBounds, containedInRect } from '../elements/
 import { screenToWorld } from '../core/camera.js';
 import { pushCommand } from '../core/history.js';
 
+/** Resize snapshot uses getBounds so handles align with what user sees */
+function _resizeSnapshot(el) {
+  const b = getBounds(el);
+  const snap = JSON.parse(JSON.stringify(el));
+  snap._bounds = b; // stash computed bounds for resize math
+  return snap;
+}
+
 // internal state
 let mode = 'idle'; // idle | dragging | resizing | marquee
 let dragStart = null;
@@ -31,7 +39,7 @@ export const selectTool = {
         if (handle) {
           mode = 'resizing';
           resizeHandle = handle;
-          resizeSnap = { id: el.id, before: JSON.parse(JSON.stringify(el)) };
+          resizeSnap = { id: el.id, before: _resizeSnapshot(el) };
           dragStart = w;
           return;
         }
@@ -98,8 +106,8 @@ export const selectTool = {
       const el = elements.find(ee => ee.id === resizeSnap.id);
       if (!el) return;
       const before = resizeSnap.before;
-      _applyResize(el, before, resizeHandle, w, dragStart, e.shiftKey);
-      ctx.updateElement(el.id, { x: el.x, y: el.y, width: el.width, height: el.height });
+      const patch = _applyResize(el, before, resizeHandle, w, dragStart, e.shiftKey);
+      ctx.updateElement(el.id, patch);
       setDirty();
       return;
     }
@@ -204,22 +212,45 @@ export const selectTool = {
   },
 };
 
+/** Returns a patch object to apply to the element */
 function _applyResize(el, before, handle, world, start, shift) {
   const dx = world.x - start.x;
   const dy = world.y - start.y;
-  let nx = before.x, ny = before.y;
-  let nw = before.width || 1, nh = before.height || 1;
 
-  if (handle.includes('e')) nw = Math.max(5, (before.width || 1) + dx);
-  if (handle.includes('w')) { nx = before.x + dx; nw = Math.max(5, (before.width || 1) - dx); }
-  if (handle.includes('s')) nh = Math.max(5, (before.height || 1) + dy);
-  if (handle.includes('n')) { ny = before.y + dy; nh = Math.max(5, (before.height || 1) - dy); }
+  // Use computed bounds for point-based elements
+  const b = before._bounds || { x: before.x, y: before.y, width: before.width || 1, height: before.height || 1 };
+  let nx = b.x, ny = b.y;
+  let nw = b.width || 1, nh = b.height || 1;
+
+  if (handle.includes('e')) nw = Math.max(5, b.width + dx);
+  if (handle.includes('w')) { nx = b.x + dx; nw = Math.max(5, b.width - dx); }
+  if (handle.includes('s')) nh = Math.max(5, b.height + dy);
+  if (handle.includes('n')) { ny = b.y + dy; nh = Math.max(5, b.height - dy); }
 
   if (shift) {
-    const ratio = (before.width || 1) / (before.height || 1);
+    const ratio = (b.width || 1) / (b.height || 1);
     if (nw / nh > ratio) nh = nw / ratio;
     else nw = nh * ratio;
   }
 
-  el.x = nx; el.y = ny; el.width = nw; el.height = nh;
+  const patch = { x: nx, y: ny, width: nw, height: nh };
+
+  // Scale points for point-based elements
+  if (before.points && before.points.length > 0) {
+    const scaleX = nw / (b.width || 1);
+    const scaleY = nh / (b.height || 1);
+    // Points are relative to el.x, el.y. We need to offset them
+    // since bounds.x/y may differ from el.x/el.y for lines drawn leftward
+    const offsetX = b.x - before.x;
+    const offsetY = b.y - before.y;
+    patch.points = before.points.map(p => ({
+      x: (p.x - offsetX) * scaleX + (nx - before.x),
+      y: (p.y - offsetY) * scaleY + (ny - before.y),
+    }));
+    // Recalculate x to be the new origin
+    patch.x = before.x;
+    patch.y = before.y;
+  }
+
+  return patch;
 }

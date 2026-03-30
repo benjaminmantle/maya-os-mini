@@ -23,6 +23,7 @@ export function createShapeTool(shapeType) {
       ghost = factory(startWorld.x, startWorld.y, 0, 0, {
         strokeColor: ctx.defaultStroke || '#ddd9d6',
         fillColor: ctx.defaultFill || 'transparent',
+        strokeWidth: ctx.defaultStrokeWidth || 2,
       });
       ctx.setGhost(ghost);
       ctx.setDirty();

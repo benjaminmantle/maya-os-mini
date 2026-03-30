@@ -15,7 +15,7 @@ const TOOLS = [
 
 export default function Toolbar({
   activeTool, setActiveTool, onUndo, onRedo,
-  strokeColor, fillColor, onStrokeChange, onFillChange,
+  strokeColor, fillColor, strokeWidth, onStrokeChange, onFillChange, onStrokeWidthChange,
   onClearBoard,
 }) {
   const [strokeOpen, setStrokeOpen] = useState(false);
@@ -51,6 +51,18 @@ export default function Toolbar({
           style={fillColor && fillColor !== 'transparent' ? { background: fillColor } : undefined}
           title="Fill color"
           onClick={() => { setFillOpen(o => !o); setStrokeOpen(false); }}
+        />
+      </div>
+
+      {/* Stroke width */}
+      <div className={s.widthRow}>
+        <input
+          type="range"
+          className={s.widthSlider}
+          min={1} max={12} step={1}
+          value={strokeWidth || 2}
+          onChange={(e) => onStrokeWidthChange(Number(e.target.value))}
+          title={`Stroke width: ${strokeWidth || 2}px`}
         />
       </div>
 

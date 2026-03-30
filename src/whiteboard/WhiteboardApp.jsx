@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { useWhiteboardStore } from './hooks/useWhiteboardStore.js';
 import {
-  initBoards, createBoard, openBoard, closeBoard, deleteBoardById,
+  initBoards, createBoard, openBoard, closeBoard, deleteBoardById, renameBoard,
   setCamera, getCamera, getElements, getRenderStyle, setRenderStyle,
   addElement, updateElement, updateElements, deleteElements,
   applyUndo, applyRedo,
@@ -25,6 +25,7 @@ import * as cleanStyle from './render/styles/cleanStyle.js';
 import Toolbar from './components/Toolbar.jsx';
 import StyleSwitcher from './components/StyleSwitcher.jsx';
 import ContextMenu from './components/ContextMenu.jsx';
+import KeyboardHelp from './components/KeyboardHelp.jsx';
 import s from './WhiteboardApp.module.css';
 
 /* ---- clipboard (module-level) ---- */
@@ -54,16 +55,30 @@ export default function WhiteboardApp() {
 /* ---- Board Picker ---- */
 
 function BoardPicker({ boards }) {
+  const [editingId, setEditingId] = useState(null);
+  const [editName, setEditName] = useState('');
+
   const handleNew = async () => {
     const id = await createBoard('Untitled Board');
     await openBoard(id);
   };
 
-  const handleOpen = (id) => openBoard(id);
+  const handleOpen = (id) => { if (editingId) return; openBoard(id); };
 
   const handleDelete = (e, id) => {
     e.stopPropagation();
     deleteBoardById(id);
+  };
+
+  const startRename = (e, b) => {
+    e.stopPropagation();
+    setEditingId(b.id);
+    setEditName(b.name);
+  };
+
+  const commitRename = () => {
+    if (editingId && editName.trim()) renameBoard(editingId, editName.trim());
+    setEditingId(null);
   };
 
   const fmtDate = (ts) => {
@@ -82,7 +97,23 @@ function BoardPicker({ boards }) {
       <ul className={s.bpList}>
         {boards.map(b => (
           <li key={b.id} className={s.bpItem} onClick={() => handleOpen(b.id)}>
-            <span className={s.bpName}>{b.name}</span>
+            {editingId === b.id ? (
+              <input
+                className={s.bpNameInput}
+                value={editName}
+                autoFocus
+                onChange={(e) => setEditName(e.target.value)}
+                onBlur={commitRename}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter') commitRename();
+                  if (e.key === 'Escape') setEditingId(null);
+                  e.stopPropagation();
+                }}
+                onClick={(e) => e.stopPropagation()}
+              />
+            ) : (
+              <span className={s.bpName} onDoubleClick={(e) => startRename(e, b)}>{b.name}</span>
+            )}
             <span className={s.bpDate}>{fmtDate(b.updatedAt)}</span>
             <button className={s.bpDelete} onClick={(e) => handleDelete(e, b.id)}>
               ✕
@@ -107,12 +138,14 @@ function CanvasView({ board }) {
   const [activeTool, setActiveTool] = useState(TOOL_IDS.SELECT);
   const [defaultStroke, setDefaultStroke] = useState('#ddd9d6');
   const [defaultFill, setDefaultFill] = useState('transparent');
+  const [defaultStrokeWidth, setDefaultStrokeWidth] = useState(2);
   const [selection, setSelection] = useState(new Set());
   const [hoveredId, setHoveredId] = useState(null);
   const [ghost, setGhost] = useState(null);
   const [marquee, setMarquee] = useState(null);
   const [textEditor, setTextEditor] = useState(null);
   const [contextMenu, setContextMenu] = useState(null); // { x, y, elementIds }
+  const [showHelp, setShowHelp] = useState(false);
 
   // mutable refs for the render loop getters
   const selRef = useRef(selection);
@@ -169,12 +202,13 @@ function CanvasView({ board }) {
     canvasEl: canvasRef.current,
     defaultStroke,
     defaultFill,
+    defaultStrokeWidth,
     setDirty,
     setGhost,
     setMarquee,
     setActiveTool,
     openTextEditor: setTextEditor,
-  }), [selection, setDirty, defaultStroke, defaultFill]);
+  }), [selection, setDirty, defaultStroke, defaultFill, defaultStrokeWidth]);
 
   /* ---- zoom (scroll wheel) ---- */
   const handleWheel = useCallback((e) => {
@@ -396,6 +430,20 @@ function CanvasView({ board }) {
           return;
         }
         if (e.key === '0')               { e.preventDefault(); doZoomToFit(); return; }
+        if (e.key === '=' || e.key === '+') {
+          e.preventDefault();
+          const cam = getCamera();
+          setCamera({ ...cam, zoom: Math.min(64, cam.zoom * 1.2) }); setDirty(); return;
+        }
+        if (e.key === '-') {
+          e.preventDefault();
+          const cam = getCamera();
+          setCamera({ ...cam, zoom: Math.max(0.05, cam.zoom / 1.2) }); setDirty(); return;
+        }
+        if (e.key === '1') {
+          e.preventDefault();
+          const cam = getCamera(); setCamera({ ...cam, zoom: 1 }); setDirty(); return;
+        }
         if (e.key === 'g' && !e.shiftKey) { e.preventDefault(); doGroup(); return; }
         if (e.key === 'g' && e.shiftKey)  { e.preventDefault(); doUngroup(); return; }
         if (e.key === ']')               { e.preventDefault(); bringToFront([...selection]); setDirty(); return; }
@@ -412,10 +460,12 @@ function CanvasView({ board }) {
         const tool = keyMap[e.key.toLowerCase()] || numMap[e.key];
         if (tool) { setActiveTool(tool); return; }
 
-        // Escape
+        // Escape — clear everything
         if (e.key === 'Escape') {
           setContextMenu(null);
           setSelection(new Set());
+          setMarquee(null);
+          setGhost(null);
           setActiveTool(TOOL_IDS.SELECT);
           setDirty();
           return;
@@ -431,6 +481,9 @@ function CanvasView({ board }) {
         // z-order (no modifier)
         if (e.key === ']') { bringForward([...selection]); setDirty(); return; }
         if (e.key === '[') { sendBackward([...selection]); setDirty(); return; }
+
+        // help
+        if (e.key === '?') { setShowHelp(h => !h); return; }
       }
     };
 
@@ -521,7 +574,8 @@ function CanvasView({ board }) {
         }}
       />
 
-      <button className={s.backBtn} onClick={handleBack}>← Boards</button>
+      <button className={s.backBtn} onClick={handleBack}>←</button>
+      <BoardTitle name={board.name} boardId={board.id} />
       <div className={s.zoomBadge}>{zoom}%</div>
 
       <Toolbar
@@ -531,8 +585,10 @@ function CanvasView({ board }) {
         onRedo={handleRedo}
         strokeColor={defaultStroke}
         fillColor={defaultFill}
+        strokeWidth={defaultStrokeWidth}
         onStrokeChange={setDefaultStroke}
         onFillChange={setDefaultFill}
+        onStrokeWidthChange={setDefaultStrokeWidth}
         onClearBoard={() => {
           const els = getElements();
           if (els.length === 0) return;
@@ -560,6 +616,8 @@ function CanvasView({ board }) {
           onCancel={handleTextCancel}
         />
       )}
+
+      {showHelp && <KeyboardHelp onClose={() => setShowHelp(false)} />}
 
       {contextMenu && (
         <ContextMenu
@@ -617,6 +675,41 @@ function CanvasView({ board }) {
         />
       )}
     </div>
+  );
+}
+
+/* ---- Board Title (editable) ---- */
+
+function BoardTitle({ name, boardId }) {
+  const [editing, setEditing] = useState(false);
+  const [val, setVal] = useState(name);
+
+  const commit = () => {
+    if (val.trim()) renameBoard(boardId, val.trim());
+    setEditing(false);
+  };
+
+  if (editing) {
+    return (
+      <input
+        className={s.boardTitleInput}
+        value={val}
+        autoFocus
+        onChange={(e) => setVal(e.target.value)}
+        onBlur={commit}
+        onKeyDown={(e) => {
+          if (e.key === 'Enter') commit();
+          if (e.key === 'Escape') setEditing(false);
+          e.stopPropagation();
+        }}
+      />
+    );
+  }
+
+  return (
+    <span className={s.boardTitle} onDoubleClick={() => { setVal(name); setEditing(true); }}>
+      {name}
+    </span>
   );
 }
 

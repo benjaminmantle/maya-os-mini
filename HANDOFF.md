@@ -4,7 +4,7 @@
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
 **Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
 **Vault: Step 7 + UI polish + 5 major features + DB improvements + Showcase overhaul (4 rounds) + Timeline/Era system complete.** 8 characters with 47 columns of data. Full interactive skeleton with local/mock mode. Awaiting Supabase setup to persist data.
-**CosmiCanvas: Spec complete, not yet implemented.** See WHITEBOARD_SPEC.md for full spec. Excalidraw-inspired infinite canvas. Ready for Phase 1.
+**CosmiCanvas: Phases 1–3 complete + polish.** Infinite canvas whiteboard with roughjs sketch + clean renderers, 7 drawing tools, select/move/resize, undo/redo, context menu, color picker, groups, z-ordering, copy/paste, PNG export, keyboard help. See WHITEBOARD_SPEC.md for spec.
 
 ---
 
@@ -76,6 +76,14 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ---
 
 ## Recent session changes
+
+### CosmiCanvas Bug Fixes + Polish (2026-03-29)
+
+**Critical fixes**: Roughjs drawables now render at origin with `ctx.translate` for positioning — cache is position-independent, no more shaking/jittering on any element type. Select tool drag uses `dragSnap` IDs instead of stale React `selection` closure. Resize handler scales points proportionally for lines/arrows/freehand. Export uses fresh roughjs instance (no cache pollution). Selection boxes use `getBounds()` for all element types.
+
+**New features**: Toolbar color picker (stroke + fill, 12-swatch palette). Stroke width slider in toolbar. Clear board button with undo. Board rename (double-click in picker, double-click title in canvas view). Zoom shortcuts (Ctrl++/−, Ctrl+1 reset to 100%, Ctrl+0 fit). Keyboard help overlay (? key). PNG export (right-click → Export Selection/Board, or Ctrl+Shift+E). Canvas background respects dark theme.
+
+**Polish**: Tools stay in drawing mode after creating (no auto-switch to select). Escape clears marquee + ghost. Freehand simplification scales with zoom. Text commit explicitly sets dirty. Canvas background via CSS `var(--bg)`.
 
 ### CosmiCanvas Phases 1–3 (2026-03-29)
 

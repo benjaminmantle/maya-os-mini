@@ -23,7 +23,7 @@ export function createLineTool(toolType) {
       const sy = e.clientY - rect.top;
       startWorld = screenToWorld(sx, sy, camera);
 
-      const sty = { strokeColor: ctx.defaultStroke || '#ddd9d6' };
+      const sty = { strokeColor: ctx.defaultStroke || '#ddd9d6', strokeWidth: ctx.defaultStrokeWidth || 2 };
       if (isFreehand) {
         freehandPoints = [{ x: 0, y: 0 }];
         ghost = createFreehand(startWorld.x, startWorld.y, freehandPoints, sty);
@@ -80,7 +80,9 @@ export function createLineTool(toolType) {
 
       if (isFreehand) {
         // simplify points
-        ghost.points = _simplify(freehandPoints, 2);
+        // epsilon scales with zoom so simplification is consistent at any zoom level
+        const epsilon = 2 / (ctx.camera?.zoom || 1);
+        ghost.points = _simplify(freehandPoints, epsilon);
       }
 
       // discard trivial (too small)
