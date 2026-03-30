@@ -64,14 +64,14 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - [ ] Focus Mode
 - [ ] Remaining column types (image upload, relation picker UI)
 
-### CosmiCanvas (Phases 1–3 complete)
+### CosmiCanvas (Phases 1–4 complete + polish)
 - [x] WHITEBOARD_SPEC.md — full spec with file structure, element model, render architecture, 5 phases
 - [x] CLAUDE.md updated — app isolation rules, critical rules, gotchas, key files
 - [x] Phase 1 — Canvas + camera + IndexedDB storage + board picker
 - [x] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
 - [x] Phase 3 — Arrows + context menu + groups + color picker + copy/paste + z-ordering
-- [ ] Phase 4 — Images + export (PNG/SVG/JSON) + minimap
-- [ ] Phase 5 — Polish (alignment guides, keyboard help, additional render styles)
+- [x] Phase 4 — Image paste, PNG/SVG/JSON export, minimap, dot grid, snap-to-grid, keyboard help, board rename
+- [ ] Phase 5 — Alignment guides, additional render styles, performance for large boards
 
 ---
 
