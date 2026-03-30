@@ -19,6 +19,7 @@ import { hitTest } from './elements/bounds.js';
 import { cloneElement } from './elements/types.js';
 import { groupElements, ungroupElements, expandSelectionToGroups } from './elements/groups.js';
 import { undo, redo, clearHistory, pushCommand } from './core/history.js';
+import { downloadPNG } from './core/exportImage.js';
 import * as sketchStyle from './render/styles/sketchStyle.js';
 import * as cleanStyle from './render/styles/cleanStyle.js';
 import Toolbar from './components/Toolbar.jsx';
@@ -192,6 +193,8 @@ function CanvasView({ board }) {
 
   /* ---- mouse events routed to active tool ---- */
   const handleMouseDown = useCallback((e) => {
+    // skip if text editor is open (click outside dismisses via blur)
+    if (textEditor) return;
     // pan takes priority
     const ps = panState.current;
     const isMiddle = e.button === 1;
@@ -207,7 +210,7 @@ function CanvasView({ board }) {
     if (e.button !== 0) return;
     const tool = TOOLS[activeTool];
     if (tool && tool.onMouseDown) tool.onMouseDown(getToolCtx(), e);
-  }, [activeTool, getToolCtx]);
+  }, [activeTool, getToolCtx, textEditor]);
 
   const handleMouseMove = useCallback((e) => {
     const ps = panState.current;
@@ -379,6 +382,15 @@ function CanvasView({ board }) {
         if (e.key === 'v')                { e.preventDefault(); doPaste(); return; }
         if (e.key === 'd')                { e.preventDefault(); doDuplicate(); return; }
         if (e.key === 'a')                { e.preventDefault(); doSelectAll(); return; }
+        if (e.key === 'e' && e.shiftKey)  {
+          e.preventDefault();
+          // Ctrl+Shift+E — export selection or full board
+          const els = selection.size > 0
+            ? getElements().filter(el => selection.has(el.id))
+            : getElements();
+          if (els.length) downloadPNG(els, getRenderStyle(), `${board.name || 'cosmicanvas'}.png`);
+          return;
+        }
         if (e.key === '0')               { e.preventDefault(); doZoomToFit(); return; }
         if (e.key === 'g' && !e.shiftKey) { e.preventDefault(); doGroup(); return; }
         if (e.key === 'g' && e.shiftKey)  { e.preventDefault(); doUngroup(); return; }
@@ -572,6 +584,15 @@ function CanvasView({ board }) {
           }}
           onSelectAll={doSelectAll}
           onZoomToFit={doZoomToFit}
+          onExportSelection={() => {
+            const ids = contextMenu.elementIds || [];
+            const els = getElements().filter(e => ids.includes(e.id));
+            if (els.length) downloadPNG(els, renderStyle, `cosmicanvas-selection.png`);
+          }}
+          onExportBoard={() => {
+            const els = getElements();
+            if (els.length) downloadPNG(els, renderStyle, `${board.name || 'cosmicanvas'}.png`);
+          }}
         />
       )}
     </div>
@@ -582,25 +603,41 @@ function CanvasView({ board }) {
 
 function TextEditorOverlay({ info, onCommit, onCancel }) {
   const ref = useRef(null);
+  const mounted = useRef(false);
+  const committed = useRef(false);
 
   useEffect(() => {
-    if (ref.current) {
-      ref.current.focus();
-      if (info.text) ref.current.value = info.text;
-    }
+    // delay focus slightly to avoid immediate blur from React re-render
+    const t = setTimeout(() => {
+      if (ref.current) {
+        ref.current.focus();
+        if (info.text) ref.current.value = info.text;
+        mounted.current = true;
+      }
+    }, 50);
+    return () => clearTimeout(t);
   }, [info]);
 
+  const doCommit = (text) => {
+    if (committed.current) return;
+    committed.current = true;
+    onCommit(text);
+  };
+
   const handleBlur = () => {
-    onCommit(ref.current?.value || '');
+    // skip blur if we haven't fully mounted yet
+    if (!mounted.current) return;
+    doCommit(ref.current?.value || '');
   };
 
   const handleKeyDown = (e) => {
     if (e.key === 'Escape') {
       e.preventDefault();
+      committed.current = true;
       onCancel();
     } else if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
-      onCommit(ref.current?.value || '');
+      doCommit(ref.current?.value || '');
     }
     e.stopPropagation();
   };
@@ -616,6 +653,7 @@ function TextEditorOverlay({ info, onCommit, onCancel }) {
       }}
       onBlur={handleBlur}
       onKeyDown={handleKeyDown}
+      onMouseDown={(e) => e.stopPropagation()}
     />
   );
 }

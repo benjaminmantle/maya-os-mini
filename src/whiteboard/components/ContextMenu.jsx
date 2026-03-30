@@ -6,7 +6,7 @@ export default function ContextMenu({
   x, y, elementIds, elements, onClose,
   onStyleChange, onArrange, onGroup, onUngroup, canUngroup,
   onDuplicate, onCopy, onPaste, canPaste, onDelete,
-  onSelectAll, onZoomToFit,
+  onSelectAll, onZoomToFit, onExportSelection, onExportBoard,
 }) {
   const [colorPicker, setColorPicker] = useState(null); // { x, y, prop, value }
   const menuRef = useRef(null);
@@ -101,6 +101,9 @@ export default function ContextMenu({
             <Item label="Duplicate" shortcut="Ctrl+D" onClick={onDuplicate} />
             <Item label="Copy" shortcut="Ctrl+C" onClick={onCopy} />
             <Item label="Delete" shortcut="Del" onClick={onDelete} />
+            <div className={s.sep} />
+            <Item label="Export Selection as PNG" onClick={onExportSelection} />
+            <Item label="Export Board as PNG" onClick={onExportBoard} />
           </>
         ) : (
           <>
@@ -108,6 +111,8 @@ export default function ContextMenu({
             <div className={s.sep} />
             <Item label="Select All" shortcut="Ctrl+A" onClick={onSelectAll} />
             <Item label="Zoom to Fit" shortcut="Ctrl+0" onClick={onZoomToFit} />
+            <div className={s.sep} />
+            <Item label="Export Board as PNG" onClick={onExportBoard} />
           </>
         )}
       </div>

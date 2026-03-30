@@ -6,6 +6,9 @@ export function renderElement(ctx, el, isSelected, isHovered) {
     ctx.globalAlpha = el.opacity;
   }
 
+  // translate to element position — all drawing at origin
+  ctx.translate(el.x, el.y);
+
   const type = el.type;
   const stroke = el.strokeColor || '#ddd9d6';
   const fill = el.fillColor;
@@ -14,20 +17,16 @@ export function renderElement(ctx, el, isSelected, isHovered) {
   if (type === 'rectangle') {
     if (fill && fill !== 'transparent') {
       ctx.fillStyle = fill;
-      ctx.fillRect(el.x, el.y, el.width, el.height);
+      ctx.fillRect(0, 0, el.width, el.height);
     }
     ctx.strokeStyle = stroke;
     ctx.lineWidth = lw;
-    ctx.strokeRect(el.x, el.y, el.width, el.height);
+    ctx.strokeRect(0, 0, el.width, el.height);
   }
 
   else if (type === 'ellipse') {
     ctx.beginPath();
-    ctx.ellipse(
-      el.x + el.width / 2, el.y + el.height / 2,
-      el.width / 2, el.height / 2,
-      0, 0, Math.PI * 2
-    );
+    ctx.ellipse(el.width / 2, el.height / 2, el.width / 2, el.height / 2, 0, 0, Math.PI * 2);
     if (fill && fill !== 'transparent') {
       ctx.fillStyle = fill;
       ctx.fill();
@@ -64,9 +63,9 @@ export function renderElement(ctx, el, isSelected, isHovered) {
 function _drawLine(ctx, el, stroke, lw) {
   if (!el.points || el.points.length < 2) return;
   ctx.beginPath();
-  ctx.moveTo(el.x + el.points[0].x, el.y + el.points[0].y);
+  ctx.moveTo(el.points[0].x, el.points[0].y);
   for (let i = 1; i < el.points.length; i++) {
-    ctx.lineTo(el.x + el.points[i].x, el.y + el.points[i].y);
+    ctx.lineTo(el.points[i].x, el.points[i].y);
   }
   ctx.strokeStyle = stroke;
   ctx.lineWidth = lw;
@@ -80,12 +79,12 @@ function _drawArrowheads(ctx, el, stroke, lw) {
   if (el.arrowEnd === 'arrow' || el.arrowEnd === undefined) {
     const last = pts[pts.length - 1];
     const prev = pts[pts.length - 2];
-    _arrowhead(ctx, el.x + prev.x, el.y + prev.y, el.x + last.x, el.y + last.y, stroke, lw);
+    _arrowhead(ctx, prev.x, prev.y, last.x, last.y, stroke, lw);
   }
   if (el.arrowStart === 'arrow') {
     const first = pts[0];
     const next = pts[1];
-    _arrowhead(ctx, el.x + next.x, el.y + next.y, el.x + first.x, el.y + first.y, stroke, lw);
+    _arrowhead(ctx, next.x, next.y, first.x, first.y, stroke, lw);
   }
 }
 
@@ -106,9 +105,9 @@ function _arrowhead(ctx, fromX, fromY, toX, toY, stroke, lw) {
 function _drawFreehand(ctx, el, stroke, lw) {
   if (!el.points || el.points.length < 2) return;
   ctx.beginPath();
-  ctx.moveTo(el.x + el.points[0].x, el.y + el.points[0].y);
+  ctx.moveTo(el.points[0].x, el.points[0].y);
   for (let i = 1; i < el.points.length; i++) {
-    ctx.lineTo(el.x + el.points[i].x, el.y + el.points[i].y);
+    ctx.lineTo(el.points[i].x, el.points[i].y);
   }
   ctx.strokeStyle = stroke;
   ctx.lineWidth = lw;
@@ -125,7 +124,7 @@ function _drawText(ctx, el) {
   ctx.textBaseline = 'top';
   const lines = (el.text || '').split('\n');
   for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], el.x, el.y + i * size * 1.4);
+    ctx.fillText(lines[i], 0, i * size * 1.4);
   }
 }
 
@@ -133,13 +132,13 @@ function _drawImagePlaceholder(ctx, el) {
   ctx.strokeStyle = '#666';
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
-  ctx.strokeRect(el.x, el.y, el.width || 100, el.height || 100);
+  ctx.strokeRect(0, 0, el.width || 100, el.height || 100);
   ctx.setLineDash([]);
   ctx.fillStyle = '#666';
   ctx.font = '14px Rajdhani, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Image', el.x + (el.width || 100) / 2, el.y + (el.height || 100) / 2);
+  ctx.fillText('Image', (el.width || 100) / 2, (el.height || 100) / 2);
 }
 
 export function getName() { return 'Clean'; }

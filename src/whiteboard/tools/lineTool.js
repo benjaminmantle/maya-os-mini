@@ -114,8 +114,7 @@ export function createLineTool(toolType) {
         after: [JSON.parse(JSON.stringify(ghost))],
       });
 
-      ctx.setSelection(new Set([ghost.id]));
-      ctx.setActiveTool(TOOL_IDS.SELECT);
+      ctx.setSelection(new Set());
       ctx.setDirty();
 
       startWorld = null;

@@ -78,18 +78,15 @@ export const selectTool = {
     const sy = e.clientY - rect.top;
     const w = screenToWorld(sx, sy, camera);
 
-    if (mode === 'dragging' && dragStart) {
+    if (mode === 'dragging' && dragStart && dragSnap) {
       const dx = w.x - dragStart.x;
       const dy = w.y - dragStart.y;
-      const patches = [];
-      for (const id of selection) {
-        const el = elements.find(ee => ee.id === id);
-        if (!el) continue;
-        const snap = dragSnap.find(s => s.id === id);
-        if (snap) {
-          patches.push({ id, x: snap.before.x + dx, y: snap.before.y + dy });
-        }
-      }
+      // Use dragSnap IDs (not selection) to avoid stale React closure
+      const patches = dragSnap.map(snap => ({
+        id: snap.id,
+        x: snap.before.x + dx,
+        y: snap.before.y + dy,
+      }));
       if (patches.length) {
         updateElements(patches);
         setDirty();
@@ -158,7 +155,7 @@ export const selectTool = {
       if (moved) {
         pushCommand({
           type: 'move',
-          elementIds: [...selection],
+          elementIds: dragSnap.map(s => s.id),
           before: dragSnap.map(s => ({ id: s.id, ...s.before })),
           after: afterSnaps.map(a => ({ id: a.id, ...a.after })),
         });

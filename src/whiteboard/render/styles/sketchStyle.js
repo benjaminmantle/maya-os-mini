@@ -14,6 +14,7 @@ function getRough(canvas) {
   return _roughCanvas;
 }
 
+/** Cache key — only style+size, NOT position (we translate for position) */
 function styleHash(el) {
   return `${el.type}_${el.width}_${el.height}_${el.strokeColor}_${el.fillColor}_${el.strokeWidth}_${el.fillStyle}_${(el.points || []).length}`;
 }
@@ -42,18 +43,18 @@ export function renderElement(ctx, el, isSelected, isHovered) {
     ctx.globalAlpha = el.opacity;
   }
 
+  // translate to element position — drawables are created at origin
+  ctx.translate(el.x, el.y);
+
   const type = el.type;
 
   if (type === 'rectangle') {
     _drawCached(rc, el, () =>
-      rc.rectangle(el.x, el.y, el.width, el.height, roughOpts(el))
+      rc.rectangle(0, 0, el.width, el.height, roughOpts(el))
     );
   } else if (type === 'ellipse') {
     _drawCached(rc, el, () =>
-      rc.ellipse(
-        el.x + el.width / 2, el.y + el.height / 2,
-        el.width, el.height, roughOpts(el)
-      )
+      rc.ellipse(el.width / 2, el.height / 2, el.width, el.height, roughOpts(el))
     );
   } else if (type === 'line') {
     _renderLine(rc, ctx, el);
@@ -64,7 +65,6 @@ export function renderElement(ctx, el, isSelected, isHovered) {
   } else if (type === 'text') {
     _renderText(ctx, el);
   } else if (type === 'image') {
-    // images rendered same in both styles
     _renderImagePlaceholder(ctx, el);
   }
 
@@ -90,30 +90,23 @@ function _renderLine(rc, ctx, el) {
   for (let i = 0; i < el.points.length - 1; i++) {
     const a = el.points[i];
     const b = el.points[i + 1];
-    rc.line(el.x + a.x, el.y + a.y, el.x + b.x, el.y + b.y, opts);
+    rc.line(a.x, a.y, b.x, b.y, opts);
   }
 }
 
 function _renderArrow(rc, ctx, el) {
   _renderLine(rc, ctx, el);
-  // draw arrowhead manually
   if (el.points && el.points.length >= 2) {
     const pts = el.points;
     if (el.arrowEnd === 'arrow' || el.arrowEnd === undefined) {
       const last = pts[pts.length - 1];
       const prev = pts[pts.length - 2];
-      _drawArrowhead(ctx, el,
-        el.x + prev.x, el.y + prev.y,
-        el.x + last.x, el.y + last.y
-      );
+      _drawArrowhead(ctx, el, prev.x, prev.y, last.x, last.y);
     }
     if (el.arrowStart === 'arrow') {
       const first = pts[0];
       const next = pts[1];
-      _drawArrowhead(ctx, el,
-        el.x + next.x, el.y + next.y,
-        el.x + first.x, el.y + first.y
-      );
+      _drawArrowhead(ctx, el, next.x, next.y, first.x, first.y);
     }
   }
 }
@@ -140,9 +133,9 @@ function _drawArrowhead(ctx, el, fromX, fromY, toX, toY) {
 
 function _renderFreehand(rc, ctx, el) {
   if (!el.points || el.points.length < 2) return;
-  const pts = el.points.map(p => [el.x + p.x, el.y + p.y]);
+  const pts = el.points.map(p => [p.x, p.y]);
   const opts = roughOpts(el);
-  opts.roughness = 0.5; // less rough for freehand
+  opts.roughness = 0.5;
   rc.linearPath(pts, opts);
 }
 
@@ -157,7 +150,7 @@ function _renderText(ctx, el) {
   ctx.textBaseline = 'top';
   const lines = (el.text || '').split('\n');
   for (let i = 0; i < lines.length; i++) {
-    ctx.fillText(lines[i], el.x, el.y + i * size * 1.4);
+    ctx.fillText(lines[i], 0, i * size * 1.4);
   }
 }
 
@@ -165,17 +158,16 @@ function _renderImagePlaceholder(ctx, el) {
   ctx.strokeStyle = '#666';
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
-  ctx.strokeRect(el.x, el.y, el.width || 100, el.height || 100);
+  ctx.strokeRect(0, 0, el.width || 100, el.height || 100);
   ctx.setLineDash([]);
   ctx.fillStyle = '#666';
   ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Image', el.x + (el.width || 100) / 2, el.y + (el.height || 100) / 2);
+  ctx.fillText('Image', (el.width || 100) / 2, (el.height || 100) / 2);
 }
 
 export function getName() { return 'Sketch'; }
 
-/** Clear cache for element (call on style property change) */
 export function invalidateCache(id) { _cache.delete(id); }
 export function clearCache() { _cache.clear(); }

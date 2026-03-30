@@ -83,9 +83,8 @@ export function createShapeTool(shapeType) {
         after: [JSON.parse(JSON.stringify(ghost))],
       });
 
-      // switch to select with new element selected
-      ctx.setSelection(new Set([ghost.id]));
-      ctx.setActiveTool(TOOL_IDS.SELECT);
+      // clear selection (stay in current tool for rapid creation)
+      ctx.setSelection(new Set());
       ctx.setDirty();
 
       startWorld = null;
