@@ -21,6 +21,7 @@
   --yel:  #ffe040;
   --pri-md: #ff9900;
   --pri-maya: #bf5fff;
+  --pri-ai:   #4488ff;
   --tel:  #20c8d8;
   --tel2: rgba(32,200,216,.12);
   --slv:  #9098b8;
@@ -145,6 +146,7 @@ html.theme-kraft {
   /* Purple/maya — #9955ff and #bf5fff both too light on tan; darken significantly */
   --pur:      #6600cc;
   --pri-maya: #8822cc;
+  --pri-ai:   #2266cc;
   /* Accent colours — slightly more vivid than vanilla; background dark enough to carry them */
   --grn:     #1a9850;
   --tel:     #0a8aaa;

@@ -29,7 +29,7 @@ export default function BacklogPanel({
   const inputRef = useRef(null);
   const dragOverCardRef = useRef(null);
 
-  const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'maya');
+  const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai');
   const bq = inputVal.trim().toLowerCase();
   const displayBacklog = bq ? backlog.filter(t => t.name.toLowerCase().includes(bq)) : backlog;
 
@@ -112,7 +112,7 @@ export default function BacklogPanel({
     const directCard = e.target.closest('[data-taskid]');
     const targetCard = directCard || hoveredCard;
     const draggedTask = tasks.find(t => t.id === id);
-    if (!draggedTask || draggedTask.priority === 'maya') return; // maya tasks stay in maya
+    if (!draggedTask || draggedTask.priority === 'maya' || draggedTask.priority === 'ai') return;
     const needsZoneChange = draggedTask && !!draggedTask.scheduledDate;
     const draggedPri = draggedTask?.priority ?? null;
     const zoneList = backlog.filter(t => t.id !== id);

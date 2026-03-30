@@ -685,7 +685,7 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
       <div className={styles.sg}>
         <div className={styles.sgTitle}>Settings</div>
         <div className={styles.flexRow}>
-          <span className={styles.targetLabel}>Point target / day:</span>
+          <span className={styles.targetLabel}>Points</span>
           <input
             type="number"
             className={`${styles.mi} ${styles.targetInput}`}
@@ -697,14 +697,14 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveTarget}>Save</button>
         </div>
         <div className={styles.flexRow} style={{ marginTop: 12 }}>
-          <span className={styles.targetLabel}>Fasting tracking:</span>
+          <span className={styles.targetLabel}>Fasting Tracking</span>
           <button
             className={`${styles.btn} ${settings.fastingEnabled ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
             onClick={() => { toggleFastingEnabled(); }}
           >{settings.fastingEnabled ? 'ON' : 'OFF'}</button>
         </div>
         <div className={styles.flexRow} style={{ marginTop: 8 }}>
-          <span className={styles.targetLabel}>Calorie tracking:</span>
+          <span className={styles.targetLabel}>Calorie Tracking</span>
           <button
             className={`${styles.btn} ${settings.caloriesEnabled ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
             onClick={() => { toggleCaloriesEnabled(); }}

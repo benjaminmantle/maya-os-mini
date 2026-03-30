@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
-import { updateTask, deleteTask, markTaskComplete, markMayaDone } from '../../store/store.js';
+import { updateTask, deleteTask, markTaskComplete, markSpecialDone } from '../../store/store.js';
 import { applyEmDash } from '../../utils/parsing.js';
 
 export default function TaskCard({
@@ -26,9 +26,10 @@ export default function TaskCard({
   const [hovered, setHovered] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState(task.name);
-  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya'
-  // Maya tasks use task.done as their single done flag everywhere
-  const done = pri === 'maya'
+  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya' | 'ai'
+  const isSpecial = pri === 'maya' || pri === 'ai';
+  // Special-priority tasks (maya, ai) use task.done as their single done flag
+  const done = isSpecial
     ? (task.done ?? false)
     : (dayRecord && dayRecord.cIds.includes(task.id));
   const dur = task.timeEstimate || '';
@@ -44,6 +45,7 @@ export default function TaskCard({
     isFocused ? styles.focusedTask : '',
     inSidebar ? styles.sidebarCard : '',
     pri === 'maya' && !isFocused && !isActive && !task.isFrog ? styles.priMaya : '',
+    pri === 'ai' && !isFocused && !isActive && !task.isFrog ? styles.priAi : '',
     pri === 'hi' && !isFocused && !isActive && !task.isFrog ? styles.priHi : '',
     pri === 'md' && !isFocused && !isActive && !task.isFrog ? styles.priMd : '',
     pri === 'lo' && !isFocused && !isActive && !task.isFrog ? styles.priLo : '',
@@ -51,8 +53,8 @@ export default function TaskCard({
   ].filter(Boolean).join(' ');
 
   function handleCardClick(e) {
-    // Maya tasks are immune to the paint tool
-    if (!activePriColor || pri === 'maya') return;
+    // Special-priority tasks are immune to the paint tool
+    if (!activePriColor || isSpecial) return;
     e.stopPropagation();
     const next = task.priority === activePriColor ? null : activePriColor;
     if (onPriorityChange) onPriorityChange(task.id, next);
@@ -61,7 +63,7 @@ export default function TaskCard({
 
   function handleCheck(e) {
     e.stopPropagation();
-    if (pri === 'maya') { markMayaDone(task.id, !done); return; }
+    if (isSpecial) { markSpecialDone(task.id, !done); return; }
     if (!task.scheduledDate) return;
     markTaskComplete(task.id, task.scheduledDate, !done);
   }
@@ -100,16 +102,15 @@ export default function TaskCard({
   function handleNameClick(e) {
     if (done || activePriColor) return; // don't edit done tasks or in paint mode
     e.stopPropagation();
-    // Strip "MAYA — " prefix for editing, like TaskEditModal
-    const display = pri === 'maya' ? task.name.replace(/^MAYA\s*—\s*/, '') : task.name;
+    const display = task.name;
     setNameVal(display);
     setEditingName(true);
   }
 
   function handleNameSave() {
     const trimmed = nameVal.trim();
-    if (trimmed && trimmed !== task.name && trimmed !== task.name.replace(/^MAYA\s*—\s*/, '')) {
-      const finalName = pri === 'maya' ? `MAYA — ${trimmed}` : trimmed;
+    if (trimmed && trimmed !== task.name) {
+      const finalName = trimmed;
       updateTask(task.id, { name: finalName });
     }
     setEditingName(false);
@@ -136,7 +137,7 @@ export default function TaskCard({
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {(dayRecord || pri === 'maya') && (
+      {(dayRecord || isSpecial) && (
         <div
           className={`${styles.chk} ${done ? styles.chkOn : ''}`}
           onClick={handleCheck}
@@ -188,20 +189,20 @@ export default function TaskCard({
             </span>
           )}
         </div>
-        {pri === 'maya' && (
+        {isSpecial && (
           <div className={styles.mayaRow}>
             <div className={styles.mayaStars}>
               {[1, 2, 3].map(n => (
                 <span
                   key={n}
-                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? styles.mayaStarOn : ''}`}
+                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? (pri === 'ai' ? styles.aiStarOn : styles.mayaStarOn) : ''}`}
                   onClick={onStarChange ? (e) => { e.stopPropagation(); onStarChange(task.id, n); } : undefined}
                   style={onStarChange ? { cursor: 'pointer' } : {}}
                 >★</span>
               ))}
             </div>
             {showDateChip && task.scheduledDate && (
-              <span className={styles.mayaDateChip}>{task.scheduledDate}</span>
+              <span className={pri === 'ai' ? styles.aiDateChip : styles.mayaDateChip}>{task.scheduledDate}</span>
             )}
           </div>
         )}

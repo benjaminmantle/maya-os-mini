@@ -3,6 +3,7 @@ import styles from '../../styles/components/Sidebar.module.css';
 import DailiesPanel from './DailiesPanel.jsx';
 import BacklogPanel from './BacklogPanel.jsx';
 import MayaPanel from './MayaPanel.jsx';
+import AIPanel from './AIPanel.jsx';
 import { updateTask } from '../../store/store.js';
 
 export default function Sidebar({
@@ -38,7 +39,7 @@ export default function Sidebar({
     const id = e.dataTransfer.getData('tid');
     if (!id) return;
     const task = tasks.find(t => t.id === id);
-    if (!task || !task.scheduledDate || task.priority === 'maya') return; // maya tasks stay in maya
+    if (!task || !task.scheduledDate || task.priority === 'maya' || task.priority === 'ai') return;
     updateTask(id, { scheduledDate: null, isFrog: false });
     setTab('backlog');
   }
@@ -51,7 +52,7 @@ export default function Sidebar({
           style={tab === 'dailies' ? { color: 'var(--tel)', borderBottomColor: 'var(--tel)' } : {}}
           onClick={() => setTab('dailies')}
         >
-          Dailies
+          Day
         </button>
         <button
           className={`${styles.stab} ${tab === 'backlog' ? styles.stabActive : ''} ${backlogDragOver ? styles.stabDragOver : ''}`}
@@ -68,6 +69,13 @@ export default function Sidebar({
           onClick={() => setTab('maya')}
         >
           Maya
+        </button>
+        <button
+          className={`${styles.stab} ${tab === 'ai' ? styles.stabActive : ''}`}
+          style={tab === 'ai' ? { color: 'var(--pri-ai)', borderBottomColor: 'var(--pri-ai)' } : {}}
+          onClick={() => setTab('ai')}
+        >
+          AI
         </button>
       </div>
 
@@ -93,6 +101,15 @@ export default function Sidebar({
       )}
       {tab === 'maya' && (
         <MayaPanel
+          tasks={tasks}
+          activeTaskId={activeTaskId}
+          focusedTaskId={focusedTaskId}
+          getTimerDisplay={getTimerDisplay}
+          onContextMenu={onTaskContextMenu}
+        />
+      )}
+      {tab === 'ai' && (
+        <AIPanel
           tasks={tasks}
           activeTaskId={activeTaskId}
           focusedTaskId={focusedTaskId}

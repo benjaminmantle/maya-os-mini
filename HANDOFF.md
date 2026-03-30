@@ -36,9 +36,10 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ### Maya OS (complete)
 - **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section, spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
-- **Sidebar** — Dailies tab (color-coded dots, drag reorder), Backlog tab, Maya tab (star rating, quick-add)
+- **Sidebar** — Day tab (dailies, food log), Backlog tab, Maya tab (star rating, quick-add), AI tab (blue, star rating, quick-add)
 - **Maya task system** — `priority: 'maya'` tasks; star rating (1–3 stars); completion via `task.done`; drag to DayView = scheduled; grouped by star level with hi/md/lo tasks in DayView
-- **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya tasks) to today; preserves isFrog status
+- **AI task system** — `priority: 'ai'` tasks; identical model to maya (stars, `task.done`, unschedule-not-delete); blue color (`--pri-ai`); own sidebar tab and panel (`AIPanel.jsx`)
+- **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya+ai tasks) to today; preserves isFrog status
 - **Drag and drop** — all zones; group integrity enforced; sandwich recolor; day-tab drag
 - **Timer** — countdown / open-ended / countup; focus vs start distinction
 - **Week View** — 7-day grid, drag to reschedule, click to navigate
@@ -76,6 +77,20 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ---
 
 ## Recent session changes
+
+### AI sidebar tab + Backend text fixes (2026-03-30)
+
+**AI task tab** — 4th sidebar tab ("AI", blue `--pri-ai`) for AI/vibe-coding projects. Uses `priority: 'ai'` — same model as maya tasks: star rating (1–3), `task.done` completion, unschedule-not-delete, immune to paint tool, excluded from backlog, carry-forward via `task.done`. New files: `AIPanel.jsx`, `AIPanel.module.css`. Color token `--pri-ai: #4488ff` (kraft override: `#2266cc`).
+
+**Tab label change** — "Dailies" tab renamed to "Day" to fit 4 tabs.
+
+**Store rename** — `markMayaDone` → `markSpecialDone` (handles both maya and ai tasks). `sortTasksForView` 4th arg changed from boolean `mayaOnly` to string `specialPri` (`'maya'`/`'ai'`/`false`).
+
+**Helper** — `isSpecialPriority(p)` in `taskPlacement.js` returns true for `'maya'` or `'ai'`. `priRank` and `taskRank` updated for ai priority.
+
+**Backend settings text** — "Point target / day:" → "Points", "Fasting tracking:" → "Fasting Tracking", "Calorie tracking:" → "Calorie Tracking" (removed colons, capitalized T).
+
+**Files changed**: `tokens.css`, `taskPlacement.js`, `store.js`, `TaskCard.jsx`, `TaskCard.module.css`, `Sidebar.jsx`, `BacklogPanel.jsx`, `DayView.jsx`, `WeekView.jsx`, `TaskEditModal.jsx`, `StatsView.jsx`, `MayaPanel.jsx` (sort call args). **Files created**: `AIPanel.jsx`, `AIPanel.module.css`.
 
 ### CosmiCanvas Phase 4 Features (2026-03-29)
 

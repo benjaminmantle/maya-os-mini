@@ -1,6 +1,6 @@
 import { useState, useRef } from 'react';
 import styles from '../../styles/components/Sidebar.module.css';
-import mStyles from '../../styles/components/MayaPanel.module.css';
+import aStyles from '../../styles/components/AIPanel.module.css';
 import dStyles from '../../styles/components/DayView.module.css';
 import TaskCard from '../task/TaskCard.jsx';
 import AssignPopup from '../task/AssignPopup.jsx';
@@ -9,7 +9,6 @@ import { uid } from '../../utils/dates.js';
 import { parseInput, applyEmDash } from '../../utils/parsing.js';
 import { doMove, insertAtForStars } from '../../utils/taskPlacement.js';
 
-// Higher mayaPts = earlier in list. insertAt/snap based on this ordering.
 function snapToStarZone(insertAt, zoneList, stars) {
   let lo = 0, hi = zoneList.length;
   for (let i = 0; i < zoneList.length; i++) {
@@ -28,8 +27,7 @@ function insertTopOfStarGroup(stars, zoneList) {
   return lo;
 }
 
-
-export default function MayaPanel({
+export default function AIPanel({
   tasks,
   activeTaskId,
   focusedTaskId,
@@ -44,11 +42,9 @@ export default function MayaPanel({
   const inputRef = useRef(null);
   const dragOverCardRef = useRef(null);
 
-  // Store order IS the display order — handleAdd/handleStarChange maintain star-group order in store.
-  // P/T sort buttons reorder store; star grouping is maintained by drag/star-change snap logic.
-  const mayaTasks = tasks.filter(t => t.priority === 'maya' && !t.done);
-  const mq = inputVal.trim().toLowerCase();
-  const displayMaya = mq ? mayaTasks.filter(t => t.name.toLowerCase().includes(mq)) : mayaTasks;
+  const aiTasks = tasks.filter(t => t.priority === 'ai' && !t.done);
+  const aq = inputVal.trim().toLowerCase();
+  const displayAi = aq ? aiTasks.filter(t => t.name.toLowerCase().includes(aq)) : aiTasks;
 
   function clearCardIndicator() {
     if (dragOverCardRef.current) {
@@ -72,30 +68,30 @@ export default function MayaPanel({
       pts: p.pts,
       timeEstimate: p.time || null,
       isFrog: false,
-      priority: 'maya',
+      priority: 'ai',
       mayaPts: stars,
       scheduledDate: null,
       createdAt: new Date().toISOString(),
     });
-    doMove(newId, insertTopOfStarGroup(stars, mayaTasks), mayaTasks);
+    doMove(newId, insertTopOfStarGroup(stars, aiTasks), aiTasks);
     setInputVal('');
   }
 
   function handleStarChange(taskId, n) {
     updateTask(taskId, { mayaPts: n });
-    const zone = mayaTasks.filter(t => t.id !== taskId);
+    const zone = aiTasks.filter(t => t.id !== taskId);
     doMove(taskId, insertAtForStars(n, zone), zone);
   }
 
   function handleBump(taskId, dir) {
-    const idx = mayaTasks.findIndex(t => t.id === taskId);
+    const idx = aiTasks.findIndex(t => t.id === taskId);
     if (idx === -1) return;
-    const stars = mayaTasks[idx].mayaPts ?? 1;
-    let lo = 0, hi = mayaTasks.length;
-    for (let i = 0; i < mayaTasks.length; i++) {
-      const r = mayaTasks[i].mayaPts ?? 1;
+    const stars = aiTasks[idx].mayaPts ?? 1;
+    let lo = 0, hi = aiTasks.length;
+    for (let i = 0; i < aiTasks.length; i++) {
+      const r = aiTasks[i].mayaPts ?? 1;
       if (r > stars) lo = i + 1;
-      if (r < stars && hi === mayaTasks.length) hi = i;
+      if (r < stars && hi === aiTasks.length) hi = i;
     }
     let targetPos;
     if (dir === 'up') targetPos = Math.max(lo, idx - 1);
@@ -103,7 +99,7 @@ export default function MayaPanel({
     else if (dir === 'top') targetPos = lo;
     else targetPos = hi - 1;
     if (targetPos === idx) return;
-    doMove(taskId, targetPos, mayaTasks.filter(t => t.id !== taskId));
+    doMove(taskId, targetPos, aiTasks.filter(t => t.id !== taskId));
   }
 
   function handleAssign(taskId, e) {
@@ -121,8 +117,8 @@ export default function MayaPanel({
       if (cardEl !== dragOverCardRef.current) { clearCardIndicator(); dragOverCardRef.current = cardEl; }
       const rect = cardEl.getBoundingClientRect();
       const before = e.clientY < rect.top + rect.height / 2;
-      cardEl.style.borderTop = before ? '2px solid var(--pri-maya)' : '';
-      cardEl.style.borderBottom = before ? '' : '2px solid var(--pri-maya)';
+      cardEl.style.borderTop = before ? '2px solid var(--pri-ai)' : '';
+      cardEl.style.borderBottom = before ? '' : '2px solid var(--pri-ai)';
     } else {
       const cards = zone.querySelectorAll('[data-taskid]');
       if (cards.length === 0) { clearCardIndicator(); return; }
@@ -130,11 +126,11 @@ export default function MayaPanel({
       const firstRect = firstCard.getBoundingClientRect();
       if (e.clientY <= firstRect.top + firstRect.height / 2) {
         if (dragOverCardRef.current !== firstCard) { clearCardIndicator(); dragOverCardRef.current = firstCard; }
-        firstCard.style.borderTop = '2px solid var(--pri-maya)';
+        firstCard.style.borderTop = '2px solid var(--pri-ai)';
         firstCard.style.borderBottom = '';
       } else {
         if (dragOverCardRef.current !== lastCard) { clearCardIndicator(); dragOverCardRef.current = lastCard; }
-        lastCard.style.borderBottom = '2px solid var(--pri-maya)';
+        lastCard.style.borderBottom = '2px solid var(--pri-ai)';
         lastCard.style.borderTop = '';
       }
     }
@@ -153,14 +149,14 @@ export default function MayaPanel({
     const id = e.dataTransfer.getData('tid');
     if (!id) { clearCardIndicator(); return; }
     const draggedTask = tasks.find(t => t.id === id);
-    if (!draggedTask || draggedTask.priority !== 'maya') { clearCardIndicator(); return; }
+    if (!draggedTask || draggedTask.priority !== 'ai') { clearCardIndicator(); return; }
     const hoveredCard = dragOverCardRef.current;
     clearCardIndicator();
     const directCard = e.target.closest('[data-taskid]');
     const targetCard = directCard || hoveredCard;
     const draggedStars = draggedTask.mayaPts ?? 1;
-    const zoneList = mayaTasks.filter(t => t.id !== id);
-    setSortPts('desc'); setSortDur('desc'); setSortGrp('desc'); // reset sort state after manual drag
+    const zoneList = aiTasks.filter(t => t.id !== id);
+    setSortPts('desc'); setSortDur('desc'); setSortGrp('desc');
     if (targetCard && targetCard.dataset.taskid !== id) {
       const rect = targetCard.getBoundingClientRect();
       const before = e.clientY < rect.top + rect.height / 2;
@@ -171,7 +167,6 @@ export default function MayaPanel({
           const prevStars = zoneList[insertAt - 1]?.mayaPts ?? 1;
           const nextStars = zoneList[insertAt]?.mayaPts ?? 1;
           if (prevStars === nextStars && prevStars !== draggedStars) {
-            // Sandwiched between same-star group — adopt that star rating
             updateTask(id, { mayaPts: prevStars });
             doMove(id, insertAt, zoneList);
           } else {
@@ -194,18 +189,18 @@ export default function MayaPanel({
         <div className={styles.qaRow}>
           <input
             ref={inputRef}
-            className={`${styles.qaInput} ${mStyles.mayaInput}`}
+            className={`${styles.qaInput} ${aStyles.aiInput}`}
             value={inputVal}
             onChange={e => setInputVal(applyEmDash(e.target.value))}
             onKeyDown={e => { if (e.key === 'Enter') handleAdd(); }}
           />
-          <button className={`${styles.qaBtn} ${mStyles.mayaBtn}`} onClick={handleAdd}>+</button>
+          <button className={`${styles.qaBtn} ${aStyles.aiBtn}`} onClick={handleAdd}>+</button>
         </div>
         <div className={dStyles.toolbar} style={{ marginTop: '6px' }}>
           <div className={dStyles.toolGroup}>
-            <button className={dStyles.sortBtn} title="Sort by points" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'pts', sortPts, 'maya'); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
-            <button className={dStyles.sortBtn} title="Sort by duration" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'dur', sortDur, 'maya'); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
-            <button className={dStyles.sortBtn} title="Sort by star group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'mgrp', sortGrp, 'maya'); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by points" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'pts', sortPts, 'ai'); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by duration" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'dur', sortDur, 'ai'); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by star group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'mgrp', sortGrp, 'ai'); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
           </div>
         </div>
       </div>
@@ -215,7 +210,7 @@ export default function MayaPanel({
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
       >
-        {mayaTasks.length ? displayMaya.map(t => (
+        {aiTasks.length ? displayAi.map(t => (
           <TaskCard
             key={t.id}
             task={t}
@@ -231,7 +226,7 @@ export default function MayaPanel({
             showDateChip={true}
             onBump={handleBump}
           />
-        )) : <div className={styles.empty}>no maya tasks yet</div>}
+        )) : <div className={styles.empty}>no ai tasks yet</div>}
       </div>
       {assignPopup && (
         <AssignPopup

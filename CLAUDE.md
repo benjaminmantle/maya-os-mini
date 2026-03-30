@@ -184,14 +184,17 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 ### Tasks-only import is additive, not replacing
 `importTasks` merges into `S.tasks` — never wipes. `importData` (full backup) does a full replace. Keep these behaviors distinct.
 
-### Maya task done state — single source of truth
-`task.done` (boolean on the task object itself) is the completion flag for maya tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `t.priority === 'maya' ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive maya completion from cIds alone.
+### AI tasks — same model as Maya tasks
+AI tasks (`priority: 'ai'`) follow the exact same patterns as maya tasks: `task.done` for completion, star rating via `mayaPts`, `markSpecialDone()` for completion, unschedule-not-delete in DayView, immune to priority paint tool, excluded from backlog, carry-forward uses `task.done`. Color: `--pri-ai` (blue, `#4488ff`). AIPanel is in `src/components/sidebar/AIPanel.jsx`. `isSpecialPriority(p)` in `taskPlacement.js` returns true for both `'maya'` and `'ai'`.
 
-### markMayaDone — auto-schedules for scoring
-`markMayaDone(taskId, done)` auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya task. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya completion.
+### Special-priority task done state — single source of truth
+`task.done` (boolean on the task object itself) is the completion flag for maya and ai tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `(t.priority === 'maya' || t.priority === 'ai') ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive special-priority completion from cIds alone.
 
-### Maya tasks in DayView — unschedule, don't delete
-Delete action for maya tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
+### markSpecialDone — auto-schedules for scoring
+`markSpecialDone(taskId, done)` (was `markMayaDone`) auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya/ai task. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya/ai completion.
+
+### Maya/AI tasks in DayView — unschedule, don't delete
+Delete action for maya/ai tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
 
 ### Maya drag to DayView — calls doMove for initial placement
 `makeDrop('day')` calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToZoneByRank(0, zone, taskRank(task))` to position at TOP of the correct rank group. The old "skip doMove" pattern is gone — `doMove` IS called now.

@@ -153,16 +153,32 @@
 .priMaya:hover { background: rgba(191,95,255,.10); border-color: rgba(191,95,255,.40); }
 .priMaya:hover::before { background: transparent; box-shadow: none; }
 
+.priAi { background: rgba(68,136,255,.05); border-color: rgba(68,136,255,.22); }
+.priAi::before { background: transparent; box-shadow: none; }
+.priAi:hover { background: rgba(68,136,255,.10); border-color: rgba(68,136,255,.40); }
+.priAi:hover::before { background: transparent; box-shadow: none; }
+
 /* Maya task stars */
 .mayaRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
 .mayaStars { display: flex; gap: 0; }
 .mayaStar { font-size: 15px; color: var(--b2); line-height: 1; transition: color var(--tr); padding: 2px 3px; }
 .mayaStarOn { color: var(--pri-maya); }
+.aiStarOn { color: var(--pri-ai); }
 .mayaDateChip {
   font-size: 9px;
   color: var(--pri-maya);
   background: rgba(191,95,255,.10);
   border: 1px solid rgba(191,95,255,.22);
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-family: var(--fm);
+  letter-spacing: .5px;
+}
+.aiDateChip {
+  font-size: 9px;
+  color: var(--pri-ai);
+  background: rgba(68,136,255,.10);
+  border: 1px solid rgba(68,136,255,.22);
   border-radius: 2px;
   padding: 1px 5px;
   font-family: var(--fm);
@@ -281,6 +297,19 @@
 :global(html.theme-vanilla) .priMaya:hover::before,
 :global(html.theme-white) .priMaya:hover::before { background: transparent; box-shadow: none; }
 
+:global(html.theme-light) .priAi,
+:global(html.theme-vanilla) .priAi,
+:global(html.theme-white) .priAi { background: rgba(68,136,255,.08); border-color: rgba(68,136,255,.32); }
+:global(html.theme-light) .priAi:hover,
+:global(html.theme-vanilla) .priAi:hover,
+:global(html.theme-white) .priAi:hover { background: rgba(68,136,255,.14); border-color: rgba(68,136,255,.52); }
+:global(html.theme-light) .priAi::before,
+:global(html.theme-vanilla) .priAi::before,
+:global(html.theme-white) .priAi::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priAi:hover::before,
+:global(html.theme-vanilla) .priAi:hover::before,
+:global(html.theme-white) .priAi:hover::before { background: transparent; box-shadow: none; }
+
 /* Frog card: darker green values, subtle bg tint */
 :global(html.theme-light) .isFrog,
 :global(html.theme-vanilla) .isFrog,
@@ -360,6 +389,12 @@
 :global(html.theme-kraft) .priMaya:hover { background: rgba(102,0,204,.20); border-color: rgba(102,0,204,.70); }
 :global(html.theme-kraft) .priMaya::before { background: var(--pur); box-shadow: 0 0 7px rgba(102,0,204,.48); }
 :global(html.theme-kraft) .priMaya:hover::before { box-shadow: 0 0 14px rgba(102,0,204,.62); }
+
+/* kraft ai: --pri-ai is #2266cc on kraft */
+:global(html.theme-kraft) .priAi { background: rgba(34,102,204,.13); border-color: rgba(34,102,204,.50); }
+:global(html.theme-kraft) .priAi:hover { background: rgba(34,102,204,.20); border-color: rgba(34,102,204,.70); }
+:global(html.theme-kraft) .priAi::before { background: var(--pri-ai); box-shadow: 0 0 7px rgba(34,102,204,.48); }
+:global(html.theme-kraft) .priAi:hover::before { box-shadow: 0 0 14px rgba(34,102,204,.62); }
 
 :global(html.theme-kraft) .isFrog { background: rgba(26,152,80,.12); border-color: rgba(26,152,80,.62); }
 :global(html.theme-kraft) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(26,152,80,.50); }

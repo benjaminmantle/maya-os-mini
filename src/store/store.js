@@ -156,10 +156,10 @@ export function markTaskComplete(taskId, date, done) {
   save();
 }
 
-// Maya tasks use task.done as the single done flag. This keeps cIds in sync
-// so scoring counts the points. Unscheduled tasks get auto-assigned to today
-// so scoreDay's scheduledDate filter can find them.
-export function markMayaDone(taskId, done) {
+// Special-priority tasks (maya, ai) use task.done as the single done flag.
+// This keeps cIds in sync so scoring counts the points. Unscheduled tasks
+// get auto-assigned to today so scoreDay's scheduledDate filter can find them.
+export function markSpecialDone(taskId, done) {
   const task = S.tasks.find(t => t.id === taskId);
   if (!task) return;
   task.done = done;
@@ -196,13 +196,13 @@ export function moveTask(draggedId, targetId, before) {
   save();
 }
 
-// Permanently sort a subset of tasks (by date for day view, or null for backlog/maya).
-// mayaOnly: true = only maya tasks, false (default) = exclude maya tasks (for backlog).
-export function sortTasksForView(date, field, dir, mayaOnly = false) {
+// Permanently sort a subset of tasks (by date for day view, or null for backlog/special).
+// specialPri: 'maya'|'ai' = only that priority; false (default) = backlog (excludes maya+ai).
+export function sortTasksForView(date, field, dir, specialPri = false) {
   const match = date === null
-    ? mayaOnly
-      ? (t) => !t.scheduledDate && t.priority === 'maya'
-      : (t) => !t.scheduledDate && t.priority !== 'maya'
+    ? specialPri
+      ? (t) => !t.scheduledDate && t.priority === specialPri
+      : (t) => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai'
     : (t) => t.scheduledDate === date && !t.isFrog;
   const indices = [];
   const slice = [];
@@ -416,8 +416,8 @@ export function carryForwardTasks(toDate) {
   S.tasks = S.tasks.map(t => {
     if (!t.scheduledDate) return t;
     if (t.scheduledDate >= todayStr) return t;  // only past dates
-    if (t.priority === 'maya') {
-      if (t.done) return t; // maya completion is task.done
+    if (t.priority === 'maya' || t.priority === 'ai') {
+      if (t.done) return t; // special priority completion is task.done
     } else {
       const dayRec = S.days[t.scheduledDate];
       if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
