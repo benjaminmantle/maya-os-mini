@@ -10,22 +10,26 @@ import {
 } from './store/whiteboardStore.js';
 import { setupCanvas } from './core/canvas.js';
 import { zoomAtPoint, pan, screenToWorld, zoomToFit } from './core/camera.js';
-import { TOOL_IDS } from './core/constants.js';
+import { TOOL_IDS, blobId } from './core/constants.js';
 import { selectTool } from './tools/selectTool.js';
 import { createShapeTool } from './tools/shapeTool.js';
 import { createLineTool } from './tools/lineTool.js';
 import { textTool, commitText, editExistingText } from './tools/textTool.js';
 import { hitTest } from './elements/bounds.js';
-import { cloneElement } from './elements/types.js';
+import { cloneElement, createImage } from './elements/types.js';
 import { groupElements, ungroupElements, expandSelectionToGroups } from './elements/groups.js';
 import { undo, redo, clearHistory, pushCommand } from './core/history.js';
 import { downloadPNG } from './core/exportImage.js';
+import { downloadBoardJSON, importBoardFromFile } from './core/exportJSON.js';
+import { saveBlob, loadBlob } from './store/idb.js';
 import * as sketchStyle from './render/styles/sketchStyle.js';
 import * as cleanStyle from './render/styles/cleanStyle.js';
+import { setImageDirtyCallback } from './render/renderer.js';
 import Toolbar from './components/Toolbar.jsx';
 import StyleSwitcher from './components/StyleSwitcher.jsx';
 import ContextMenu from './components/ContextMenu.jsx';
 import KeyboardHelp from './components/KeyboardHelp.jsx';
+import Minimap from './components/Minimap.jsx';
 import s from './WhiteboardApp.module.css';
 
 /* ---- clipboard (module-level) ---- */
@@ -134,6 +138,7 @@ function CanvasView({ board }) {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const panState = useRef({ panning: false, lastX: 0, lastY: 0, spaceDown: false });
+  const fileInputRef = useRef(null);
 
   const [activeTool, setActiveTool] = useState(TOOL_IDS.SELECT);
   const [defaultStroke, setDefaultStroke] = useState('#ddd9d6');
@@ -170,6 +175,7 @@ function CanvasView({ board }) {
     // register style renderers
     engine.renderer.registerStyle('sketch', sketchStyle);
     engine.renderer.registerStyle('clean', cleanStyle);
+    setImageDirtyCallback(() => engine.setDirty());
 
     engine.setGetters({
       elements:    () => getElements(),
@@ -398,6 +404,48 @@ function CanvasView({ board }) {
     setDirty();
   }, [setDirty]);
 
+  /* ---- image paste from clipboard ---- */
+  useEffect(() => {
+    const onPaste = async (e) => {
+      if (textEditor) return; // don't intercept text editor paste
+      const items = e.clipboardData?.items;
+      if (!items) return;
+      for (const item of items) {
+        if (item.type.startsWith('image/')) {
+          e.preventDefault();
+          const blob = item.getAsFile();
+          if (!blob) continue;
+          const arrayBuf = await blob.arrayBuffer();
+          const img = new Image();
+          const url = URL.createObjectURL(blob);
+          img.onload = async () => {
+            const key = blobId();
+            await saveBlob(key, arrayBuf, blob.type, img.width, img.height);
+            // place at viewport center
+            const cam = getCamera();
+            const parent = canvasRef.current?.parentElement;
+            const cx = parent ? parent.clientWidth / 2 : 400;
+            const cy = parent ? parent.clientHeight / 2 : 300;
+            const world = screenToWorld(cx, cy, cam);
+            const w = Math.min(img.width, 600);
+            const h = w * (img.height / img.width);
+            const el = createImage(world.x - w / 2, world.y - h / 2, w, h, key);
+            addElement(el);
+            pushCommand({ type: 'create', elementIds: [el.id], before: [], after: [JSON.parse(JSON.stringify(el))] });
+            setSelection(new Set([el.id]));
+            setActiveTool(TOOL_IDS.SELECT);
+            setDirty();
+            URL.revokeObjectURL(url);
+          };
+          img.src = url;
+          return;
+        }
+      }
+    };
+    window.addEventListener('paste', onPaste);
+    return () => window.removeEventListener('paste', onPaste);
+  }, [textEditor, setDirty]);
+
   /* ---- keyboard shortcuts ---- */
   useEffect(() => {
     const onKeyDown = (e) => {
@@ -578,6 +626,25 @@ function CanvasView({ board }) {
       <BoardTitle name={board.name} boardId={board.id} />
       <div className={s.zoomBadge}>{zoom}%</div>
 
+      <Minimap
+        elements={board.elements}
+        camera={board.camera || { x: 0, y: 0, zoom: 1 }}
+        canvasW={canvasRef.current?.parentElement?.clientWidth || 800}
+        canvasH={canvasRef.current?.parentElement?.clientHeight || 600}
+        onNavigate={(wx, wy) => {
+          const parent = canvasRef.current?.parentElement;
+          if (!parent) return;
+          const cam = getCamera();
+          // center the clicked world point in the viewport
+          setCamera({
+            x: parent.clientWidth / 2 - wx * cam.zoom,
+            y: parent.clientHeight / 2 - wy * cam.zoom,
+            zoom: cam.zoom,
+          });
+          setDirty();
+        }}
+      />
+
       <Toolbar
         activeTool={activeTool}
         setActiveTool={setActiveTool}
@@ -672,8 +739,26 @@ function CanvasView({ board }) {
             const els = getElements();
             if (els.length) downloadPNG(els, renderStyle, `${board.name || 'cosmicanvas'}.png`);
           }}
+          onExportJSON={() => downloadBoardJSON(`${board.name || 'cosmicanvas'}.json`)}
+          onImportJSON={() => fileInputRef.current?.click()}
         />
       )}
+
+      {/* Hidden file input for JSON import */}
+      <input
+        ref={fileInputRef}
+        type="file"
+        accept=".json"
+        style={{ display: 'none' }}
+        onChange={async (e) => {
+          const file = e.target.files?.[0];
+          if (file) {
+            await importBoardFromFile(file);
+            setDirty();
+          }
+          e.target.value = '';
+        }}
+      />
     </div>
   );
 }

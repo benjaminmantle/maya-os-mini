@@ -2,6 +2,34 @@
 
 import { screenToWorld } from '../core/camera.js';
 import { getBounds } from '../elements/bounds.js';
+import { loadBlob } from '../store/idb.js';
+
+/* ---- Image bitmap cache ---- */
+const _imgCache = new Map(); // blobKey → ImageBitmap | 'loading' | null
+let _dirtyCallback = null;
+
+export function setImageDirtyCallback(fn) { _dirtyCallback = fn; }
+
+async function _ensureImage(blobKey) {
+  if (!blobKey || _imgCache.has(blobKey)) return;
+  _imgCache.set(blobKey, 'loading');
+  try {
+    const rec = await loadBlob(blobKey);
+    if (!rec) { _imgCache.set(blobKey, null); return; }
+    const blob = new Blob([rec.data], { type: rec.mimeType });
+    const bmp = await createImageBitmap(blob);
+    _imgCache.set(blobKey, bmp);
+    if (_dirtyCallback) _dirtyCallback(); // trigger re-render
+  } catch { _imgCache.set(blobKey, null); }
+}
+
+export function getImageBitmap(blobKey) {
+  if (!blobKey) return null;
+  const cached = _imgCache.get(blobKey);
+  if (cached === undefined) { _ensureImage(blobKey); return null; }
+  if (cached === 'loading' || cached === null) return null;
+  return cached;
+}
 
 /** Phase 1 stub: draws elements as simple colored rects */
 function stubRender(ctx, el) {
@@ -37,6 +65,9 @@ export function createRenderer(canvas) {
     // viewport in world coords for culling
     const tl = screenToWorld(0, 0, camera);
     const br = screenToWorld(w, h, camera);
+
+    // dot grid background (draws in world space, moves with camera)
+    _drawDotGrid(ctx, tl, br, camera);
     const viewRect = { x: tl.x, y: tl.y, width: br.x - tl.x, height: br.y - tl.y };
 
     // cull — use spatial index if available, fall back to all elements
@@ -157,6 +188,26 @@ function _handlePositions(b, pad) {
     [x, y + h],         // SW
     [x, y + h / 2],     // W
   ];
+}
+
+function _drawDotGrid(ctx, tl, br, camera) {
+  // adaptive grid spacing: 20px at zoom 1, scales to stay usable
+  let spacing = 20;
+  if (camera.zoom < 0.4) spacing = 60;
+  else if (camera.zoom < 0.8) spacing = 40;
+  else if (camera.zoom > 3) spacing = 10;
+
+  const dotSize = Math.max(0.5, 1 / camera.zoom);
+  ctx.fillStyle = 'rgba(255,255,255,0.08)';
+
+  const startX = Math.floor(tl.x / spacing) * spacing;
+  const startY = Math.floor(tl.y / spacing) * spacing;
+
+  for (let x = startX; x <= br.x; x += spacing) {
+    for (let y = startY; y <= br.y; y += spacing) {
+      ctx.fillRect(x - dotSize / 2, y - dotSize / 2, dotSize, dotSize);
+    }
+  }
 }
 
 export { _handlePositions as getHandlePositions };

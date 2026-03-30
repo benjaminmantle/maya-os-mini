@@ -1,4 +1,5 @@
 /* Clean style — pure Canvas 2D geometric renderer */
+import { getImageBitmap } from '../renderer.js';
 
 export function renderElement(ctx, el, isSelected, isHovered) {
   ctx.save();
@@ -129,6 +130,11 @@ function _drawText(ctx, el) {
 }
 
 function _drawImagePlaceholder(ctx, el) {
+  const bmp = getImageBitmap(el.blobKey);
+  if (bmp) {
+    ctx.drawImage(bmp, 0, 0, el.width || bmp.width, el.height || bmp.height);
+    return;
+  }
   ctx.strokeStyle = '#666';
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
@@ -138,7 +144,7 @@ function _drawImagePlaceholder(ctx, el) {
   ctx.font = '14px Rajdhani, sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Image', (el.width || 100) / 2, (el.height || 100) / 2);
+  ctx.fillText('Loading...', (el.width || 100) / 2, (el.height || 100) / 2);
 }
 
 export function getName() { return 'Clean'; }

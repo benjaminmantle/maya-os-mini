@@ -1,6 +1,7 @@
 /* Sketch style — roughjs hand-drawn renderer */
 
 import rough from 'roughjs';
+import { getImageBitmap } from '../renderer.js';
 
 let _roughCanvas = null;
 let _canvasEl = null;
@@ -169,6 +170,12 @@ function _renderText(ctx, el) {
 }
 
 function _renderImagePlaceholder(ctx, el) {
+  const bmp = getImageBitmap(el.blobKey);
+  if (bmp) {
+    ctx.drawImage(bmp, 0, 0, el.width || bmp.width, el.height || bmp.height);
+    return;
+  }
+  // fallback placeholder while loading
   ctx.strokeStyle = '#666';
   ctx.lineWidth = 1;
   ctx.setLineDash([4, 4]);
@@ -178,7 +185,7 @@ function _renderImagePlaceholder(ctx, el) {
   ctx.font = '14px sans-serif';
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  ctx.fillText('Image', (el.width || 100) / 2, (el.height || 100) / 2);
+  ctx.fillText('Loading...', (el.width || 100) / 2, (el.height || 100) / 2);
 }
 
 export function getName() { return 'Sketch'; }

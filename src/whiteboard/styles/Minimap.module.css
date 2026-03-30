@@ -1,0 +1,22 @@
+.minimap {
+  position: absolute;
+  bottom: 12px;
+  left: 10px;
+  z-index: 150;
+  background: var(--s2);
+  border: 1px solid var(--b1);
+  border-radius: 6px;
+  padding: 4px;
+  opacity: 0.7;
+  transition: opacity 0.15s;
+}
+
+.minimap:hover {
+  opacity: 1;
+}
+
+.canvas {
+  display: block;
+  border-radius: 3px;
+  cursor: pointer;
+}
