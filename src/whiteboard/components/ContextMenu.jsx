@@ -7,7 +7,7 @@ export default function ContextMenu({
   onStyleChange, onArrange, onGroup, onUngroup, canUngroup,
   onDuplicate, onCopy, onPaste, canPaste, onDelete,
   onSelectAll, onZoomToFit, onExportSelection, onExportBoard,
-  onExportJSON, onImportJSON,
+  onExportSVG, onExportJSON, onImportJSON,
 }) {
   const [colorPicker, setColorPicker] = useState(null); // { x, y, prop, value }
   const menuRef = useRef(null);
@@ -114,6 +114,7 @@ export default function ContextMenu({
             <Item label="Zoom to Fit" shortcut="Ctrl+0" onClick={onZoomToFit} />
             <div className={s.sep} />
             <Item label="Export Board as PNG" onClick={onExportBoard} />
+            <Item label="Export Board as SVG" onClick={onExportSVG} />
             <Item label="Save Board as JSON" onClick={onExportJSON} />
             <Item label="Import from JSON..." onClick={onImportJSON} />
           </>

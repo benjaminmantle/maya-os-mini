@@ -42,6 +42,7 @@ const SHORTCUTS = [
     ['Shift (lines)', 'Snap to 45\u00b0'],
     ['Ctrl+Shift+E', 'Export as PNG'],
     ['Right-click', 'Context menu'],
+    ['G', 'Toggle snap to grid'],
     ['?', 'This help'],
   ]],
 ];

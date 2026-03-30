@@ -21,6 +21,7 @@ import { groupElements, ungroupElements, expandSelectionToGroups } from './eleme
 import { undo, redo, clearHistory, pushCommand } from './core/history.js';
 import { downloadPNG } from './core/exportImage.js';
 import { downloadBoardJSON, importBoardFromFile } from './core/exportJSON.js';
+import { downloadSVG } from './core/exportSVG.js';
 import { saveBlob, loadBlob } from './store/idb.js';
 import * as sketchStyle from './render/styles/sketchStyle.js';
 import * as cleanStyle from './render/styles/cleanStyle.js';
@@ -151,6 +152,7 @@ function CanvasView({ board }) {
   const [textEditor, setTextEditor] = useState(null);
   const [contextMenu, setContextMenu] = useState(null); // { x, y, elementIds }
   const [showHelp, setShowHelp] = useState(false);
+  const [snapEnabled, setSnapEnabled] = useState(false);
 
   // mutable refs for the render loop getters
   const selRef = useRef(selection);
@@ -209,12 +211,13 @@ function CanvasView({ board }) {
     defaultStroke,
     defaultFill,
     defaultStrokeWidth,
+    snapEnabled,
     setDirty,
     setGhost,
     setMarquee,
     setActiveTool,
     openTextEditor: setTextEditor,
-  }), [selection, setDirty, defaultStroke, defaultFill, defaultStrokeWidth]);
+  }), [selection, setDirty, defaultStroke, defaultFill, defaultStrokeWidth, snapEnabled]);
 
   /* ---- zoom (scroll wheel) ---- */
   const handleWheel = useCallback((e) => {
@@ -530,6 +533,9 @@ function CanvasView({ board }) {
         if (e.key === ']') { bringForward([...selection]); setDirty(); return; }
         if (e.key === '[') { sendBackward([...selection]); setDirty(); return; }
 
+        // snap toggle
+        if (e.key === 'g') { setSnapEnabled(s => !s); return; }
+
         // help
         if (e.key === '?') { setShowHelp(h => !h); return; }
       }
@@ -624,7 +630,11 @@ function CanvasView({ board }) {
 
       <button className={s.backBtn} onClick={handleBack}>←</button>
       <BoardTitle name={board.name} boardId={board.id} />
-      <div className={s.zoomBadge}>{zoom}%</div>
+      <div className={s.zoomBadge}>
+        {zoom}%
+        {snapEnabled && <span className={s.snapBadge}>SNAP</span>}
+        <span className={s.elCount}>{board.elements?.length || 0} el</span>
+      </div>
 
       <Minimap
         elements={board.elements}
@@ -738,6 +748,10 @@ function CanvasView({ board }) {
           onExportBoard={() => {
             const els = getElements();
             if (els.length) downloadPNG(els, renderStyle, `${board.name || 'cosmicanvas'}.png`);
+          }}
+          onExportSVG={() => {
+            const els = getElements();
+            if (els.length) downloadSVG(els, `${board.name || 'cosmicanvas'}.svg`);
           }}
           onExportJSON={() => downloadBoardJSON(`${board.name || 'cosmicanvas'}.json`)}
           onImportJSON={() => fileInputRef.current?.click()}

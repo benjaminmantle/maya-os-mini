@@ -3,6 +3,7 @@
 import { hitTest, hitTestHandle, getBounds, containedInRect } from '../elements/bounds.js';
 import { screenToWorld } from '../core/camera.js';
 import { pushCommand } from '../core/history.js';
+import { snapToGrid } from '../core/snap.js';
 
 /** Resize snapshot uses getBounds so handles align with what user sees */
 function _resizeSnapshot(el) {
@@ -87,9 +88,14 @@ export const selectTool = {
     const w = screenToWorld(sx, sy, camera);
 
     if (mode === 'dragging' && dragStart && dragSnap) {
-      const dx = w.x - dragStart.x;
-      const dy = w.y - dragStart.y;
-      // Use dragSnap IDs (not selection) to avoid stale React closure
+      let dx = w.x - dragStart.x;
+      let dy = w.y - dragStart.y;
+      // Snap: round the first element's target position to grid, derive delta
+      if (ctx.snapEnabled && dragSnap.length > 0) {
+        const first = dragSnap[0].before;
+        dx = snapToGrid(first.x + dx) - first.x;
+        dy = snapToGrid(first.y + dy) - first.y;
+      }
       const patches = dragSnap.map(snap => ({
         id: snap.id,
         x: snap.before.x + dx,

@@ -185,6 +185,23 @@
   pointer-events: none;
 }
 
+.elCount {
+  margin-left: 6px;
+  opacity: 0.5;
+}
+
+.snapBadge {
+  display: inline-block;
+  margin-left: 6px;
+  padding: 0 4px;
+  background: rgba(68, 136, 255, 0.2);
+  color: var(--blu);
+  border-radius: 2px;
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
 /* ---- text editing overlay ---- */
 
 .textOverlay {

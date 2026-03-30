@@ -77,6 +77,22 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
+### CosmiCanvas Phase 4 Features (2026-03-29)
+
+**JSON export/import**: Save Board as JSON (elements + camera + style), Import from JSON (additive with fresh IDs). Both accessible from right-click context menu.
+
+**SVG export**: Export Board as SVG via right-click context menu. Clean vector output with proper shapes, polylines, text, and arrowheads.
+
+**Dot grid background**: Subtle dot pattern in world space, adaptive spacing by zoom level. Provides spatial reference.
+
+**Minimap**: 160×100 overview in bottom-left corner. Grey element rectangles + blue viewport frame. Click to navigate. Fades to 70% opacity.
+
+**Image paste**: Ctrl+V with clipboard image creates image element at viewport center. Blob stored in IndexedDB. Async bitmap loading with cache. Renders actual image once loaded.
+
+**Snap to grid**: Toggle with G key. Shapes and moved elements snap to 20px grid. SNAP badge in status bar.
+
+**Element count**: Status bar shows element count.
+
 ### CosmiCanvas Bug Fixes + Polish (2026-03-29)
 
 **Critical fixes**: Roughjs drawables now render at origin with `ctx.translate` for positioning — cache is position-independent, no more shaking/jittering on any element type. Select tool drag uses `dragSnap` IDs instead of stale React `selection` closure. Resize handler scales points proportionally for lines/arrows/freehand. Export uses fresh roughjs instance (no cache pollution). Selection boxes use `getBounds()` for all element types.

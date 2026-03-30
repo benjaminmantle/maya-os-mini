@@ -4,6 +4,7 @@ import { createRectangle, createEllipse } from '../elements/types.js';
 import { screenToWorld } from '../core/camera.js';
 import { pushCommand } from '../core/history.js';
 import { TOOL_IDS } from '../core/constants.js';
+import { snapPoint } from '../core/snap.js';
 
 let startWorld = null;
 let ghost = null;
@@ -18,6 +19,7 @@ export function createShapeTool(shapeType) {
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
       startWorld = screenToWorld(sx, sy, camera);
+      if (ctx.snapEnabled) startWorld = snapPoint(startWorld.x, startWorld.y);
 
       const factory = shapeType === TOOL_IDS.ELLIPSE ? createEllipse : createRectangle;
       ghost = factory(startWorld.x, startWorld.y, 0, 0, {
@@ -35,7 +37,8 @@ export function createShapeTool(shapeType) {
       const rect = canvasEl.getBoundingClientRect();
       const sx = e.clientX - rect.left;
       const sy = e.clientY - rect.top;
-      const w = screenToWorld(sx, sy, camera);
+      let w = screenToWorld(sx, sy, camera);
+      if (ctx.snapEnabled) w = snapPoint(w.x, w.y);
 
       let x = startWorld.x, y = startWorld.y;
       let width = w.x - startWorld.x;
