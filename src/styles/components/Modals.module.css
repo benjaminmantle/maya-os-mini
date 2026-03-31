@@ -204,5 +204,6 @@
 
 /* Context menu extras */
 .ctxSep { height: 1px; background: var(--b2); margin: 3px 5px; }
+.ctxCustom { padding: 4px 10px; }
 .ctxItemActive { color: var(--text); }
 .ctxItemActive::after { content: ' ✓'; color: var(--gold); font-size: 11px; }

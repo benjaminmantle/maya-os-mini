@@ -34,6 +34,7 @@ export default function ContextMenu({ visible, x, y, items, onClose }) {
     >
       {items.map((item, i) => {
         if (item.separator) return <div key={i} className={styles.ctxSep} />;
+        if (item.render) return <div key={i} className={styles.ctxCustom}>{item.render(onClose)}</div>;
         return (
           <button
             key={i}
@@ -43,7 +44,7 @@ export default function ContextMenu({ visible, x, y, items, onClose }) {
               item.danger ? styles.ctxItemDanger : '',
               item.active ? styles.ctxItemActive : '',
             ].filter(Boolean).join(' ')}
-            onClick={() => { item.action(); onClose(); }}
+            onClick={() => { item.action(); if (!item.noClose) onClose(); }}
           >
             {item.label}
           </button>

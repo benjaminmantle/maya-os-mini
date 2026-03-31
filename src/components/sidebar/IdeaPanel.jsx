@@ -5,28 +5,15 @@ import dStyles from '../../styles/components/DayView.module.css';
 import TaskCard from '../task/TaskCard.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView, getIdeaTopics, addIdeaTopic, editIdeaTopic, deleteIdeaTopic, setIdeaTopicColor } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
-import { applyEmDash } from '../../utils/parsing.js';
-import { doMove, insertAtForStars } from '../../utils/taskPlacement.js';
+import { applyEmDash, parseIdeaInput } from '../../utils/parsing.js';
+import { doMove, insertAtForStars, snapToStarZone, insertTopOfStarGroup } from '../../utils/taskPlacement.js';
 
-const TOPIC_COLORS = ['gold', 'hot', 'ora', 'yel', 'grn', 'tel', 'blu', 'pur', 'pnk', 'ind', 'slv', 'brn'];
-
-function snapToStarZone(insertAt, zoneList, stars) {
-  let lo = 0, hi = zoneList.length;
-  for (let i = 0; i < zoneList.length; i++) {
-    const r = zoneList[i].mayaPts ?? 1;
-    if (r > stars) lo = i + 1;
-    if (r < stars && hi === zoneList.length) hi = i;
-  }
-  return Math.min(Math.max(insertAt, lo), hi);
-}
-
-function insertTopOfStarGroup(stars, zoneList) {
-  let lo = 0;
-  for (let i = 0; i < zoneList.length; i++) {
-    if ((zoneList[i].mayaPts ?? 1) > stars) lo = i + 1;
-  }
-  return lo;
-}
+// Row 1 L→R: red → warm pinks → purple  |  Row 2 reversed (snake R←L): indigo → blues → greens → lime  |  Row 3 L→R: yellow → orange → warm neutrals
+const TOPIC_COLORS = [
+  'red','hot','crl','pnk','lpnk','mgn','pri-maya','pur',     // row 1 →
+  'lim','lgrn','grn','pri-idea','tel','blu','pri-ai','ind',  // row 2 ← (reversed so snake: pur→ind→…→lim→yel)
+  'yel','gold','pri-md','ora','ora2','brn','gry','slv',      // row 3 →
+];
 
 export default function IdeaPanel({
   tasks,
@@ -86,21 +73,23 @@ export default function IdeaPanel({
   function handleAdd() {
     const raw = inputVal.trim();
     if (!raw) return;
+    const p = parseIdeaInput(raw);
+    const stars = p.stars ?? 1;
     const topic = resolveTopicOnSubmit();
     const newId = uid();
     saveTask({
       id: newId,
-      name: raw,
+      name: p.name,
       pts: 1,
       timeEstimate: null,
       isFrog: false,
       priority: 'idea',
-      mayaPts: 1,
+      mayaPts: stars,
       scheduledDate: null,
       createdAt: new Date().toISOString(),
       topic: topic || null,
     });
-    doMove(newId, insertTopOfStarGroup(1, ideaTasks), ideaTasks);
+    doMove(newId, insertTopOfStarGroup(stars, ideaTasks), ideaTasks);
     setInputVal('');
     setTopicInput('');
     setSelectedTopic(null);
@@ -434,6 +423,7 @@ export default function IdeaPanel({
           <div className={iStyles.filterRow}>
             <span
               className={`${iStyles.filterChip} ${!filterTopic ? iStyles.filterChipActive : ''}`}
+              style={{ textTransform: 'uppercase', letterSpacing: '.5px' }}
               onClick={() => setFilterTopic(null)}
             >All</span>
             {usedTopicNames.map(name => {
@@ -442,8 +432,15 @@ export default function IdeaPanel({
               return (
                 <span
                   key={name}
-                  className={`${iStyles.filterChip} ${active ? iStyles.filterChipActive : ''}`}
-                  style={active ? chipStyle(c) : { color: `var(--${c})` }}
+                  className={iStyles.filterChip}
+                  style={{
+                    background: `color-mix(in srgb, var(--${c}) 72%, #000)`,
+                    color: '#fff',
+                    border: 'none',
+                    opacity: active ? 1 : 0.55,
+                    outline: active ? '2px solid rgba(255,255,255,.4)' : 'none',
+                    outlineOffset: 1,
+                  }}
                   onClick={() => setFilterTopic(active ? null : name)}
                 >{name}</span>
               );

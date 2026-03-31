@@ -6,11 +6,7 @@ import AssignPopup from '../task/AssignPopup.jsx';
 import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
 import { parseInput, applyEmDash } from '../../utils/parsing.js';
-import { priRank, snapToZone, insertAtForPri, insertTopOfGroup, doMove } from '../../utils/taskPlacement.js';
-
-const PRI_ORDER = ['hi', 'md', 'lo'];
-const PRI_COLORS = { hi: 'var(--hot)', md: 'var(--pri-md)', lo: 'var(--tel)' };
-const PRI_LABELS = { hi: 'Hi', md: 'Med', lo: 'Lo' };
+import { starRank, snapToStarZone, insertTopOfStarGroup, insertAtForStars, doMove } from '../../utils/taskPlacement.js';
 
 export default function BacklogPanel({
   tasks,
@@ -22,14 +18,14 @@ export default function BacklogPanel({
 }) {
   const [inputVal, setInputVal] = useState('');
   const [assignPopup, setAssignPopup] = useState(null);
-  const [activePriColor, setActivePriColor] = useState(null);
   const [sortPts, setSortPts] = useState('desc');
   const [sortDur, setSortDur] = useState('desc');
   const [sortGrp, setSortGrp] = useState('desc');
+  const [sortProj, setSortProj] = useState('desc');
   const inputRef = useRef(null);
   const dragOverCardRef = useRef(null);
 
-  const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai' && t.priority !== 'idea');
+  const backlog = tasks.filter(t => !t.scheduledDate && t.priority !== 'idea' && !t.project);
   const bq = inputVal.trim().toLowerCase();
   const displayBacklog = bq ? backlog.filter(t => t.name.toLowerCase().includes(bq)) : backlog;
 
@@ -45,6 +41,7 @@ export default function BacklogPanel({
     const raw = inputVal.trim();
     if (!raw) return;
     const p = parseInput(raw);
+    const stars = p.stars ?? 1;
     const newId = uid();
     saveTask({
       id: newId,
@@ -52,11 +49,12 @@ export default function BacklogPanel({
       pts: p.pts,
       timeEstimate: p.time || null,
       isFrog: p.isFrog,
-      priority: p.priority || null,
+      priority: null,
+      mayaPts: stars,
       scheduledDate: null,
       createdAt: new Date().toISOString(),
     });
-    doMove(newId, insertTopOfGroup(p.priority || null, backlog), backlog);
+    doMove(newId, insertTopOfStarGroup(stars, backlog), backlog);
     setInputVal('');
   }
 
@@ -64,6 +62,12 @@ export default function BacklogPanel({
     const rect = e.currentTarget.getBoundingClientRect();
     const t = tasks.find(x => x.id === taskId);
     setAssignPopup({ taskId, currentDate: t?.scheduledDate || null, x: rect.left, y: rect.bottom + 4 });
+  }
+
+  function handleStarChange(taskId, n) {
+    updateTask(taskId, { mayaPts: n });
+    const zone = backlog.filter(t => t.id !== taskId);
+    doMove(taskId, insertAtForStars(n, zone), zone);
   }
 
   function handleDragOver(e) {
@@ -112,9 +116,9 @@ export default function BacklogPanel({
     const directCard = e.target.closest('[data-taskid]');
     const targetCard = directCard || hoveredCard;
     const draggedTask = tasks.find(t => t.id === id);
-    if (!draggedTask || draggedTask.priority === 'maya' || draggedTask.priority === 'ai' || draggedTask.priority === 'idea') return;
+    if (!draggedTask || draggedTask.priority === 'idea') return;
     const needsZoneChange = draggedTask && !!draggedTask.scheduledDate;
-    const draggedPri = draggedTask?.priority ?? null;
+    const draggedStars = draggedTask?.mayaPts ?? 1;
     const zoneList = backlog.filter(t => t.id !== id);
     if (targetCard && targetCard.dataset.taskid !== id) {
       const rect = targetCard.getBoundingClientRect();
@@ -122,20 +126,20 @@ export default function BacklogPanel({
       const targetIdx = zoneList.findIndex(t => t.id === targetCard.dataset.taskid);
       if (targetIdx !== -1) {
         let insertAt = before ? targetIdx : targetIdx + 1;
+        // Sandwiching: if between same star group, adopt those stars
         if (insertAt > 0 && insertAt < zoneList.length) {
-          const prevPri = zoneList[insertAt - 1]?.priority ?? null;
-          const nextPri = zoneList[insertAt]?.priority ?? null;
-          if (prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && draggedPri !== 'maya') {
-            // Sandwiched: recolor if same non-null color on both sides, decolor if both null; maya immune
-            const patch = { priority: prevPri };
+          const prevStars = zoneList[insertAt - 1]?.mayaPts ?? 1;
+          const nextStars = zoneList[insertAt]?.mayaPts ?? 1;
+          if (prevStars === nextStars && prevStars !== draggedStars) {
+            const patch = { mayaPts: prevStars };
             if (needsZoneChange) { patch.scheduledDate = null; patch.isFrog = false; }
             updateTask(id, patch);
           } else {
-            insertAt = snapToZone(insertAt, zoneList, draggedPri);
+            insertAt = snapToStarZone(insertAt, zoneList, draggedStars);
             if (needsZoneChange) updateTask(id, { scheduledDate: null, isFrog: false });
           }
         } else {
-          insertAt = snapToZone(insertAt, zoneList, draggedPri);
+          insertAt = snapToStarZone(insertAt, zoneList, draggedStars);
           if (needsZoneChange) updateTask(id, { scheduledDate: null, isFrog: false });
         }
         doMove(id, insertAt, zoneList);
@@ -148,23 +152,13 @@ export default function BacklogPanel({
     }
   }
 
-  function handlePriBtn(color) {
-    setActivePriColor(prev => prev === color ? null : color);
-  }
-
-  function handlePriorityChange(taskId, newPri) {
-    updateTask(taskId, { priority: newPri });
-    const zone = backlog.filter(t => t.id !== taskId);
-    doMove(taskId, insertAtForPri(newPri, zone), zone);
-  }
-
   function handleBump(taskId, dir) {
     const idx = backlog.findIndex(t => t.id === taskId);
     if (idx === -1) return;
-    const rank = priRank(backlog[idx].priority);
+    const rank = starRank(backlog[idx]);
     let lo = 0, hi = backlog.length;
     for (let i = 0; i < backlog.length; i++) {
-      const r = priRank(backlog[i].priority);
+      const r = starRank(backlog[i]);
       if (r < rank) lo = i + 1;
       if (r > rank && hi === backlog.length) hi = i;
     }
@@ -178,11 +172,8 @@ export default function BacklogPanel({
   }
 
   return (
-    <div
-      className={`${styles.stabPanel} ${styles.stabPanelActive}`}
-      onClick={() => activePriColor && setActivePriColor(null)}
-    >
-      <div className={styles.panelAdd} onClick={e => e.stopPropagation()}>
+    <div className={`${styles.stabPanel} ${styles.stabPanelActive}`}>
+      <div className={styles.panelAdd}>
         <div className={styles.qaRow}>
           <input
             ref={inputRef}
@@ -195,29 +186,15 @@ export default function BacklogPanel({
         </div>
         <div className={dStyles.toolbar} style={{ marginTop: '6px' }}>
           <div className={dStyles.toolGroup}>
-            {PRI_ORDER.map(k => (
-              <button
-                key={k}
-                className={`${dStyles.priBtn} ${activePriColor === k ? dStyles.priBtnActive : ''}`}
-                style={{ '--pc': PRI_COLORS[k] }}
-                title={PRI_LABELS[k]}
-                onClick={e => { e.stopPropagation(); handlePriBtn(k); }}
-              >
-                <div className={dStyles.priDot} />
-              </button>
-            ))}
-          </div>
-          <div className={dStyles.toolSep} />
-          <div className={dStyles.toolGroup}>
             <button className={dStyles.sortBtn} title="Sort by points" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'pts', sortPts); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
             <button className={dStyles.sortBtn} title="Sort by duration" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'dur', sortDur); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
-            <button className={dStyles.sortBtn} title="Sort by priority group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'grp', sortGrp); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by star group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'mgrp', sortGrp); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by project" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'proj', sortProj); setSortProj(sortProj === 'desc' ? 'asc' : 'desc'); }}>{sortProj === 'desc' ? 'J↓' : 'J↑'}</button>
           </div>
         </div>
       </div>
       <div
         className={`${styles.panelBody} ${dStyles.taskList} ${dStyles.dropZone}`}
-        onClick={e => e.stopPropagation()}
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
@@ -234,8 +211,7 @@ export default function BacklogPanel({
             showAssign={true}
             onAssign={handleAssign}
             inSidebar={true}
-            activePriColor={activePriColor}
-            onPriorityChange={handlePriorityChange}
+            onStarChange={handleStarChange}
             onBump={handleBump}
           />
         )) : <div className={styles.empty}>empty</div>}

@@ -38,7 +38,7 @@ maya-os-mini/               ← repo root (.git lives here)
         │       ├── TaskCard.module.css
         │       ├── DayView.module.css
         │       ├── Sidebar.module.css
-        │       ├── MayaPanel.module.css
+        │       ├── ProjPanel.module.css
         │       ├── WeekView.module.css
         │       ├── StatsView.module.css
         │       ├── Modals.module.css
@@ -48,19 +48,18 @@ maya-os-mini/               ← repo root (.git lives here)
         │
         ├── components/
         │   ├── Topbar.jsx             ← Level, streak, momentum chip; SKIN theme picker dropdown
-        │   ├── NavTabs.jsx            ← DAY / Mon–Sun day tabs / WEEK / BACKEND
+        │   ├── NavTabs.jsx            ← DAY / Mon-Sun day tabs / WEEK / BACKEND
         │   │
         │   ├── day/
         │   │   └── DayView.jsx        ← Monolithic: date nav, score block, frogs,
         │   │                            spotlight, core tasks, done section
         │   │
         │   ├── sidebar/
-        │   │   ├── Sidebar.jsx        ← Tab container (Day / Tasks / Maya / AI / Idea)
+        │   │   ├── Sidebar.jsx        ← Tab container (Day / Tasks / Proj / Idea)
         │   │   ├── DailiesPanel.jsx   ← Daily list, drag reorder, add form
         │   │   ├── DailyItem.jsx      ← Single daily row with actions
-        │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes maya+ai+idea)
-        │   │   ├── MayaPanel.jsx      ← Maya task backlog, quick-add, star rating
-        │   │   ├── AIPanel.jsx        ← AI task backlog, quick-add, star rating (dark blue)
+        │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes proj+idea)
+        │   │   ├── ProjPanel.jsx       ← Project task backlog, quick-add, star rating
         │   │   ├── IdeaPanel.jsx      ← Idea task backlog, quick-add, star rating (dark green)
         │   │   └── FoodItem.jsx       ← Food log item card (inline edit, delete)
         │   │
@@ -142,14 +141,15 @@ export function saveTask(task)          // upsert
 export function deleteTask(id)
 export function updateTask(id, patch)
 export function markTaskComplete(taskId, date, done)
-export function markMayaDone(taskId, done)  // unified maya completion: sets task.done,
+export function markSpecialDone(taskId, done) // unified proj/idea completion: sets task.done,
                                              // writes/removes from dayRecord.cIds,
                                              // auto-assigns scheduledDate=today() if unscheduled
 export function moveTask(draggedId, targetId, before)
-export function sortTasksForView(date, field, dir)
-                                // fields: 'pts', 'dur', 'grp' (hi→md→lo→null), 'mgrp' (3★→2★→1★ for maya)
+export function sortTasksForView(date, field, dir, specialPri)
+                                // fields: 'pts', 'dur', 'mgrp' (5★→1★ by star rank), 'proj' (by project name), 'topic' (by topic name)
+                                // specialPri: 'idea', 'proj', or falsy
 export function carryForwardTasks(toDate)
-                                // moves all past non-done scheduled tasks (including maya) to toDate;
+                                // moves all past non-done scheduled tasks (including proj/idea) to toDate;
                                 // preserves isFrog; returns count moved
 
 // ── Daily mutators ────────────────────────────────────────
@@ -300,39 +300,43 @@ Parser lives in `utils/parsing.js`. Shared by Day view and Backlog. All tokens o
 
 | Token | Field | Example |
 |-------|-------|---------|
-| `!hi`/`!h`/`!1` | priority: 'hi' | `!1` |
-| `!md`/`!m`/`!2` | priority: 'md' | `!2` |
-| `!lo`/`!l`/`!3` | priority: 'lo' | `!3` |
 | `@N` | pts (0/0.5/1/2/3) | `@2`, `@0.5` |
 | `Nh`/`Nm` | timeEstimate | `2h`, `45m` |
 | `Nh+`/`Nm+` | open-ended duration | `3h+` |
 | `frog` | isFrog: true | |
+| `★N` or `*N` | stars (1-5) | `★3`, `*5` |
 | remaining text | name | |
 
-Defaults: pts=0.5, time=null, priority=null, isFrog=false.
+`parseInput(raw)` returns `{ name, pts, time, isFrog, stars }`. Defaults: pts=0.5, time=null, isFrog=false, stars=0.
+
+`parseIdeaInput(raw)` — lightweight parser for Idea panel input. Returns `{ name }` (strips whitespace only, no token extraction).
 
 ---
 
-## Priority System
+## Star Ranking System
 
-`priority: 'hi' | 'md' | 'lo' | 'maya' | null` — gives task card a colored left border and tinted background.
+All tasks use star ratings (1-5) instead of priority levels. Stars determine sort order and visual grouping in DayView.
 
-- `hi` / `md` / `lo` — set via quick-add syntax, right-click context menu, or priority paint tool
-- `maya` — permanent identity priority for Maya tasks; set at creation; cannot be changed via context menu
+### Ranking functions (`utils/taskPlacement.js`)
 
-Override order: frog (green) > active (green) > focused (gold) > priority color.
+- `starRank(t)`: maps star count to sort rank — `5★→1, 4★→2, 3★→3, 2★→4, 1★→5` — used everywhere for consistent ordering
+- `isSpecialPriority(p)`: returns true only for `'idea'`
 
-`taskRank(task)`: maps star count to sort rank — `3★→1, 2★→2, 1★→3, null→4`. Used in DayView to group maya tasks alongside same-rank hi/md/lo tasks.
+### Positioning helpers
 
-**Maya task rules in DayView:**
-- **Grouped by star level**, not in a separate section: 3★ ranks with hi (pink), 2★ with md (gold), 1★ with lo (blue). Still renders purple.
-- **New scheduled tasks go to TOP of their rank group** — both on drag-to-day and AssignPopup schedule.
-- **Star change repositions to TOP of new rank group** — `handleStarChange` uses `snapToZoneByRank(0, zone, newRank)`.
-- Excluded from the Backlog panel; shown only in the Maya sidebar tab and on the day if scheduled
-- In DayView, "Delete" becomes "Remove from day" (sets `scheduledDate=null`; task persists in Maya tab)
-- ↩ button on core task cards moves task back to backlog (`scheduledDate: null`)
-- Priority hi/md/lo context menu items hidden for maya tasks
-- Sandwich recolor guard skips maya tasks (they don't get background-recolored by neighbors)
+- `snapToStarZone(insertAt, zone, rank)` — finds correct position within a star-rank group
+- `insertTopOfStarGroup(zone, rank)` — places task at TOP of its rank group
+- `insertAtForStars(zone, stars)` — convenience wrapper combining star-to-rank + insert
+
+### Task rules in DayView
+- **Grouped by star level** — 5★ at top, 1★/0★ at bottom. No separate priority sections.
+- **New scheduled tasks go to TOP of their star group** — both on drag-to-day and AssignPopup schedule.
+- **Star change repositions to TOP of new star group** — `handleStarChange` uses `snapToStarZone`.
+- Proj tasks excluded from the Backlog panel; shown only in the Proj sidebar tab and on the day if scheduled.
+- Idea tasks never appear in DayView (not schedulable).
+- In DayView, "Delete" for proj tasks becomes "Remove from day" (sets `scheduledDate=null`).
+
+Override order: frog (green) > active (green) > focused (gold) > star color.
 
 ---
 
@@ -371,7 +375,7 @@ perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30. Perfect streak mul
 
 CSS Modules for component-scoped styles. Global tokens in `tokens.css` imported once in `main.jsx`. No Tailwind — custom aesthetic (glows, gradients, grid texture) fights utility classes.
 
-**Em dash** — `applyEmDash(str)` in `parsing.js` converts `--` followed by any non-hyphen character to `—`. Applied in `onChange` on every name/title text input across DayView, DailiesPanel, BacklogPanel, MayaPanel, and TaskEditModal. Import and wire to any new name inputs.
+**Em dash** — `applyEmDash(str)` in `parsing.js` converts `--` followed by any non-hyphen character to `—`. Applied in `onChange` on every name/title text input across DayView, DailiesPanel, BacklogPanel, ProjPanel, and TaskEditModal. Import and wire to any new name inputs.
 
 ---
 

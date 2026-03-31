@@ -1,8 +1,15 @@
 import { useState } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
-import { updateTask, deleteTask, markTaskComplete, markSpecialDone, getIdeaTopics } from '../../store/store.js';
+import { updateTask, deleteTask, markTaskComplete, markSpecialDone, getIdeaTopics, getProjects, editIdeaTopic, setIdeaTopicColor } from '../../store/store.js';
 import { applyEmDash } from '../../utils/parsing.js';
+
+// 8-column boustrophedon grid: row 1 →, row 2 ← (reversed in array for snake), row 3 →
+const IDEA_PALETTE = [
+  'red','hot','crl','pnk','lpnk','mgn','pri-maya','pur',     // row 1 →
+  'lim','lgrn','grn','pri-idea','tel','blu','pri-ai','ind',  // row 2 ← (reversed so snake: pur→ind→…→lim→yel)
+  'yel','gold','pri-md','ora','ora2','brn','gry','slv',      // row 3 →
+];
 
 export default function TaskCard({
   task,
@@ -14,8 +21,6 @@ export default function TaskCard({
   showAssign,
   onAssign,
   inSidebar,
-  activePriColor,
-  onPriorityChange,
   onStarChange,
   showDateChip,
   onDelete,
@@ -27,16 +32,22 @@ export default function TaskCard({
   const [hovered, setHovered] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState(task.name);
-  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya' | 'ai' | 'idea'
-  const isSpecial = pri === 'maya' || pri === 'ai' || pri === 'idea';
-  // Special-priority tasks (maya, ai) use task.done as their single done flag
-  const done = isSpecial
+  const [projPickerOpen, setProjPickerOpen] = useState(false);
+  const [topicPickerOpen, setTopicPickerOpen] = useState(false);
+  const [topicEditVal, setTopicEditVal] = useState('');
+  const isIdea = task.priority === 'idea';
+  // Ideas use task.done; all other tasks use dayRecord.cIds
+  const done = isIdea
     ? (task.done ?? false)
     : (dayRecord && dayRecord.cIds.includes(task.id));
   const dur = task.timeEstimate || '';
   const open = isOpenEnded(dur) && dur !== '∞';
   const durLabel = dur || '—';
   const showPlus = dur && dur !== '∞';
+
+  // Compute project color for card tinting
+  const projObj = task.project ? (getProjects().find(p => p.name?.toLowerCase() === task.project.toLowerCase())) : null;
+  const projColor = projObj?.color || null;
 
   const cardClass = [
     styles.taskCard,
@@ -45,27 +56,19 @@ export default function TaskCard({
     isActive ? styles.activeTask : '',
     isFocused ? styles.focusedTask : '',
     inSidebar ? styles.sidebarCard : '',
-    pri === 'maya' && !isFocused && !isActive && !task.isFrog ? styles.priMaya : '',
-    pri === 'ai' && !isFocused && !isActive && !task.isFrog ? styles.priAi : '',
-    pri === 'idea' && !isFocused && !isActive && !task.isFrog ? styles.priIdea : '',
-    pri === 'hi' && !isFocused && !isActive && !task.isFrog ? styles.priHi : '',
-    pri === 'md' && !isFocused && !isActive && !task.isFrog ? styles.priMd : '',
-    pri === 'lo' && !isFocused && !isActive && !task.isFrog ? styles.priLo : '',
-    activePriColor ? styles.colorToolMode : '',
+    isIdea && !isFocused && !isActive && !task.isFrog ? styles.priIdea : '',
+    !isIdea && !isFocused && !isActive && !task.isFrog ? styles.priNormal : '',
   ].filter(Boolean).join(' ');
 
-  function handleCardClick(e) {
-    // Special-priority tasks are immune to the paint tool
-    if (!activePriColor || isSpecial) return;
-    e.stopPropagation();
-    const next = task.priority === activePriColor ? null : activePriColor;
-    if (onPriorityChange) onPriorityChange(task.id, next);
-    else updateTask(task.id, { priority: next });
-  }
+  // Dynamic inline style for project-colored cards
+  const cardStyle = (!isIdea && projColor && !isFocused && !isActive && !task.isFrog) ? {
+    background: `color-mix(in srgb, var(--${projColor}) 5%, transparent)`,
+    borderColor: `color-mix(in srgb, var(--${projColor}) 22%, transparent)`,
+  } : {};
 
   function handleCheck(e) {
     e.stopPropagation();
-    if (isSpecial) { markSpecialDone(task.id, !done); return; }
+    if (isIdea) { markSpecialDone(task.id, !done); return; }
     if (!task.scheduledDate) return;
     markTaskComplete(task.id, task.scheduledDate, !done);
   }
@@ -102,18 +105,16 @@ export default function TaskCard({
   }
 
   function handleNameClick(e) {
-    if (done || activePriColor) return; // don't edit done tasks or in paint mode
+    if (done) return;
     e.stopPropagation();
-    const display = task.name;
-    setNameVal(display);
+    setNameVal(task.name);
     setEditingName(true);
   }
 
   function handleNameSave() {
     const trimmed = nameVal.trim();
     if (trimmed && trimmed !== task.name) {
-      const finalName = trimmed;
-      updateTask(task.id, { name: finalName });
+      updateTask(task.id, { name: trimmed });
     }
     setEditingName(false);
   }
@@ -127,19 +128,23 @@ export default function TaskCard({
     e.target.classList.remove(styles.dragging);
   }
 
+  const starColor = isIdea ? styles.ideaStarOn : styles.starOn;
+  // Project tasks use project color for stars
+  const starStyle = (!isIdea && projColor) ? { color: `var(--${projColor})` } : {};
+
   return (
     <div
       className={cardClass}
+      style={cardStyle}
       data-taskid={task.id}
       draggable={!editingName && !noDrag}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onContextMenu={onContextMenu}
-      onClick={handleCardClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
     >
-      {(dayRecord || isSpecial) && (
+      {(dayRecord || isIdea) && (
         <div
           className={`${styles.chk} ${done ? styles.chkOn : ''}`}
           onClick={handleCheck}
@@ -161,13 +166,14 @@ export default function TaskCard({
           />
         ) : (
           <span
-            className={`${styles.taskName} ${done ? styles.doneName : ''} ${!done && !activePriColor ? styles.nameClickable : ''}`}
+            className={`${styles.taskName} ${done ? styles.doneName : ''} ${!done ? styles.nameClickable : ''}`}
             onClick={handleNameClick}
           >
             {task.name}
           </span>
         )}
-        {pri !== 'idea' && (
+        {/* Points + duration badges — not for ideas */}
+        {!isIdea && (
           <div className={styles.taskMeta}>
             <span
               className={`${styles.badge} ${styles[task.pts === 0 ? 'p0' : task.pts === 0.5 ? 'p05' : `p${task.pts ?? 1}`]} ${styles.clickable}`}
@@ -193,28 +199,119 @@ export default function TaskCard({
             )}
           </div>
         )}
-        {isSpecial && (
-          <div className={styles.mayaRow}>
-            <div className={styles.mayaStars}>
-              {[1, 2, 3].map(n => (
-                <span
-                  key={n}
-                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? (pri === 'ai' ? styles.aiStarOn : pri === 'idea' ? styles.ideaStarOn : styles.mayaStarOn) : ''}`}
-                  onClick={onStarChange ? (e) => { e.stopPropagation(); onStarChange(task.id, n); } : undefined}
-                  style={onStarChange ? { cursor: 'pointer' } : {}}
-                >★</span>
-              ))}
-            </div>
-            {showDateChip && task.scheduledDate && (
-              <span className={pri === 'ai' ? styles.aiDateChip : pri === 'idea' ? styles.ideaDateChip : styles.mayaDateChip}>{task.scheduledDate}</span>
-            )}
-            {task.topic && pri === 'idea' && (() => {
-              const topicObj = getIdeaTopics().find(x => x.name?.toLowerCase() === task.topic.toLowerCase());
-              const tc = topicObj?.color || 'slv';
-              return <span className={styles.ideaTopicChip} style={{ color: `var(--${tc})`, background: `color-mix(in srgb, var(--${tc}) 10%, transparent)`, borderColor: `color-mix(in srgb, var(--${tc}) 22%, transparent)` }}>{task.topic}</span>;
-            })()}
+        {/* Star row — all task types get stars */}
+        <div className={styles.starRow}>
+          <div className={styles.stars}>
+            {[1, 2, 3, 4, 5].map(n => (
+              <span
+                key={n}
+                className={`${styles.star} ${n <= (task.mayaPts ?? 1) ? starColor : ''}`}
+                onClick={onStarChange ? (e) => { e.stopPropagation(); onStarChange(task.id, n); } : undefined}
+                style={{ ...(n <= (task.mayaPts ?? 1) ? starStyle : {}), ...(onStarChange ? { cursor: 'pointer' } : {}) }}
+              >★</span>
+            ))}
           </div>
-        )}
+          {showDateChip && task.scheduledDate && (
+            <span className={styles.dateChip}>{task.scheduledDate}</span>
+          )}
+          {task.topic && isIdea && (() => {
+            const allTopics = getIdeaTopics();
+            const topicObj = allTopics.find(x => x.name?.toLowerCase() === task.topic.toLowerCase());
+            const tc = topicObj?.color || 'slv';
+            return (
+              <span style={{ position: 'relative', display: 'inline-flex' }}>
+                <span
+                  className={styles.ideaTopicChip}
+                  style={{ background: `color-mix(in srgb, var(--${tc}) 72%, #000)`, cursor: 'pointer' }}
+                  onClick={e => { e.stopPropagation(); if (!topicPickerOpen) setTopicEditVal(task.topic); setTopicPickerOpen(!topicPickerOpen); }}
+                >{task.topic}</span>
+                {topicPickerOpen && (
+                  <div className={styles.topicPicker} onClick={e => e.stopPropagation()} onMouseDown={e => e.preventDefault()}>
+                    {/* Rename this topic (updates all cards with same topic) */}
+                    <input
+                      className={styles.topicPickerInput}
+                      value={topicEditVal}
+                      onChange={e => setTopicEditVal(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          if (topicEditVal.trim() && topicEditVal.trim().toLowerCase() !== task.topic.toLowerCase())
+                            editIdeaTopic(task.topic, topicEditVal.trim());
+                          setTopicPickerOpen(false);
+                        }
+                        if (e.key === 'Escape') setTopicPickerOpen(false);
+                      }}
+                      onBlur={() => {
+                        if (topicEditVal.trim() && topicEditVal.trim().toLowerCase() !== task.topic.toLowerCase())
+                          editIdeaTopic(task.topic, topicEditVal.trim());
+                        setTopicPickerOpen(false);
+                      }}
+                      autoFocus
+                    />
+                    {/* Color swatches for this topic */}
+                    <div className={styles.topicPickerColors}>
+                      {IDEA_PALETTE.map(c => (
+                        <span
+                          key={c}
+                          className={styles.topicPickerSwatch}
+                          style={{ background: `var(--${c})`, outline: tc === c ? '2px solid var(--gold)' : 'none', outlineOffset: 1 }}
+                          onClick={() => setIdeaTopicColor(task.topic, c)}
+                        />
+                      ))}
+                    </div>
+                    {/* Switch to a different topic */}
+                    {allTopics.filter(t => t.name.toLowerCase() !== task.topic.toLowerCase()).length > 0 && (
+                      <div className={styles.topicPickerSep} />
+                    )}
+                    {allTopics.filter(t => t.name.toLowerCase() !== task.topic.toLowerCase()).map(t => (
+                      <div
+                        key={t.name}
+                        className={styles.topicPickerItem}
+                        style={{ background: `color-mix(in srgb, var(--${t.color || 'slv'}) 72%, #000)` }}
+                        onClick={() => { updateTask(task.id, { topic: t.name }); setTopicPickerOpen(false); }}
+                      >{t.name}</div>
+                    ))}
+                    <div className={`${styles.topicPickerItem} ${styles.topicPickerRemove}`}
+                      onClick={() => { updateTask(task.id, { topic: null }); setTopicPickerOpen(false); }}
+                    >× Remove topic</div>
+                  </div>
+                )}
+              </span>
+            );
+          })()}
+          {!isIdea && task.project && (() => {
+            const pc = projColor || 'slv';
+            const allProjs = getProjects();
+            return (
+              <span style={{ position: 'relative', display: 'inline-flex' }}>
+                <span
+                  className={styles.projectChip}
+                  style={task.project ? { background: `color-mix(in srgb, var(--${pc}) 72%, #000)` } : { background: 'var(--s2)', color: 'var(--t3)', fontSize: 9, padding: '2px 5px', borderRadius: 2, cursor: 'pointer' }}
+                  onClick={(e) => { e.stopPropagation(); setProjPickerOpen(!projPickerOpen); }}
+                >{task.project || '+ proj'}</span>
+                {projPickerOpen && (
+                  <div className={styles.projPicker} onClick={e => e.stopPropagation()}>
+                    {allProjs.map(p => (
+                      <div
+                        key={p.name}
+                        className={styles.projPickerItem}
+                        style={{ color: '#fff', background: `color-mix(in srgb, var(--${p.color || 'slv'}) 72%, #000)` }}
+                        onClick={() => { updateTask(task.id, { project: p.name }); setProjPickerOpen(false); }}
+                      >{p.name}</div>
+                    ))}
+                    {task.project && (
+                      <div
+                        className={styles.projPickerItem}
+                        style={{ color: 'var(--t3)', background: 'var(--s2)' }}
+                        onClick={() => { updateTask(task.id, { project: null }); setProjPickerOpen(false); }}
+                      >None</div>
+                    )}
+                    {allProjs.length === 0 && <div style={{ padding: '4px 8px', fontSize: 10, color: 'var(--t3)' }}>No projects yet</div>}
+                  </div>
+                )}
+              </span>
+            );
+          })()}
+        </div>
       </div>
       {timerDisplay && (
         <div className={`${styles.timer} ${timerDisplay.className === 'timer over' ? styles.over : ''} ${timerDisplay.className === 'timer open' ? styles.open : ''}`}>

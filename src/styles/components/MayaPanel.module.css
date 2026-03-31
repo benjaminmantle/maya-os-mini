@@ -1,4 +1,0 @@
-.mayaInput:focus { border-color: var(--pri-maya); box-shadow: 0 0 0 1px rgba(191,95,255,.1); }
-.mayaBtn { background: color-mix(in srgb, var(--s2) 78%, transparent); color: var(--t3); border-color: var(--b1); }
-.mayaBtn:hover { background: var(--s2); color: var(--t2); border-color: var(--b2); box-shadow: none; }
-.mayaHint { font-size: 9px; color: var(--t3); font-family: var(--fm); margin-top: 5px; letter-spacing: .5px; }

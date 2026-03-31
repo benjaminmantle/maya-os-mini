@@ -1,51 +1,45 @@
 import { useState, useEffect } from 'react';
 import Modal from '../shared/Modal.jsx';
 import styles from '../../styles/components/Modals.module.css';
-import { updateTask, deleteTask } from '../../store/store.js';
+import { updateTask, deleteTask, getProjects } from '../../store/store.js';
 import { get7, dayLabel } from '../../utils/dates.js';
 import { applyEmDash } from '../../utils/parsing.js';
 
-const MAYA_PREFIX = 'MAYA — ';
-
 export default function TaskEditModal({ task, onClose }) {
-  const isMaya = task.priority === 'maya';
-  const isAi = task.priority === 'ai';
   const isIdea = task.priority === 'idea';
-  const isSpecial = isMaya || isAi || isIdea;
-  const rawName = isMaya && task.name.startsWith(MAYA_PREFIX)
-    ? task.name.slice(MAYA_PREFIX.length)
-    : task.name;
 
-  const [name, setName] = useState(rawName);
+  const [name, setName] = useState(task.name);
   const [pts, setPts] = useState(task.pts || 2);
   const [mayaPts, setMayaPts] = useState(task.mayaPts ?? 1);
   const [time, setTime] = useState(task.timeEstimate || '');
   const [sched, setSched] = useState(task.scheduledDate || '');
   const [frog, setFrog] = useState(!!task.isFrog);
+  const [project, setProject] = useState(task.project || '');
 
   useEffect(() => {
-    const rn = task.priority === 'maya' && task.name.startsWith(MAYA_PREFIX)
-      ? task.name.slice(MAYA_PREFIX.length)
-      : task.name;
-    setName(rn);
+    setName(task.name);
     setPts(task.pts || 2);
     setMayaPts(task.mayaPts ?? 1);
     setTime(task.timeEstimate || '');
     setSched(task.scheduledDate || '');
     setFrog(!!task.isFrog);
+    setProject(task.project || '');
   }, [task]);
 
   function handleSave() {
-    const trimmed = name.trim() || rawName;
-    const finalName = isMaya ? MAYA_PREFIX + trimmed : trimmed;
-    updateTask(task.id, {
-      name: finalName,
-      pts,
-      timeEstimate: time.trim() || null,
-      scheduledDate: sched || null,
-      isFrog: frog,
-      ...(isSpecial && { mayaPts }),
-    });
+    const trimmed = name.trim() || task.name;
+    const patch = {
+      name: trimmed,
+      mayaPts,
+    };
+    if (!isIdea) {
+      patch.pts = pts;
+      patch.timeEstimate = time.trim() || null;
+      patch.scheduledDate = sched || null;
+      patch.isFrog = frog;
+      patch.project = project || null;
+    }
+    updateTask(task.id, patch);
     onClose();
   }
 
@@ -59,62 +53,83 @@ export default function TaskEditModal({ task, onClose }) {
     ...get7().map(d => ({ label: dayLabel(d), date: d })),
   ];
 
+  const projects = getProjects();
+
   return (
     <Modal onClose={onClose}>
-      <div className={styles.modalTitle}>{isMaya ? 'Edit Maya Task' : isAi ? 'Edit AI Task' : isIdea ? 'Edit Idea' : 'Edit Task'}</div>
+      <div className={styles.modalTitle}>{isIdea ? 'Edit Idea' : 'Edit Task'}</div>
       <div className={styles.mf}>
-        <div className={styles.ml}>{isMaya ? `Name  (MAYA — will be prepended)` : 'Name'}</div>
+        <div className={styles.ml}>Name</div>
         <input className={styles.mi} type="text" value={name} onChange={e => setName(applyEmDash(e.target.value))} />
       </div>
-      {isSpecial && (
+      {/* Star rating — all task types */}
+      <div className={styles.mf}>
+        <div className={styles.ml}>Rating</div>
+        <div style={{ display: 'flex', gap: 0 }}>
+          {[1, 2, 3, 4, 5].map(v => (
+            <span
+              key={v}
+              style={{ fontSize: 22, cursor: 'pointer', padding: '2px 4px', color: v <= mayaPts ? 'var(--tel)' : 'var(--b2)', transition: 'color 120ms ease' }}
+              onClick={() => setMayaPts(v)}
+            >★</span>
+          ))}
+        </div>
+      </div>
+      {/* Points — not for ideas */}
+      {!isIdea && (
         <div className={styles.mf}>
-          <div className={styles.ml}>{isAi ? 'AI Priority' : isIdea ? 'Idea Priority' : 'Maya Priority'}</div>
+          <div className={styles.ml}>Points</div>
           <div className={styles.btnRow}>
             {[1, 2, 3].map(v => (
               <button
                 key={v}
-                className={`${styles.selBtn} ${mayaPts === v ? styles.selBtnOn : ''}`}
-                onClick={() => setMayaPts(v)}
+                className={`${styles.selBtn} ${pts === v ? styles.selBtnOn : ''}`}
+                onClick={() => setPts(v)}
               >
-                {'★'.repeat(v)}{'☆'.repeat(3 - v)}
+                {v}
               </button>
             ))}
           </div>
         </div>
       )}
-      <div className={styles.mf}>
-        <div className={styles.ml}>Points</div>
-        <div className={styles.btnRow}>
-          {[1, 2, 3].map(v => (
-            <button
-              key={v}
-              className={`${styles.selBtn} ${pts === v ? styles.selBtnOn : ''}`}
-              onClick={() => setPts(v)}
-            >
-              {v}
-            </button>
-          ))}
+      {/* Time estimate — not for ideas */}
+      {!isIdea && (
+        <div className={styles.mf}>
+          <div className={styles.ml}>Time Estimate</div>
+          <input className={styles.mi} type="text" placeholder="e.g. 45m  2h" value={time} onChange={e => setTime(e.target.value)} />
         </div>
-      </div>
-      <div className={styles.mf}>
-        <div className={styles.ml}>Time Estimate</div>
-        <input className={styles.mi} type="text" placeholder="e.g. 45m  2h" value={time} onChange={e => setTime(e.target.value)} />
-      </div>
-      <div className={styles.mf}>
-        <div className={styles.ml}>Scheduled Day</div>
-        <div className={styles.schedWrap}>
-          {schedOptions.map(o => (
-            <button
-              key={o.date}
-              className={`${styles.schedBtn} ${sched === o.date ? styles.schedBtnOn : ''}`}
-              onClick={() => setSched(o.date)}
-            >
-              {o.label}
-            </button>
-          ))}
+      )}
+      {/* Project — not for ideas */}
+      {!isIdea && (
+        <div className={styles.mf}>
+          <div className={styles.ml}>Project</div>
+          <select className={styles.mi} style={{ cursor: 'pointer' }} value={project} onChange={e => setProject(e.target.value)}>
+            <option value="">None</option>
+            {projects.map(p => (
+              <option key={p.name} value={p.name}>{p.name}</option>
+            ))}
+          </select>
         </div>
-      </div>
-      {!isSpecial && (
+      )}
+      {/* Scheduled day — not for ideas */}
+      {!isIdea && (
+        <div className={styles.mf}>
+          <div className={styles.ml}>Scheduled Day</div>
+          <div className={styles.schedWrap}>
+            {schedOptions.map(o => (
+              <button
+                key={o.date}
+                className={`${styles.schedBtn} ${sched === o.date ? styles.schedBtnOn : ''}`}
+                onClick={() => setSched(o.date)}
+              >
+                {o.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+      {/* Frog toggle — not for ideas */}
+      {!isIdea && (
         <div
           className={`${styles.frogToggle} ${frog ? styles.frogToggleOn : ''}`}
           onClick={() => setFrog(!frog)}

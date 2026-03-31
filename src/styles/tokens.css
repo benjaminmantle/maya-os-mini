@@ -11,6 +11,7 @@
   --t3:   #534f4b;
   --gold: #f0b030;
   --gd2:  rgba(240,176,48,.13);
+  --red:  #e01828;
   --hot:  #ff3060;
   --ht2:  rgba(255,48,96,.13);
   --grn:  #22ee80;
@@ -32,6 +33,10 @@
   --ind:  #6655ee;
   --brn:  #c8885e;
   --crl:  #ff6680;
+  --mgn:  #dd44aa;
+  --lpnk: #ff80cc;
+  --ora2: #ff5522;
+  --lgrn: #55cc66;
   --r: 4px;
   --rs: 3px;
   --f:  'Rajdhani', sans-serif;
@@ -63,6 +68,7 @@ html.theme-dim {
 
 /* ── Lavender Light theme ───────────────────────────────────────────────── */
 html.theme-light {
+  --red: #cc1020;
   /* Surfaces — enough tint to feel colored, not washed-out white */
   --bg:   #e8e3f4;
   --s0:   #e1daf0;
@@ -87,6 +93,10 @@ html.theme-light {
   --pri-md:  #d96000;   /* more orange: distinct from gold focus color */
   --pri-ai:  #1a44aa;   /* darker blue for light bg */
   --pri-idea: #1a7a48;  /* darker green for light bg */
+  --mgn:     #bb2288;
+  --lpnk:    #dd6699;
+  --ora2:    #cc4411;
+  --lgrn:    #339955;
   /* Effects */
   --grid-line:    rgba(110,88,168,.055);
   --vignette:     rgba(140,120,200,.055);
@@ -95,6 +105,7 @@ html.theme-light {
 
 /* ── Vanilla theme ──────────────────────────────────────────────────────── */
 html.theme-vanilla {
+  --red: #cc1020;
   /* Surfaces — warm off-white cream, slightly muted, no cold/purple tint */
   --bg:   #ede8dc;
   --s0:   #e5dfd0;
@@ -119,6 +130,10 @@ html.theme-vanilla {
   --pri-md:  #c85a00;   /* deep burnt orange, distinct from gold */
   --pri-ai:  #1a44aa;
   --pri-idea: #1a7a48;
+  --mgn:     #bb2288;
+  --lpnk:    #dd6699;
+  --ora2:    #cc4411;
+  --lgrn:    #339955;
   /* Effects */
   --grid-line:    rgba(120,100,55,.035);
   --vignette:     rgba(50,35,8,.04);
@@ -127,6 +142,7 @@ html.theme-vanilla {
 
 /* ── Kraft theme ────────────────────────────────────────────────────────── */
 html.theme-kraft {
+  --red: #c41020;
   /* Surfaces — warm tan, like kraft paper / manila folders; ~30% darker than vanilla */
   --bg:   #c6b286;
   --s0:   #bba87c;
@@ -153,6 +169,10 @@ html.theme-kraft {
   --pri-maya: #8822cc;
   --pri-ai:   #1a44aa;
   --pri-idea:  #1e8a50;
+  --mgn:     #aa1177;
+  --lpnk:    #cc5588;
+  --ora2:    #bb3300;
+  --lgrn:    #2a8844;
   /* Accent colours — slightly more vivid than vanilla; background dark enough to carry them */
   --grn:     #1a9850;
   --tel:     #0a8aaa;
@@ -165,6 +185,7 @@ html.theme-kraft {
 
 /* ── White theme ────────────────────────────────────────────────────────── */
 html.theme-white {
+  --red: #cc1020;
   /* Surfaces — clean near-white, faint neutral warmth, not cold */
   --bg:   #f0efed;
   --s0:   #e8e7e4;
@@ -189,6 +210,10 @@ html.theme-white {
   --pri-md:  #c85a00;
   --pri-ai:  #1a44aa;
   --pri-idea: #1a7a48;
+  --mgn:     #bb2288;
+  --lpnk:    #dd6699;
+  --ora2:    #cc4411;
+  --lgrn:    #339955;
   /* Effects — nearly invisible */
   --grid-line:    rgba(80,75,65,.025);
   --vignette:     rgba(30,25,15,.03);

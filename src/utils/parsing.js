@@ -4,20 +4,17 @@ export function applyEmDash(str) {
 }
 
 export function parseInput(raw) {
-  let t = raw.trim(), pts = null, time = '', priority = null;
+  let t = raw.trim(), pts = null, time = '', stars = null;
 
   // Frog flag
   const isFrog = /\bfrog\b/i.test(t);
   if (isFrog) t = t.replace(/\bfrog\b/gi, '').trim();
 
-  // Priority: !hi/!h/!1, !md/!m/!2, !lo/!l/!3
-  const priM = t.match(/!(hi|h|md|m|lo|l|[123])\b/i);
-  if (priM) {
-    const k = priM[1].toLowerCase();
-    priority = (k === 'h' || k === 'hi' || k === '1') ? 'hi'
-             : (k === 'm' || k === 'md' || k === '2') ? 'md'
-             : 'lo';
-    t = t.replace(priM[0], '').trim();
+  // Stars: !1 through !5 (number = star count)
+  const starM = t.match(/!([1-5])\b/);
+  if (starM) {
+    stars = +starM[1];
+    t = t.replace(starM[0], '').trim();
   }
 
   // Time estimate: 2h, 45m, 2hr, 30min — optional trailing + for open-ended
@@ -32,7 +29,18 @@ export function parseInput(raw) {
   const dm = t.match(/@(0\.5|[0-3])\b/);
   if (dm) { pts = +dm[1]; t = t.replace(dm[0], '').trim(); }
 
-  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, priority };
+  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, stars };
+}
+
+// Idea-only parser: extracts star rating and name only (no pts/duration/frog)
+export function parseIdeaInput(raw) {
+  let t = raw.trim(), stars = null;
+  const starM = t.match(/!([1-5])\b/);
+  if (starM) {
+    stars = +starM[1];
+    t = t.replace(starM[0], '').trim();
+  }
+  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', stars };
 }
 
 // Sum calories from a food log array (handles null/undefined)

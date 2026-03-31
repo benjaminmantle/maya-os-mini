@@ -1,19 +1,7 @@
-/* Idea input focus */
-.ideaTextarea {
-  resize: none;
-  overflow: hidden;
-  min-height: 36px;
-  line-height: 1.4;
-  font-family: inherit;
-}
-.ideaTextarea:focus { border-color: var(--pri-idea); box-shadow: 0 0 0 1px rgba(48,187,112,.1); }
-.ideaBtn { background: color-mix(in srgb, var(--s2) 78%, transparent); color: var(--t3); border-color: var(--b1); }
-.ideaBtn:hover { background: var(--s2); color: var(--t2); border-color: var(--b2); box-shadow: none; }
-
-/* Topic combobox */
-.topicCombo { position: relative; margin-bottom: 6px; }
-.topicRow { display: flex; align-items: center; gap: 6px; }
-.topicInput {
+/* Project combobox */
+.projCombo { position: relative; margin-bottom: 6px; }
+.projRow { display: flex; align-items: center; gap: 6px; }
+.projInput {
   flex: 1;
   padding: 4px 8px;
   font-size: 11px;
@@ -25,11 +13,11 @@
   outline: none;
   transition: border-color var(--tr);
 }
-.topicInput:focus { border-color: var(--pri-idea); }
-.topicInput::placeholder { color: var(--t3); font-style: italic; }
+.projInput:focus { border-color: var(--pur); }
+.projInput::placeholder { color: var(--t3); font-style: italic; }
 
-/* Selected topic chip */
-.topicChip {
+/* Selected project chip */
+.projChip {
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -39,17 +27,17 @@
   padding: 3px 6px;
   font-family: inherit;
 }
-.topicChipX {
+.projChipX {
   cursor: pointer;
   font-size: 13px;
   line-height: 1;
   opacity: .6;
   transition: opacity var(--tr);
 }
-.topicChipX:hover { opacity: 1; }
+.projChipX:hover { opacity: 1; }
 
-/* Topic dropdown */
-.topicDrop {
+/* Project dropdown */
+.projDrop {
   position: absolute;
   top: 100%;
   left: 0;
@@ -63,7 +51,7 @@
   overflow-y: auto;
   box-shadow: 0 4px 12px rgba(0,0,0,.3);
 }
-.topicItem {
+.projItem {
   display: flex;
   align-items: center;
   padding: 5px 8px;
@@ -74,8 +62,8 @@
   flex-wrap: wrap;
   gap: 4px;
 }
-.topicItem:hover { background: var(--s2); }
-.topicDot {
+.projItem:hover { background: var(--s2); }
+.projDot {
   width: 7px;
   height: 7px;
   border-radius: 2px;
@@ -83,16 +71,16 @@
   cursor: pointer;
   transition: box-shadow var(--tr);
 }
-.topicDot:hover { box-shadow: 0 0 6px currentColor; }
-.topicItemLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-.topicItemActions {
+.projDot:hover { box-shadow: 0 0 6px currentColor; }
+.projItemLabel { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.projItemActions {
   display: none;
   align-items: center;
   gap: 2px;
   flex-shrink: 0;
 }
-.topicItem:hover .topicItemActions { display: flex; }
-.topicItemBtn {
+.projItem:hover .projItemActions { display: flex; }
+.projItemBtn {
   width: 24px;
   height: 24px;
   display: flex;
@@ -107,16 +95,16 @@
   transition: color var(--tr), background var(--tr);
   padding: 0;
 }
-.topicItemBtn:hover { color: var(--text); background: var(--s3); }
+.projItemBtn:hover { color: var(--text); background: var(--s3); }
 
 /* Inline edit input inside dropdown */
-.topicEditInput {
+.projEditInput {
   flex: 1;
   font-size: 11px;
   font-family: inherit;
   color: var(--text);
   background: var(--s2);
-  border: 1px solid var(--pri-idea);
+  border: 1px solid var(--pur);
   border-radius: 2px;
   padding: 2px 6px;
   outline: none;
@@ -146,7 +134,7 @@
   box-shadow: 0 0 8px var(--gold);
 }
 
-/* Topic filter chips */
+/* Project filter chips */
 .filterRow {
   display: flex;
   flex-wrap: wrap;

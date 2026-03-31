@@ -15,7 +15,7 @@ if (!window.__mayaS) window.__mayaS = {
   profile: { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' },
   target: 10,
   frogsComplete: {},
-  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [] },
+  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [], projects: [] },
 };
 let S = window.__mayaS;
 
@@ -57,7 +57,7 @@ function load() {
       }
       const migratedV4 = migrateV4toV5();
       if (migratedV4) {
-        migratedV4.settings = { fastStart: '13:00', fastEnd: '21:00' };
+        migratedV4.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [], projects: [] };
         S = { ...S, ...migratedV4 };
         return;
       }
@@ -72,7 +72,7 @@ function load() {
     if (d.frogsComplete) S.frogsComplete = d.frogsComplete;
     if (d.settings) S.settings = d.settings;
     // Ensure settings defaults exist
-    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [] };
+    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [], projects: [] };
     if (!S.settings.fastStart) S.settings.fastStart = '13:00';
     if (!S.settings.fastEnd) S.settings.fastEnd = '21:00';
     if (!S.settings.calorieTarget) S.settings.calorieTarget = 2000;
@@ -89,6 +89,64 @@ load();
 if (S.settings.ideaTopics?.length && typeof S.settings.ideaTopics[0] === 'string') {
   S.settings.ideaTopics = S.settings.ideaTopics.map(t => ({ name: t, color: 'slv' }));
 }
+// Ensure projects array exists
+if (!S.settings.projects) S.settings.projects = [];
+
+// ── Migration: maya/ai → normal tasks with project field, hi/md/lo → stars ──
+(function migrateTaskSystem() {
+  let needsSave = false;
+  const projectNames = new Set((S.settings.projects || []).map(p => p.name.toLowerCase()));
+
+  S.tasks.forEach(t => {
+    // Migrate maya tasks → normal + project
+    if (t.priority === 'maya') {
+      const projName = t.project || 'Maya OS';
+      t.project = projName;
+      t.priority = null;
+      t.mayaPts = t.mayaPts ?? 1;
+      if (t.name && t.name.startsWith('MAYA \u2014 ')) t.name = t.name.slice(7);
+      // If task was done via task.done, sync to cIds
+      if (t.done && t.scheduledDate) {
+        const day = S.days[t.scheduledDate];
+        if (day && !day.cIds.includes(t.id)) day.cIds.push(t.id);
+      }
+      delete t.done;
+      delete t._autoScheduled;
+      if (!projectNames.has(projName.toLowerCase())) {
+        S.settings.projects.push({ name: projName, color: 'pur' });
+        projectNames.add(projName.toLowerCase());
+      }
+      needsSave = true;
+    }
+    // Migrate ai tasks → normal + project
+    if (t.priority === 'ai') {
+      const projName = t.project || 'AI';
+      t.project = projName;
+      t.priority = null;
+      t.mayaPts = t.mayaPts ?? 1;
+      if (t.done && t.scheduledDate) {
+        const day = S.days[t.scheduledDate];
+        if (day && !day.cIds.includes(t.id)) day.cIds.push(t.id);
+      }
+      delete t.done;
+      delete t._autoScheduled;
+      if (!projectNames.has(projName.toLowerCase())) {
+        S.settings.projects.push({ name: projName, color: 'blu' });
+        projectNames.add(projName.toLowerCase());
+      }
+      needsSave = true;
+    }
+    // Migrate hi/md/lo → stars
+    if (t.priority === 'hi') { t.mayaPts = 5; t.priority = null; needsSave = true; }
+    if (t.priority === 'md') { t.mayaPts = 3; t.priority = null; needsSave = true; }
+    if (t.priority === 'lo') { t.mayaPts = 1; t.priority = null; needsSave = true; }
+    // Ensure all non-idea tasks have mayaPts
+    if (t.priority !== 'idea' && !t.mayaPts) { t.mayaPts = 1; needsSave = true; }
+  });
+
+  if (needsSave) persist();
+})();
+
 if (!S.dailies.length) S.dailies = DEFAULT_DAILIES;
 if (!S.tasks.length) {
   S.tasks = seedTasks();
@@ -161,32 +219,11 @@ export function markTaskComplete(taskId, date, done) {
   save();
 }
 
-// Special-priority tasks (maya, ai) use task.done as the single done flag.
-// This keeps cIds in sync so scoring counts the points. Unscheduled tasks
-// get auto-assigned to today so scoreDay's scheduledDate filter can find them.
+// Ideas use task.done as completion flag (they can't be scheduled to days).
 export function markSpecialDone(taskId, done) {
   const task = S.tasks.find(t => t.id === taskId);
-  if (!task) return;
+  if (!task || task.priority !== 'idea') return;
   task.done = done;
-  if (done) {
-    if (!task.scheduledDate) {
-      task.scheduledDate = today();
-      task._autoScheduled = true;
-    }
-    const day = getDayRecord(task.scheduledDate);
-    if (!day.cIds.includes(taskId)) day.cIds.push(taskId);
-  } else {
-    const date = task.scheduledDate;
-    if (date) {
-      const day = getDayRecord(date);
-      const idx = day.cIds.indexOf(taskId);
-      if (idx !== -1) day.cIds.splice(idx, 1);
-    }
-    if (task._autoScheduled) {
-      task.scheduledDate = null;
-      delete task._autoScheduled;
-    }
-  }
   save();
 }
 
@@ -201,13 +238,16 @@ export function moveTask(draggedId, targetId, before) {
   save();
 }
 
-// Permanently sort a subset of tasks (by date for day view, or null for backlog/special).
-// specialPri: 'maya'|'ai' = only that priority; false (default) = backlog (excludes maya+ai).
+// Permanently sort a subset of tasks.
+// filter: 'backlog' = unscheduled non-idea; 'proj' = unscheduled with project; 'idea' = unscheduled ideas.
+// date string = tasks for that date. specialPri: 'idea' | 'proj' | false.
 export function sortTasksForView(date, field, dir, specialPri = false) {
   const match = date === null
-    ? specialPri
-      ? (t) => !t.scheduledDate && t.priority === specialPri
-      : (t) => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai' && t.priority !== 'idea'
+    ? specialPri === 'idea'
+      ? (t) => !t.scheduledDate && t.priority === 'idea'
+      : specialPri === 'proj'
+      ? (t) => !t.scheduledDate && t.priority !== 'idea' && t.project
+      : (t) => !t.scheduledDate && t.priority !== 'idea'
     : (t) => t.scheduledDate === date && !t.isFrog;
   const indices = [];
   const slice = [];
@@ -220,27 +260,27 @@ export function sortTasksForView(date, field, dir, specialPri = false) {
         ? (a.pts ?? 1) - (b.pts ?? 1)
         : (b.pts ?? 1) - (a.pts ?? 1);
     }
-    if (field === 'grp') {
-      // Sort by priority group: hi → md → lo → null (desc = hi first)
-      const rank = p => p === 'hi' ? 0 : p === 'md' ? 1 : p === 'lo' ? 2 : 3;
-      return dir === 'desc'
-        ? rank(a.priority) - rank(b.priority)
-        : rank(b.priority) - rank(a.priority);
-    }
     if (field === 'mgrp') {
-      // Sort by maya star group: 3★ → 2★ → 1★ (desc = highest stars first)
+      // Sort by star group: 5★ → 1★ (desc = highest stars first)
       return dir === 'desc'
         ? (b.mayaPts ?? 1) - (a.mayaPts ?? 1)
         : (a.mayaPts ?? 1) - (b.mayaPts ?? 1);
     }
     if (field === 'topic') {
-      // Sort by topic name alphabetically; no-topic sorts to end
       const at = a.topic || '';
       const bt = b.topic || '';
       if (!at && !bt) return 0;
       if (!at) return 1;
       if (!bt) return -1;
       return dir === 'asc' ? at.localeCompare(bt) : bt.localeCompare(at);
+    }
+    if (field === 'proj') {
+      const ap = a.project || '';
+      const bp = b.project || '';
+      if (!ap && !bp) return 0;
+      if (!ap) return 1;
+      if (!bp) return -1;
+      return dir === 'asc' ? ap.localeCompare(bp) : bp.localeCompare(ap);
     }
     // dur — null durations sort to end regardless of direction
     const av = parseDurMs(a.timeEstimate);
@@ -430,8 +470,8 @@ export function carryForwardTasks(toDate) {
   S.tasks = S.tasks.map(t => {
     if (!t.scheduledDate) return t;
     if (t.scheduledDate >= todayStr) return t;  // only past dates
-    if (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') {
-      if (t.done) return t; // special priority completion is task.done
+    if (t.priority === 'idea') {
+      if (t.done) return t; // idea completion is task.done
     } else {
       const dayRec = S.days[t.scheduledDate];
       if (dayRec && dayRec.cIds.includes(t.id)) return t; // already done
@@ -591,6 +631,55 @@ export function setIdeaTopicColor(name, color) {
   migrateIdeaTopics();
   const topic = S.settings.ideaTopics.find(t => t.name.toLowerCase() === name.toLowerCase());
   if (topic) { topic.color = color; save(); }
+}
+
+// ── Projects ────────────────────────────────────────────────────────────
+// Projects are { name: string, color: string } objects. Color is a CSS token name.
+
+export function getProjects() {
+  return S.settings.projects || [];
+}
+
+export function addProject(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+  if (!S.settings.projects) S.settings.projects = [];
+  const exists = S.settings.projects.some(p => p.name.toLowerCase() === trimmed.toLowerCase());
+  if (exists) return false;
+  S.settings.projects.push({ name: trimmed, color: 'slv' });
+  save();
+  return true;
+}
+
+export function editProject(oldName, newName) {
+  const trimmed = newName.trim();
+  if (!trimmed || !S.settings.projects) return;
+  const proj = S.settings.projects.find(p => p.name.toLowerCase() === oldName.toLowerCase());
+  if (!proj) return;
+  proj.name = trimmed;
+  S.tasks.forEach(t => {
+    if (t.project && t.project.toLowerCase() === oldName.toLowerCase()) {
+      t.project = trimmed;
+    }
+  });
+  save();
+}
+
+export function deleteProject(name) {
+  if (!S.settings.projects) return;
+  S.settings.projects = S.settings.projects.filter(p => p.name.toLowerCase() !== name.toLowerCase());
+  S.tasks.forEach(t => {
+    if (t.project && t.project.toLowerCase() === name.toLowerCase()) {
+      t.project = null;
+    }
+  });
+  save();
+}
+
+export function setProjectColor(name, color) {
+  if (!S.settings.projects) return;
+  const proj = S.settings.projects.find(p => p.name.toLowerCase() === name.toLowerCase());
+  if (proj) { proj.color = color; save(); }
 }
 
 export function resetToday() {

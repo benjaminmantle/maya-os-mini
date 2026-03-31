@@ -2,8 +2,7 @@ import { useState } from 'react';
 import styles from '../../styles/components/Sidebar.module.css';
 import DailiesPanel from './DailiesPanel.jsx';
 import BacklogPanel from './BacklogPanel.jsx';
-import MayaPanel from './MayaPanel.jsx';
-import AIPanel from './AIPanel.jsx';
+import ProjPanel from './ProjPanel.jsx';
 import IdeaPanel from './IdeaPanel.jsx';
 import { updateTask } from '../../store/store.js';
 
@@ -40,7 +39,7 @@ export default function Sidebar({
     const id = e.dataTransfer.getData('tid');
     if (!id) return;
     const task = tasks.find(t => t.id === id);
-    if (!task || !task.scheduledDate || task.priority === 'maya' || task.priority === 'ai' || task.priority === 'idea') return;
+    if (!task || !task.scheduledDate || task.priority === 'idea') return;
     updateTask(id, { scheduledDate: null, isFrog: false });
     setTab('backlog');
   }
@@ -57,6 +56,7 @@ export default function Sidebar({
         </button>
         <button
           className={`${styles.stab} ${tab === 'backlog' ? styles.stabActive : ''} ${backlogDragOver ? styles.stabDragOver : ''}`}
+          style={tab === 'backlog' ? { color: 'var(--gold)', borderBottomColor: 'var(--gold)' } : {}}
           onClick={() => setTab('backlog')}
           onDragOver={handleBacklogDragOver}
           onDragLeave={handleBacklogDragLeave}
@@ -65,18 +65,11 @@ export default function Sidebar({
           Tasks
         </button>
         <button
-          className={`${styles.stab} ${tab === 'maya' ? styles.stabActive : ''}`}
-          style={tab === 'maya' ? { color: 'var(--pri-maya)', borderBottomColor: 'var(--pri-maya)' } : {}}
-          onClick={() => setTab('maya')}
+          className={`${styles.stab} ${tab === 'proj' ? styles.stabActive : ''}`}
+          style={tab === 'proj' ? { color: 'var(--pur)', borderBottomColor: 'var(--pur)' } : {}}
+          onClick={() => setTab('proj')}
         >
-          Maya
-        </button>
-        <button
-          className={`${styles.stab} ${tab === 'ai' ? styles.stabActive : ''}`}
-          style={tab === 'ai' ? { color: 'var(--pri-ai)', borderBottomColor: 'var(--pri-ai)' } : {}}
-          onClick={() => setTab('ai')}
-        >
-          AI
+          Proj
         </button>
         <button
           className={`${styles.stab} ${tab === 'idea' ? styles.stabActive : ''}`}
@@ -107,17 +100,8 @@ export default function Sidebar({
           focusDate={focusDate}
         />
       )}
-      {tab === 'maya' && (
-        <MayaPanel
-          tasks={tasks}
-          activeTaskId={activeTaskId}
-          focusedTaskId={focusedTaskId}
-          getTimerDisplay={getTimerDisplay}
-          onContextMenu={onTaskContextMenu}
-        />
-      )}
-      {tab === 'ai' && (
-        <AIPanel
+      {tab === 'proj' && (
+        <ProjPanel
           tasks={tasks}
           activeTaskId={activeTaskId}
           focusedTaskId={focusedTaskId}

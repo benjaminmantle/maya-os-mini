@@ -70,7 +70,7 @@ export default function App() {
   useEffect(() => {
     if (!focusedTaskId) return;
     const task = state.tasks.find(t => t.id === focusedTaskId);
-    if (!task || task.done) {
+    if (!task || (task.priority === 'idea' && task.done)) {
       setFocusedTaskId(null);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps

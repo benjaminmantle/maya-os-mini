@@ -35,10 +35,10 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ## What's implemented
 
 ### Maya OS (complete)
-- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section (toggleable), spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
-- **Sidebar** — Day tab (dailies, food log), Tasks tab (was Backlog), Maya tab (star rating, quick-add), AI tab (dark blue, star rating, quick-add), Idea tab (dark green, notes with stars + topics, textarea input, no scheduling)
-- **Maya task system** — `priority: 'maya'` tasks; star rating (1–3 stars); completion via `task.done`; drag to DayView = scheduled; grouped by star level with hi/md/lo tasks in DayView
-- **AI task system** — `priority: 'ai'` tasks; identical model to maya (stars, `task.done`, unschedule-not-delete); dark blue color (`--pri-ai: #2255cc`); own sidebar tab and panel (`AIPanel.jsx`)
+- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section (toggleable), spotlight/focus zone, core tasks (P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
+- **Sidebar** — Day tab (dailies, food log), Tasks tab (all backlog), Proj tab (project-tagged tasks), Idea tab (notes with stars + topics)
+- **Unified star system** — ALL tasks use 1–5 star rating (`mayaPts`). Single teal color for normal tasks. Project tasks get project color. Quick-add: `!1`–`!5`.
+- **Projects system** — `task.project` field; project combobox in Proj tab; colors per project; Backend management. `ProjPanel.jsx`.
 - **Idea system** — `priority: 'idea'` notes (not tasks); stars for subjective importance; topic categorization (combobox with create/edit/delete); textarea input; never scheduled to days; `noDrag`; dark green (`--pri-idea: #30bb70`); `IdeaPanel.jsx`
 - **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya+ai+idea tasks) to today; preserves isFrog status
 - **Drag and drop** — all zones; group integrity enforced; sandwich recolor; day-tab drag
@@ -47,7 +47,7 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - **Stats View (Backend tab)** — progression cards, XP bar, workout stats, fasting stats (streak, ring chart), heatmap, bar chart, radar (6-axis hexagon), weekly rhythm, trend line, daily consistency, fasting config (eating window), export/import
 - **Scoring** — 6 tiers, XP awards, streak multiplier, +8 XP habit bonuses (workout + fasting), idempotent close/reopen, momentum
 - **Leveling** — 100 levels, 100 titles
-- **Quick-add syntax** — `!hi/!md/!lo`, `@N`, `Nh/Nm`, `frog`
+- **Quick-add syntax** — `!1`–`!5` (stars), `@N` (pts), `Nh/Nm` (duration), `frog`
 - **Export/import** — full backup + tasks-only; always additive with fresh IDs
 - **6 themes** — Dark (default), Soft-Dark, Kraft, Vanilla, Lav-Light, Light
 
@@ -79,7 +79,55 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
-### Topic colors, sticky dropdown, topic sorting (2026-03-30)
+### Code review & cleanup — project labels, dead code removal (2026-03-31)
+
+**Project labels fixed** — Regular (non-project) tasks no longer show a project chip or "+ proj" button on TaskCard. Only tasks with `task.project` set show the project label. Condition changed from `!isIdea` to `!isIdea && task.project` in TaskCard.jsx.
+
+**Dead code removed:**
+- `taskRank()` wrapper in `taskPlacement.js` removed — was identical to `starRank()`. All DayView call sites updated to use `starRank()` directly.
+- Unused `onProjectClick` prop removed from TaskCard.
+- Stale `mayaDoneKey` variable renamed to `ideaDoneKey` in DayView.
+
+**Migration cleanup:**
+- `sortTasksForView` comment corrected (was "kept for compat but unused" — actually actively used).
+- Migration default project colors changed from `'pri-maya'`/`'pri-ai'` to `'pur'`/`'blu'` for new migrations.
+- v4→v5 migration settings now includes full defaults (was missing calorieTarget, frogsEnabled, ideaTopics, projects).
+
+**Pre-existing issue noted:** React key warnings from `ContribHeatmap` in DayView (not introduced by this session).
+
+### Task system overhaul — stars, projects, unified model (2026-03-30)
+
+**Priority colors replaced by stars** — The hi/md/lo color priority system is gone. ALL tasks (including normal tasks) now use a 1–5 star rating (`mayaPts`). Single teal color for all normal tasks. Stars determine sort order. Quick-add syntax: `!1`=1star through `!5`=5stars (number = star count). Old `!hi/!md/!lo` aliases removed.
+
+**Maya + AI tabs merged into Proj** — Sidebar now has 4 tabs: Day | Tasks | Proj | Idea. The "Proj" tab shows tasks with a `task.project` field. Project combobox (type to filter/create), project filter chips, color-per-project. Maya/AI tasks migrated to normal tasks with `project: 'Maya OS'` / `project: 'AI'` auto-created as projects.
+
+**Projects system** — `S.settings.projects` array of `{name, color}` objects. Store functions: `getProjects()`, `addProject()`, `editProject()`, `deleteProject()`, `setProjectColor()`. `task.project` field on tasks (nullable string). 22-color palette for projects/topics.
+
+**Project + Topic management in Backend** — Two new sections between Settings and Danger Zone: "Projects" and "Topics (Ideas)". Each has: add input, color dot (swatch picker), edit button, delete button.
+
+**Task card changes** — All cards show 5 stars. Normal tasks = teal stars. Project tasks = project's color on card border + stars. Idea tasks = green stars. Project chip shows on card (like topic chip for ideas). `priHi`/`priMd`/`priLo`/`priMaya`/`priAi` CSS classes removed, replaced with `priNormal`.
+
+**Context menu overhaul** — Normal task right-click: Start, Focus, Frog, Edit, separator, 5 star ratings, separator, Delete. Idea right-click: only 5 star ratings + Remove from day. No more priority color items.
+
+**Priority paint tool removed** — No more color-dot toolbar buttons in DayView or BacklogPanel.
+
+**Maya/AI special behavior removed** — No more `task.done` for maya/ai (only ideas). No more `markSpecialDone` for maya/ai. No more "Remove from day" for non-idea tasks. All tasks use `dayRecord.cIds` for completion. Normal drag/schedule/backlog behavior for all.
+
+**Migration** — On load: `priority:'maya'` → `priority:null` + `project:'Maya OS'`; `priority:'ai'` → `priority:null` + `project:'AI'`; `priority:'hi'` → `mayaPts:5`; `priority:'md'` → `mayaPts:3`; `priority:'lo'` → `mayaPts:1`. Task.done synced to cIds. MAYA prefix stripped.
+
+**New color tokens** — `--mgn` (magenta), `--lpnk` (light pink), `--ora2` (orange-red), `--lgrn` (light green). Theme overrides for all 5 themes.
+
+**Deleted files** — `MayaPanel.jsx`, `AIPanel.jsx`, `MayaPanel.module.css`, `AIPanel.module.css`.
+
+**New files** — `ProjPanel.jsx`, `ProjPanel.module.css`.
+
+**parseInput changes** — Returns `{ name, pts, time, isFrog, stars }` (was `priority`). New `parseIdeaInput(raw)` for idea-only parsing (stars + name only).
+
+**taskPlacement.js** — `starRank(t)` replaces `priRank`. `snapToStarZone`, `insertTopOfStarGroup` exported. 5-tier ranking (5★→rank1 ... 1★→rank5).
+
+**Future TODOs** — Retest all 6 themes. Refactoring + bug hunting pass.
+
+### Topic colors, sticky dropdown, topic sorting (2026-03-30, earlier)
 
 **Per-topic colors** — Topics are now `{ name, color }` objects (was strings). Color is a CSS token name (`'slv'` default). Each dropdown item has a colored dot + inline color swatch picker (12 colors). `setIdeaTopicColor(name, color)` in store. Topic chips on cards use `color-mix()` inline styles for per-topic color. Migration: string topics auto-convert to objects on load.
 

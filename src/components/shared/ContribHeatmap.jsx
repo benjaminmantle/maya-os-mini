@@ -4,12 +4,12 @@ import { useStore } from '../../hooks/useStore.js';
 import { scoreDay } from '../../utils/scoring.js';
 import { today, addDays } from '../../utils/dates.js';
 
-const GREEN = ['#7bc96f', '#26a641', '#006d32']; // light → dark
+const GREEN = ['#006d32', '#26a641', '#7bc96f']; // dark → light (most activity = lightest)
 
 function fracToGreen(frac) {
-  if (frac >= 1)   return GREEN[2]; // 100% → darkest
-  if (frac >= 0.8) return GREEN[1]; // 80%+ → medium
-  if (frac >= 0.6) return GREEN[0]; // 60%+ → lightest
+  if (frac >= 1)   return GREEN[2]; // 100% → lightest green (best)
+  if (frac >= 0.8) return GREEN[1]; // 80%+ → medium green
+  if (frac >= 0.6) return GREEN[0]; // 60%+ → darkest green
   return null; // gray
 }
 
@@ -68,7 +68,7 @@ export default function ContribHeatmap({
             const nextWeek = i < monthMarkers.length - 1 ? monthMarkers[i + 1].week : weeks;
             const span = nextWeek - m.week;
             return (
-              <div key={i} className={styles.monthLbl} style={{ width: span * colWidth }}>
+              <div key={m.week} className={styles.monthLbl} style={{ width: span * colWidth }}>
                 {m.label}
               </div>
             );
@@ -79,20 +79,20 @@ export default function ContribHeatmap({
       <div className={styles.body}>
         {showDayLabels && (
           <div className={styles.dayLabels} style={{ gap }}>
-            {['M','T','W','T','F','S','S'].map((d, i) => (
-              <div key={i} className={styles.dayLbl} style={{ height: cellSize, width: dayLabelWidth }}>
-                {d}
+            {['Mo','Tu','We','Th','Fr','Sa','Su'].map((d) => (
+              <div key={d} className={styles.dayLbl} style={{ height: cellSize, width: dayLabelWidth }}>
+                {d[0]}
               </div>
             ))}
           </div>
         )}
 
         <div className={styles.grid} style={{ gap }}>
-          {grid.map((week, wi) => (
-            <div key={wi} className={styles.col} style={{ gap }}>
-              {week.map((cell, di) => (
+          {grid.map((week) => (
+            <div key={week[0].date} className={styles.col} style={{ gap }}>
+              {week.map((cell) => (
                 <div
-                  key={di}
+                  key={cell.date}
                   className={`${styles.cell}${cell.future ? ' ' + styles.cellFuture : ''}`}
                   style={{
                     width: cellSize,

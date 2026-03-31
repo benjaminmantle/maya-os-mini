@@ -176,7 +176,7 @@ Never pass `renderCard` directly as a `.map()` callback — map passes `(item, i
 `focusedTaskId` is persisted to `localStorage` key `maya_focusedTaskId`. `App.jsx` restores it on mount and validates (clears if task deleted or done). The `setFocusedTaskId` wrapper in App.jsx handles both React state and localStorage — always use it, never call `_setFocusedTaskId` directly.
 
 ### Drag-and-drop group integrity
-Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `DayView.jsx` (`makeDrop('day')`) and `BacklogPanel.jsx` must not be removed.
+Same-star-rank tasks must stay contiguous. The snap-to-boundary algorithm in `DayView.jsx` (`makeDrop('day')`) and `BacklogPanel.jsx` must not be removed.
 
 ### exportTasks / importTasks — IDs are always replaced on import
 `importTasks(json)` assigns a fresh `uid()` and `createdAt` to every incoming task. Do not attempt to preserve original IDs on import.
@@ -184,11 +184,14 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 ### Tasks-only import is additive, not replacing
 `importTasks` merges into `S.tasks` — never wipes. `importData` (full backup) does a full replace. Keep these behaviors distinct.
 
-### AI tasks — same model as Maya tasks
-AI tasks (`priority: 'ai'`) follow the exact same patterns as maya tasks: `task.done` for completion, star rating via `mayaPts`, `markSpecialDone()` for completion, unschedule-not-delete in DayView, immune to priority paint tool, excluded from backlog, carry-forward uses `task.done`. Color: `--pri-ai` (dark blue, `#2255cc`). AIPanel is in `src/components/sidebar/AIPanel.jsx`. `isSpecialPriority(p)` in `taskPlacement.js` returns true for `'maya'`, `'ai'`, and `'idea'`.
+### No more hi/md/lo priorities or maya/ai special priority
+The old `priority` field (`hi`, `md`, `lo`, `maya`, `ai`) is replaced by a unified star system. All tasks use 1–5 stars via `mayaPts` (default 1). Quick-add syntax: `!1`–`!5` sets stars. Former `maya` and `ai` tasks are now normal tasks with a `task.project` field. `isSpecialPriority(p)` in `taskPlacement.js` now returns true ONLY for `'idea'`.
+
+### Projects system
+`S.settings.projects` is an array of `{ name, color }` objects (color = CSS token name like `'blu'`, `'mgn'`). Store functions: `getProjects()`, `addProject(name)`, `editProject(old, new)`, `deleteProject(name)`, `setProjectColor(name, color)`. `task.project` stores a project name string (or null). ProjPanel (`src/components/sidebar/ProjPanel.jsx`) replaces the old MayaPanel + AIPanel. Sidebar has 4 tabs: Day | Tasks | Proj | Idea. **Project label on TaskCard only shows when `task.project` is truthy** — regular tasks have no project chip or picker.
 
 ### Idea tasks — notes, not tasks
-Idea tasks (`priority: 'idea'`) are quick-capture notes, NOT schedulable tasks. They never appear in DayView, cannot be dragged out of the Idea tab, and have no points/duration badges. Star rating (1–3 via `mayaPts`) represents subjective importance. Completion via `task.done`. Color: `--pri-idea` (dark green, `#30bb70`). IdeaPanel is in `src/components/sidebar/IdeaPanel.jsx`.
+Idea tasks (`priority: 'idea'`) are quick-capture notes, NOT schedulable tasks. They never appear in DayView, cannot be dragged out of the Idea tab, and have no points/duration badges. Star rating (1–3 via `mayaPts`) represents subjective importance. Completion via `task.done`. Color: `--pri-idea` (dark green, `#30bb70`). IdeaPanel is in `src/components/sidebar/IdeaPanel.jsx`. `isSpecialPriority(p)` returns true ONLY for `'idea'` — ideas are the only remaining special priority.
 
 **Topic system**: `task.topic` stores a topic name string (or null). Topics are `{ name, color }` objects in `S.settings.ideaTopics`. Color is a CSS token name (`'blu'`, `'ora'`, `'slv'` etc.). Store functions: `getIdeaTopics()`, `addIdeaTopic(name)`, `editIdeaTopic(old, new)`, `deleteIdeaTopic(name)`, `setIdeaTopicColor(name, color)`. Case-insensitive dedup. Edit/delete/color-change propagates to all matching idea tasks. IdeaPanel has a combobox above the textarea for topic selection/creation, with per-topic color swatches in the dropdown. Topic chips on cards use inline styles with `var(--TOKEN)` for per-topic color. Filter chips below toolbar filter by topic.
 
@@ -200,25 +203,25 @@ Idea tasks (`priority: 'idea'`) are quick-capture notes, NOT schedulable tasks. 
 `settings.frogsEnabled` (default `true`) controls whether the Frogs section appears in DayView. When disabled: frog section hidden, tasks with `isFrog: true` appear in the core tasks list. Radar chart drops the FROGS axis. "Frogs Done" stat card hidden. Toggle is in Backend settings as "Eat the Frog" ON/OFF button. `toggleFrogsEnabled()` in store.js.
 
 ### Special-priority task done state — single source of truth
-`task.done` (boolean on the task object itself) is the completion flag for maya, ai, and idea tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `(t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive special-priority completion from cIds alone.
+`task.done` (boolean on the task object itself) is the completion flag for idea tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `t.priority === 'idea' ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Normal tasks (including former maya/ai tasks) use `dayRecord.cIds` as before. Never derive idea completion from cIds alone.
 
-### markSpecialDone — auto-schedules for scoring
-`markSpecialDone(taskId, done)` (was `markMayaDone`) auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya/ai/idea task. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya/ai/idea completion.
+### markSpecialDone — ideas only
+`markSpecialDone(taskId, done)` now handles idea tasks only. Auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled idea. Reverses cleanly on uncheck. Do not call `updateTask` directly for idea completion.
 
-### Maya/AI/Idea tasks in DayView — unschedule, don't delete
-Delete action for maya/ai/idea tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
+### Idea tasks in DayView — unschedule, don't delete
+Delete action for idea tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "Remove from day". Normal tasks (including former maya/ai) use standard delete.
 
-### Maya drag to DayView — calls doMove for initial placement
-`makeDrop('day')` handles maya/ai/idea tasks — calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToZoneByRank(0, zone, taskRank(task))` to position at TOP of the correct rank group. The old "skip doMove" pattern is gone — `doMove` IS called now.
+### Task drag to DayView — calls doMove for initial placement
+`makeDrop('day')` calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToStarZone(0, zone, starRank(task))` to position at TOP of the correct star group. All tasks use the same drag-to-schedule flow now (idea tasks are still rejected by drop handlers).
 
-### Maya tasks grouped by star rank in DayView
-Maya tasks in DayView core tasks are NOT in a separate section. They sort alongside hi/md/lo tasks by `taskRank()`: 3★ ranks with hi (rank 1), 2★ with md (rank 2), 1★ with lo (rank 3). They still render purple. `priRank` still used for backlog/other views; `taskRank` is DayView-specific.
+### All tasks grouped by star rank in DayView
+All tasks in DayView core tasks sort by `starRank(t)` based on `mayaPts`: 5★=rank 1, 4★=rank 2, 3★=rank 3, 2★=rank 4, 1★=rank 5. `starRank` is the sole ranking function (old `priRank`/`taskRank` wrappers removed). Used in both DayView and BacklogPanel.
 
-### Maya tasks go to TOP of rank group
-When scheduled (drag, AssignPopup) or when stars change on a scheduled task, maya tasks insert at the TOP of their rank group. `handleStarChange` passes `insertAt=0` to `snapToZoneByRank`. AssignPopup `onScheduled` callback triggers repositioning for same-day scheduling.
+### Tasks go to TOP of star group on schedule/star change
+When scheduled (drag, AssignPopup) or when stars change on a scheduled task, tasks insert at the TOP of their star group. `handleStarChange` passes `insertAt=0` to `snapToStarZone`. `insertTopOfStarGroup` exported from `taskPlacement.js`. AssignPopup `onScheduled` callback triggers repositioning for same-day scheduling.
 
-### carryForwardTasks includes maya/ai/idea tasks and preserves frog
-`carryForwardTasks(toDate)` moves maya/ai/idea tasks too. It no longer hardcodes `isFrog: false` — frog status is preserved.
+### carryForwardTasks includes idea tasks and preserves frog
+`carryForwardTasks(toDate)` carries forward all undone scheduled tasks. Idea tasks check `task.done` for completion; normal tasks check `dayRecord.cIds`. Frog status is preserved.
 
 ### Theme system — dark is the default, no class
 Dark theme uses `:root` defaults. Other themes apply a class on `<html>`. Light-mode overrides must always be in named `html.theme-*` blocks:
@@ -270,7 +273,7 @@ NavTabs.jsx renders the stats/settings tab as "Backend" (was "Settings"). The vi
 `parseFoodInput(str)` in `parsing.js` strips trailing `(\d+)(c|cal|calories?)` from input. Returns `{ name, cal }`. No calories specified = `cal: 0`. Always returns an object (never null for non-empty input).
 
 ### Inline name editing — click name text on tasks and dailies
-TaskCard and DailyItem support click-to-edit on the name text. `editingName` state controls input display. Blur saves, Escape cancels, Enter triggers blur. Priority paint mode and done state disable name editing. Drag is disabled while editing (`draggable={!editingName}`). DailyItem name click no longer toggles completion — use the dot for that.
+TaskCard and DailyItem support click-to-edit on the name text. `editingName` state controls input display. Blur saves, Escape cancels, Enter triggers blur. Done state disables name editing. Drag is disabled while editing (`draggable={!editingName}`). DailyItem name click no longer toggles completion — use the dot for that.
 
 ### DailyItem dot — large hit target wrapper, not the dot itself
 The colored dot in DailyItem is wrapped in a `.dDotBtn` span with `8px/6px` padding (negative margin compensates so layout is unchanged). `pointer-events: none` on the inner `.dDot` — clicks must land on the wrapper. Both dot button and name span use `e.stopPropagation()` so they can never trigger each other. Do not remove the wrapper or shrink its padding.
@@ -355,12 +358,14 @@ Run from the project root (`maya-os-mini/`).
 - `src/Shell.jsx` — portal bubble, app switcher
 - `src/App.jsx` — Maya view routing, timer/focus state
 - `src/store/store.js` — ALL Maya data access
-- `src/styles/tokens.css` — ALL design tokens (shared by all apps)
+- `src/styles/tokens.css` — ALL design tokens (shared by all apps); includes `--mgn`, `--lpnk`, `--ora2`, `--lgrn` tokens
 - `src/components/day/DayView.jsx` — main Maya view (intentionally monolithic)
 - `src/components/NavTabs.jsx` — Maya navigation
+- `src/components/sidebar/ProjPanel.jsx` — project task backlog (replaces old MayaPanel + AIPanel)
 - `src/hooks/useStore.js` — Maya store subscription
-- `src/utils/parsing.js` — quick-add syntax parser; `applyEmDash()`
+- `src/utils/parsing.js` — quick-add syntax parser (`parseInput` returns `stars` not `priority`; `parseIdeaInput`); `applyEmDash()`
 - `src/utils/scoring.js` — XP, leveling, day tier logic
+- `src/utils/taskPlacement.js` — `starRank(t)`, `snapToStarZone`, `insertTopOfStarGroup`
 
 ## Key files — Vault
 - `src/vault/VaultApp.jsx` — Vault root, layout, active page state
