@@ -110,7 +110,7 @@ export default function ContribHeatmap({
       {showLegend && (
         <div className={styles.legend} style={{ paddingLeft: dayLabelWidth + (showDayLabels ? 3 : 0) }}>
           <span>Less</span>
-          <div className={styles.legendCell} style={{ background: 'var(--s2)' }} />
+          <div className={styles.legendCell} style={{ background: 'var(--heatmap-empty)' }} />
           <div className={styles.legendCell} style={{ background: GREEN[0] }} />
           <div className={styles.legendCell} style={{ background: GREEN[1] }} />
           <div className={styles.legendCell} style={{ background: GREEN[2] }} />

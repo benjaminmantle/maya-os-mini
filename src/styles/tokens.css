@@ -47,6 +47,8 @@
   --grid-line:    rgba(240,176,48,.025);
   --vignette:     rgba(12,10,13,.8);
   --topbar-scan:  rgba(240,176,48,.012);
+  /* Heatmap empty cell — overridden per light theme for adequate contrast vs --bg */
+  --heatmap-empty: var(--s2);
 }
 
 /* ── Dim theme ──────────────────────────────────────────────────────────── */
@@ -101,6 +103,7 @@ html.theme-light {
   --grid-line:    rgba(110,88,168,.055);
   --vignette:     rgba(140,120,200,.055);
   --topbar-scan:  rgba(110,88,168,.018);
+  --heatmap-empty: #c4bcd4;  /* ~15L darker than bg #e8e3f4 */
 }
 
 /* ── Vanilla theme ──────────────────────────────────────────────────────── */
@@ -138,6 +141,7 @@ html.theme-vanilla {
   --grid-line:    rgba(120,100,55,.035);
   --vignette:     rgba(50,35,8,.04);
   --topbar-scan:  rgba(120,100,55,.012);
+  --heatmap-empty: #c8c0ab;  /* ~15L darker than bg #ede8dc */
 }
 
 /* ── Kraft theme ────────────────────────────────────────────────────────── */
@@ -146,12 +150,12 @@ html.theme-kraft {
   /* Surfaces — warm tan, like kraft paper / manila folders; ~30% darker than vanilla */
   --bg:   #c6b286;
   --s0:   #bba87c;
-  --s1:   #d4c296;
+  --s1:   #ddd0a2;  /* was #d4c296 — lifted for clearer card/bg separation */
   --s2:   #bfaa80;
   --s3:   #b09870;
   /* Borders — warm brown, stronger than vanilla for structure */
-  --b1:   rgba(92,68,26,.24);
-  --b2:   rgba(92,68,26,.46);
+  --b1:   rgba(92,68,26,.32);  /* was .24 — crisper edges on mid-tone bg */
+  --b2:   rgba(92,68,26,.52);  /* was .46 */
   /* Text — dark warm brown, high contrast on tan */
   --text: #1e1608;
   --t2:   #4a3818;
@@ -181,6 +185,7 @@ html.theme-kraft {
   --grid-line:    rgba(92,68,26,.052);
   --vignette:     rgba(50,35,8,.058);
   --topbar-scan:  rgba(92,68,26,.016);
+  --heatmap-empty: #a09060;  /* ~25L darker than bg #c6b286 — extra punch needed on mid-tone */
 }
 
 /* ── White theme ────────────────────────────────────────────────────────── */
@@ -218,4 +223,5 @@ html.theme-white {
   --grid-line:    rgba(80,75,65,.025);
   --vignette:     rgba(30,25,15,.03);
   --topbar-scan:  rgba(80,75,65,.010);
+  --heatmap-empty: #d0cecc;  /* ~14L darker than bg #f0efed */
 }
