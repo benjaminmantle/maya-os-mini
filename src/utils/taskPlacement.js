@@ -1,12 +1,12 @@
 import { moveTask } from '../store/store.js';
 
 // Is this a "special" priority (own sidebar tab, uses task.done, star-rated)?
-export function isSpecialPriority(p) { return p === 'maya' || p === 'ai'; }
+export function isSpecialPriority(p) { return p === 'maya' || p === 'ai' || p === 'idea'; }
 
 // Priority rank — lower number = higher priority
 // maya/ai > hi > md > lo > null
 export function priRank(p) {
-  return p === 'maya' || p === 'ai' ? 0 : p === 'hi' ? 1 : p === 'md' ? 2 : p === 'lo' ? 3 : 4;
+  return p === 'maya' || p === 'ai' || p === 'idea' ? 0 : p === 'hi' ? 1 : p === 'md' ? 2 : p === 'lo' ? 3 : 4;
 }
 
 // Clamp insertAt to the valid zone for `pri` within zoneList (list must NOT include the task)
@@ -48,7 +48,7 @@ export function insertTopOfGroup(pri, zoneList) {
 // Effective rank for a task — maya/ai tasks use star count, others use priority string
 // 3★ maya/ai → 1 (with hi), 2★ → 2 (with md), 1-0★ → 3 (with lo)
 export function taskRank(t) {
-  if (t.priority === 'maya' || t.priority === 'ai') {
+  if (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') {
     const s = t.mayaPts ?? 1;
     return s >= 3 ? 1 : s >= 2 ? 2 : 3;
   }

@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
-import { updateTask, deleteTask, markTaskComplete, markSpecialDone } from '../../store/store.js';
+import { updateTask, deleteTask, markTaskComplete, markSpecialDone, getIdeaTopics } from '../../store/store.js';
 import { applyEmDash } from '../../utils/parsing.js';
 
 export default function TaskCard({
@@ -22,12 +22,13 @@ export default function TaskCard({
   onMoveToBacklog,
   onBump,
   inlineBump,
+  noDrag,
 }) {
   const [hovered, setHovered] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState(task.name);
-  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya' | 'ai'
-  const isSpecial = pri === 'maya' || pri === 'ai';
+  const pri = task.priority; // null | 'hi' | 'md' | 'lo' | 'maya' | 'ai' | 'idea'
+  const isSpecial = pri === 'maya' || pri === 'ai' || pri === 'idea';
   // Special-priority tasks (maya, ai) use task.done as their single done flag
   const done = isSpecial
     ? (task.done ?? false)
@@ -46,6 +47,7 @@ export default function TaskCard({
     inSidebar ? styles.sidebarCard : '',
     pri === 'maya' && !isFocused && !isActive && !task.isFrog ? styles.priMaya : '',
     pri === 'ai' && !isFocused && !isActive && !task.isFrog ? styles.priAi : '',
+    pri === 'idea' && !isFocused && !isActive && !task.isFrog ? styles.priIdea : '',
     pri === 'hi' && !isFocused && !isActive && !task.isFrog ? styles.priHi : '',
     pri === 'md' && !isFocused && !isActive && !task.isFrog ? styles.priMd : '',
     pri === 'lo' && !isFocused && !isActive && !task.isFrog ? styles.priLo : '',
@@ -129,7 +131,7 @@ export default function TaskCard({
     <div
       className={cardClass}
       data-taskid={task.id}
-      draggable={!editingName}
+      draggable={!editingName && !noDrag}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
       onContextMenu={onContextMenu}
@@ -165,45 +167,52 @@ export default function TaskCard({
             {task.name}
           </span>
         )}
-        <div className={styles.taskMeta}>
-          <span
-            className={`${styles.badge} ${styles[task.pts === 0 ? 'p0' : task.pts === 0.5 ? 'p05' : `p${task.pts ?? 1}`]} ${styles.clickable}`}
-            onClick={cyclePts}
-          >
-            {task.pts === 0.5 ? '0.5' : String(task.pts ?? 1)}
-          </span>
-          <span
-            className={`${styles.badge} ${dur ? styles.bdurSet : styles.bdur}`}
-            onClick={cycleTime}
-            title="Click to change duration"
-          >
-            {durLabel}
-          </span>
-          {showPlus && (
+        {pri !== 'idea' && (
+          <div className={styles.taskMeta}>
             <span
-              className={`${styles.badge} ${open ? styles.badgeOpen : styles.bdim}`}
-              onClick={toggleOpen}
-              title="Toggle open-ended"
+              className={`${styles.badge} ${styles[task.pts === 0 ? 'p0' : task.pts === 0.5 ? 'p05' : `p${task.pts ?? 1}`]} ${styles.clickable}`}
+              onClick={cyclePts}
             >
-              +
+              {task.pts === 0.5 ? '0.5' : String(task.pts ?? 1)}
             </span>
-          )}
-        </div>
+            <span
+              className={`${styles.badge} ${dur ? styles.bdurSet : styles.bdur}`}
+              onClick={cycleTime}
+              title="Click to change duration"
+            >
+              {durLabel}
+            </span>
+            {showPlus && (
+              <span
+                className={`${styles.badge} ${open ? styles.badgeOpen : styles.bdim}`}
+                onClick={toggleOpen}
+                title="Toggle open-ended"
+              >
+                +
+              </span>
+            )}
+          </div>
+        )}
         {isSpecial && (
           <div className={styles.mayaRow}>
             <div className={styles.mayaStars}>
               {[1, 2, 3].map(n => (
                 <span
                   key={n}
-                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? (pri === 'ai' ? styles.aiStarOn : styles.mayaStarOn) : ''}`}
+                  className={`${styles.mayaStar} ${n <= (task.mayaPts ?? 1) ? (pri === 'ai' ? styles.aiStarOn : pri === 'idea' ? styles.ideaStarOn : styles.mayaStarOn) : ''}`}
                   onClick={onStarChange ? (e) => { e.stopPropagation(); onStarChange(task.id, n); } : undefined}
                   style={onStarChange ? { cursor: 'pointer' } : {}}
                 >★</span>
               ))}
             </div>
             {showDateChip && task.scheduledDate && (
-              <span className={pri === 'ai' ? styles.aiDateChip : styles.mayaDateChip}>{task.scheduledDate}</span>
+              <span className={pri === 'ai' ? styles.aiDateChip : pri === 'idea' ? styles.ideaDateChip : styles.mayaDateChip}>{task.scheduledDate}</span>
             )}
+            {task.topic && pri === 'idea' && (() => {
+              const topicObj = getIdeaTopics().find(x => x.name?.toLowerCase() === task.topic.toLowerCase());
+              const tc = topicObj?.color || 'slv';
+              return <span className={styles.ideaTopicChip} style={{ color: `var(--${tc})`, background: `color-mix(in srgb, var(--${tc}) 10%, transparent)`, borderColor: `color-mix(in srgb, var(--${tc}) 22%, transparent)` }}>{task.topic}</span>;
+            })()}
           </div>
         )}
       </div>

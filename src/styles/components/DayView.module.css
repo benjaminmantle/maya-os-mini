@@ -215,7 +215,7 @@
 }
 
 /* Priority + sort toolbar */
-.toolbar { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; }
+.toolbar { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; min-height: 22px; }
 .toolGroup { display: flex; align-items: center; gap: 3px; }
 .toolSep { display: none; }
 .priBtn {

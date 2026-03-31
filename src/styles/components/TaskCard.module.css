@@ -153,10 +153,15 @@
 .priMaya:hover { background: rgba(191,95,255,.10); border-color: rgba(191,95,255,.40); }
 .priMaya:hover::before { background: transparent; box-shadow: none; }
 
-.priAi { background: rgba(68,136,255,.05); border-color: rgba(68,136,255,.22); }
+.priAi { background: rgba(34,85,204,.05); border-color: rgba(34,85,204,.22); }
 .priAi::before { background: transparent; box-shadow: none; }
-.priAi:hover { background: rgba(68,136,255,.10); border-color: rgba(68,136,255,.40); }
+.priAi:hover { background: rgba(34,85,204,.10); border-color: rgba(34,85,204,.40); }
 .priAi:hover::before { background: transparent; box-shadow: none; }
+
+.priIdea { background: rgba(48,187,112,.05); border-color: rgba(48,187,112,.22); }
+.priIdea::before { background: transparent; box-shadow: none; }
+.priIdea:hover { background: rgba(48,187,112,.10); border-color: rgba(48,187,112,.40); }
+.priIdea:hover::before { background: transparent; box-shadow: none; }
 
 /* Maya task stars */
 .mayaRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
@@ -164,6 +169,7 @@
 .mayaStar { font-size: 15px; color: var(--b2); line-height: 1; transition: color var(--tr); padding: 2px 3px; }
 .mayaStarOn { color: var(--pri-maya); }
 .aiStarOn { color: var(--pri-ai); }
+.ideaStarOn { color: var(--pri-idea); }
 .mayaDateChip {
   font-size: 9px;
   color: var(--pri-maya);
@@ -177,12 +183,34 @@
 .aiDateChip {
   font-size: 9px;
   color: var(--pri-ai);
-  background: rgba(68,136,255,.10);
-  border: 1px solid rgba(68,136,255,.22);
+  background: rgba(34,85,204,.10);
+  border: 1px solid rgba(34,85,204,.22);
   border-radius: 2px;
   padding: 1px 5px;
   font-family: var(--fm);
   letter-spacing: .5px;
+}
+.ideaDateChip {
+  font-size: 9px;
+  color: var(--pri-idea);
+  background: rgba(48,187,112,.10);
+  border: 1px solid rgba(48,187,112,.22);
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-family: var(--fm);
+  letter-spacing: .5px;
+}
+.ideaTopicChip {
+  font-size: 9px;
+  border: 1px solid;
+  border-radius: 2px;
+  padding: 1px 5px;
+  font-family: var(--f);
+  letter-spacing: .3px;
+  max-width: 120px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Color-tool cursor mode */
@@ -299,16 +327,29 @@
 
 :global(html.theme-light) .priAi,
 :global(html.theme-vanilla) .priAi,
-:global(html.theme-white) .priAi { background: rgba(68,136,255,.08); border-color: rgba(68,136,255,.32); }
+:global(html.theme-white) .priAi { background: rgba(26,68,170,.08); border-color: rgba(26,68,170,.32); }
 :global(html.theme-light) .priAi:hover,
 :global(html.theme-vanilla) .priAi:hover,
-:global(html.theme-white) .priAi:hover { background: rgba(68,136,255,.14); border-color: rgba(68,136,255,.52); }
+:global(html.theme-white) .priAi:hover { background: rgba(26,68,170,.14); border-color: rgba(26,68,170,.52); }
 :global(html.theme-light) .priAi::before,
 :global(html.theme-vanilla) .priAi::before,
 :global(html.theme-white) .priAi::before { background: transparent; box-shadow: none; }
 :global(html.theme-light) .priAi:hover::before,
 :global(html.theme-vanilla) .priAi:hover::before,
 :global(html.theme-white) .priAi:hover::before { background: transparent; box-shadow: none; }
+
+:global(html.theme-light) .priIdea,
+:global(html.theme-vanilla) .priIdea,
+:global(html.theme-white) .priIdea { background: rgba(26,122,72,.08); border-color: rgba(26,122,72,.32); }
+:global(html.theme-light) .priIdea:hover,
+:global(html.theme-vanilla) .priIdea:hover,
+:global(html.theme-white) .priIdea:hover { background: rgba(26,122,72,.14); border-color: rgba(26,122,72,.52); }
+:global(html.theme-light) .priIdea::before,
+:global(html.theme-vanilla) .priIdea::before,
+:global(html.theme-white) .priIdea::before { background: transparent; box-shadow: none; }
+:global(html.theme-light) .priIdea:hover::before,
+:global(html.theme-vanilla) .priIdea:hover::before,
+:global(html.theme-white) .priIdea:hover::before { background: transparent; box-shadow: none; }
 
 /* Frog card: darker green values, subtle bg tint */
 :global(html.theme-light) .isFrog,
@@ -390,11 +431,17 @@
 :global(html.theme-kraft) .priMaya::before { background: var(--pur); box-shadow: 0 0 7px rgba(102,0,204,.48); }
 :global(html.theme-kraft) .priMaya:hover::before { box-shadow: 0 0 14px rgba(102,0,204,.62); }
 
-/* kraft ai: --pri-ai is #2266cc on kraft */
-:global(html.theme-kraft) .priAi { background: rgba(34,102,204,.13); border-color: rgba(34,102,204,.50); }
-:global(html.theme-kraft) .priAi:hover { background: rgba(34,102,204,.20); border-color: rgba(34,102,204,.70); }
-:global(html.theme-kraft) .priAi::before { background: var(--pri-ai); box-shadow: 0 0 7px rgba(34,102,204,.48); }
-:global(html.theme-kraft) .priAi:hover::before { box-shadow: 0 0 14px rgba(34,102,204,.62); }
+/* kraft ai: --pri-ai is #1a44aa on kraft */
+:global(html.theme-kraft) .priAi { background: rgba(26,68,170,.13); border-color: rgba(26,68,170,.50); }
+:global(html.theme-kraft) .priAi:hover { background: rgba(26,68,170,.20); border-color: rgba(26,68,170,.70); }
+:global(html.theme-kraft) .priAi::before { background: var(--pri-ai); box-shadow: 0 0 7px rgba(26,68,170,.48); }
+:global(html.theme-kraft) .priAi:hover::before { box-shadow: 0 0 14px rgba(26,68,170,.62); }
+
+/* kraft idea: --pri-idea is #1e8a50 on kraft */
+:global(html.theme-kraft) .priIdea { background: rgba(30,138,80,.13); border-color: rgba(30,138,80,.50); }
+:global(html.theme-kraft) .priIdea:hover { background: rgba(30,138,80,.20); border-color: rgba(30,138,80,.70); }
+:global(html.theme-kraft) .priIdea::before { background: var(--pri-idea); box-shadow: 0 0 7px rgba(30,138,80,.48); }
+:global(html.theme-kraft) .priIdea:hover::before { box-shadow: 0 0 14px rgba(30,138,80,.62); }
 
 :global(html.theme-kraft) .isFrog { background: rgba(26,152,80,.12); border-color: rgba(26,152,80,.62); }
 :global(html.theme-kraft) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(26,152,80,.50); }

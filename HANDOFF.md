@@ -35,11 +35,12 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 ## What's implemented
 
 ### Maya OS (complete)
-- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section, spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
-- **Sidebar** — Day tab (dailies, food log), Backlog tab, Maya tab (star rating, quick-add), AI tab (blue, star rating, quick-add)
+- **Day View** — date nav, score block (points/dailies bars, workout toggle, carry-forward, close/reopen day), fasting widget (auto-timer, break button), frogs section (toggleable), spotlight/focus zone, core tasks (priority paint, P/T/G sort, quick-add, bump buttons, hide/show, ↩ backlog button), done section
+- **Sidebar** — Day tab (dailies, food log), Tasks tab (was Backlog), Maya tab (star rating, quick-add), AI tab (dark blue, star rating, quick-add), Idea tab (dark green, notes with stars + topics, textarea input, no scheduling)
 - **Maya task system** — `priority: 'maya'` tasks; star rating (1–3 stars); completion via `task.done`; drag to DayView = scheduled; grouped by star level with hi/md/lo tasks in DayView
-- **AI task system** — `priority: 'ai'` tasks; identical model to maya (stars, `task.done`, unschedule-not-delete); blue color (`--pri-ai`); own sidebar tab and panel (`AIPanel.jsx`)
-- **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya+ai tasks) to today; preserves isFrog status
+- **AI task system** — `priority: 'ai'` tasks; identical model to maya (stars, `task.done`, unschedule-not-delete); dark blue color (`--pri-ai: #2255cc`); own sidebar tab and panel (`AIPanel.jsx`)
+- **Idea system** — `priority: 'idea'` notes (not tasks); stars for subjective importance; topic categorization (combobox with create/edit/delete); textarea input; never scheduled to days; `noDrag`; dark green (`--pri-idea: #30bb70`); `IdeaPanel.jsx`
+- **Carry-forward** — `↺ N` button; moves past non-done tasks (including maya+ai+idea tasks) to today; preserves isFrog status
 - **Drag and drop** — all zones; group integrity enforced; sandwich recolor; day-tab drag
 - **Timer** — countdown / open-ended / countup; focus vs start distinction
 - **Week View** — 7-day grid, drag to reschedule, click to navigate
@@ -78,19 +79,47 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
-### AI sidebar tab + Backend text fixes (2026-03-30)
+### Topic colors, sticky dropdown, topic sorting (2026-03-30)
 
-**AI task tab** — 4th sidebar tab ("AI", blue `--pri-ai`) for AI/vibe-coding projects. Uses `priority: 'ai'` — same model as maya tasks: star rating (1–3), `task.done` completion, unschedule-not-delete, immune to paint tool, excluded from backlog, carry-forward via `task.done`. New files: `AIPanel.jsx`, `AIPanel.module.css`. Color token `--pri-ai: #4488ff` (kraft override: `#2266cc`).
+**Per-topic colors** — Topics are now `{ name, color }` objects (was strings). Color is a CSS token name (`'slv'` default). Each dropdown item has a colored dot + inline color swatch picker (12 colors). `setIdeaTopicColor(name, color)` in store. Topic chips on cards use `color-mix()` inline styles for per-topic color. Migration: string topics auto-convert to objects on load.
+
+**Sticky dropdown** — Replaced instant `onMouseLeave` close with 200ms delayed close. Mouse re-enter cancels. Editing/color-picking prevent close.
+
+**Topic sort + filter** — T↓/T↑ button sorts by topic name alphabetically (no-topic at end). Filter chips below toolbar: "All" + each used topic name. Click to toggle filter. `sortTasksForView` supports `'topic'` field.
+
+### Idea tab overhaul, frog toggle reorder, toolbar fix (2026-03-30, earlier)
+
+**Idea tab overhaul** — Ideas are pure notes, not tasks. Cannot be scheduled/dragged to DayView. No points/duration badges. Stars represent subjective importance. Auto-resizing textarea input (Enter submits, Shift+Enter = newline). `noDrag={true}` prop on TaskCard. DayView drop handlers reject `priority === 'idea'`.
+
+**Topic system** — `task.topic` field + `S.settings.ideaTopics`. Combobox above textarea: type to create, dropdown to select. Edit/delete propagate. Store: `getIdeaTopics()`, `addIdeaTopic()`, `editIdeaTopic()`, `deleteIdeaTopic()`.
+
+**Backend toggle reorder** — "Eat the Frog" moved below Fasting/Calorie toggles.
+
+**Toolbar alignment fix** — `min-height: 22px` on `.toolbar`.
+
+### Idea tab, darker AI blue, frogs toggle (2026-03-30, earlier)
+
+**Idea tab initial** — 5th sidebar tab ("Idea", dark green `--pri-idea: #30bb70`). Uses `priority: 'idea'` with star rating, `task.done` completion. New files: `IdeaPanel.jsx`, `IdeaPanel.module.css`.
+
+**Darker AI blue** — `--pri-ai` from `#4488ff` to `#2255cc`. Kraft: `#1a44aa`.
+
+**Tab renames** — "Backlog" → "Tasks". 5 sidebar tabs: Day | Tasks | Maya | AI | Idea.
+
+**Frogs toggle** — `settings.frogsEnabled` (default `true`). "Eat the Frog" ON/OFF in Backend. When OFF: frog section hidden, frog tasks in core list, radar drops FROGS axis.
+
+**btnPrimary fix** — Added missing `.btnPrimary` to `StatsView.module.css`.
+
+**`isSpecialPriority`** covers `'maya'`, `'ai'`, `'idea'`.
+
+### AI sidebar tab + Backend text fixes (2026-03-30, earlier)
+
+**AI task tab** — 4th sidebar tab ("AI", blue `--pri-ai`) for AI/vibe-coding projects. Uses `priority: 'ai'` — same model as maya tasks: star rating (1–3), `task.done` completion, unschedule-not-delete, immune to paint tool, excluded from backlog, carry-forward via `task.done`. New files: `AIPanel.jsx`, `AIPanel.module.css`.
 
 **Tab label change** — "Dailies" tab renamed to "Day" to fit 4 tabs.
 
-**Store rename** — `markMayaDone` → `markSpecialDone` (handles both maya and ai tasks). `sortTasksForView` 4th arg changed from boolean `mayaOnly` to string `specialPri` (`'maya'`/`'ai'`/`false`).
-
-**Helper** — `isSpecialPriority(p)` in `taskPlacement.js` returns true for `'maya'` or `'ai'`. `priRank` and `taskRank` updated for ai priority.
+**Store rename** — `markMayaDone` → `markSpecialDone` (handles maya, ai, idea tasks). `sortTasksForView` 4th arg changed from boolean `mayaOnly` to string `specialPri` (`'maya'`/`'ai'`/`'idea'`/`false`).
 
 **Backend settings text** — "Point target / day:" → "Points", "Fasting tracking:" → "Fasting Tracking", "Calorie tracking:" → "Calorie Tracking" (removed colons, capitalized T).
-
-**Files changed**: `tokens.css`, `taskPlacement.js`, `store.js`, `TaskCard.jsx`, `TaskCard.module.css`, `Sidebar.jsx`, `BacklogPanel.jsx`, `DayView.jsx`, `WeekView.jsx`, `TaskEditModal.jsx`, `StatsView.jsx`, `MayaPanel.jsx` (sort call args). **Files created**: `AIPanel.jsx`, `AIPanel.module.css`.
 
 ### CosmiCanvas Phase 4 Features (2026-03-29)
 

@@ -21,7 +21,8 @@
   --yel:  #ffe040;
   --pri-md: #ff9900;
   --pri-maya: #bf5fff;
-  --pri-ai:   #4488ff;
+  --pri-ai:   #2255cc;
+  --pri-idea:  #30bb70;
   --tel:  #20c8d8;
   --tel2: rgba(32,200,216,.12);
   --slv:  #9098b8;
@@ -84,6 +85,8 @@ html.theme-light {
   --grn:     #18b060;   /* darker green: less neon, better contrast */
   --tel:     #0995a8;   /* darker teal: lo-priority reads on lavender */
   --pri-md:  #d96000;   /* more orange: distinct from gold focus color */
+  --pri-ai:  #1a44aa;   /* darker blue for light bg */
+  --pri-idea: #1a7a48;  /* darker green for light bg */
   /* Effects */
   --grid-line:    rgba(110,88,168,.055);
   --vignette:     rgba(140,120,200,.055);
@@ -114,6 +117,8 @@ html.theme-vanilla {
   --grn:     #1a9050;   /* dark green, warm-compatible */
   --tel:     #0a7a8a;   /* dark teal */
   --pri-md:  #c85a00;   /* deep burnt orange, distinct from gold */
+  --pri-ai:  #1a44aa;
+  --pri-idea: #1a7a48;
   /* Effects */
   --grid-line:    rgba(120,100,55,.035);
   --vignette:     rgba(50,35,8,.04);
@@ -146,7 +151,8 @@ html.theme-kraft {
   /* Purple/maya — #9955ff and #bf5fff both too light on tan; darken significantly */
   --pur:      #6600cc;
   --pri-maya: #8822cc;
-  --pri-ai:   #2266cc;
+  --pri-ai:   #1a44aa;
+  --pri-idea:  #1e8a50;
   /* Accent colours — slightly more vivid than vanilla; background dark enough to carry them */
   --grn:     #1a9850;
   --tel:     #0a8aaa;
@@ -181,6 +187,8 @@ html.theme-white {
   --grn:     #1a9050;
   --tel:     #0a7a8a;
   --pri-md:  #c85a00;
+  --pri-ai:  #1a44aa;
+  --pri-idea: #1a7a48;
   /* Effects — nearly invisible */
   --grid-line:    rgba(80,75,65,.025);
   --vignette:     rgba(30,25,15,.03);

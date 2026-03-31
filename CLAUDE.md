@@ -185,19 +185,31 @@ Same-priority tasks must stay contiguous. The snap-to-boundary algorithm in `Day
 `importTasks` merges into `S.tasks` — never wipes. `importData` (full backup) does a full replace. Keep these behaviors distinct.
 
 ### AI tasks — same model as Maya tasks
-AI tasks (`priority: 'ai'`) follow the exact same patterns as maya tasks: `task.done` for completion, star rating via `mayaPts`, `markSpecialDone()` for completion, unschedule-not-delete in DayView, immune to priority paint tool, excluded from backlog, carry-forward uses `task.done`. Color: `--pri-ai` (blue, `#4488ff`). AIPanel is in `src/components/sidebar/AIPanel.jsx`. `isSpecialPriority(p)` in `taskPlacement.js` returns true for both `'maya'` and `'ai'`.
+AI tasks (`priority: 'ai'`) follow the exact same patterns as maya tasks: `task.done` for completion, star rating via `mayaPts`, `markSpecialDone()` for completion, unschedule-not-delete in DayView, immune to priority paint tool, excluded from backlog, carry-forward uses `task.done`. Color: `--pri-ai` (dark blue, `#2255cc`). AIPanel is in `src/components/sidebar/AIPanel.jsx`. `isSpecialPriority(p)` in `taskPlacement.js` returns true for `'maya'`, `'ai'`, and `'idea'`.
+
+### Idea tasks — notes, not tasks
+Idea tasks (`priority: 'idea'`) are quick-capture notes, NOT schedulable tasks. They never appear in DayView, cannot be dragged out of the Idea tab, and have no points/duration badges. Star rating (1–3 via `mayaPts`) represents subjective importance. Completion via `task.done`. Color: `--pri-idea` (dark green, `#30bb70`). IdeaPanel is in `src/components/sidebar/IdeaPanel.jsx`.
+
+**Topic system**: `task.topic` stores a topic name string (or null). Topics are `{ name, color }` objects in `S.settings.ideaTopics`. Color is a CSS token name (`'blu'`, `'ora'`, `'slv'` etc.). Store functions: `getIdeaTopics()`, `addIdeaTopic(name)`, `editIdeaTopic(old, new)`, `deleteIdeaTopic(name)`, `setIdeaTopicColor(name, color)`. Case-insensitive dedup. Edit/delete/color-change propagates to all matching idea tasks. IdeaPanel has a combobox above the textarea for topic selection/creation, with per-topic color swatches in the dropdown. Topic chips on cards use inline styles with `var(--TOKEN)` for per-topic color. Filter chips below toolbar filter by topic.
+
+**Idea input**: Uses `<textarea>` (not `<input>`) with auto-resize. Enter submits, Shift+Enter = newline. No points/duration sort buttons — only G (star group).
+
+**noDrag**: Ideas pass `noDrag={true}` to TaskCard, which disables `draggable` and prevents outbound drag. DayView drop handlers also reject `priority === 'idea'`.
+
+### Frogs — toggleable via Backend settings
+`settings.frogsEnabled` (default `true`) controls whether the Frogs section appears in DayView. When disabled: frog section hidden, tasks with `isFrog: true` appear in the core tasks list. Radar chart drops the FROGS axis. "Frogs Done" stat card hidden. Toggle is in Backend settings as "Eat the Frog" ON/OFF button. `toggleFrogsEnabled()` in store.js.
 
 ### Special-priority task done state — single source of truth
-`task.done` (boolean on the task object itself) is the completion flag for maya and ai tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `(t.priority === 'maya' || t.priority === 'ai') ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive special-priority completion from cIds alone.
+`task.done` (boolean on the task object itself) is the completion flag for maya, ai, and idea tasks — NOT `dayRecord.cIds`. Use `isDone(t)` in DayView: `(t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? (t.done ?? false) : dayRecord.cIds.includes(t.id)`. Never derive special-priority completion from cIds alone.
 
 ### markSpecialDone — auto-schedules for scoring
-`markSpecialDone(taskId, done)` (was `markMayaDone`) auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya/ai task. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya/ai completion.
+`markSpecialDone(taskId, done)` (was `markMayaDone`) auto-assigns `scheduledDate = today()` + `_autoScheduled = true` when checking an unscheduled maya/ai/idea task. Reverses cleanly on uncheck. Do not call `updateTask` directly for maya/ai/idea completion.
 
-### Maya/AI tasks in DayView — unschedule, don't delete
-Delete action for maya/ai tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
+### Maya/AI/Idea tasks in DayView — unschedule, don't delete
+Delete action for maya/ai/idea tasks calls `updateTask(id, { scheduledDate: null })`, not `deleteTask`. Label: "📅 Remove from day".
 
 ### Maya drag to DayView — calls doMove for initial placement
-`makeDrop('day')` calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToZoneByRank(0, zone, taskRank(task))` to position at TOP of the correct rank group. The old "skip doMove" pattern is gone — `doMove` IS called now.
+`makeDrop('day')` handles maya/ai/idea tasks — calls `updateTask({ scheduledDate: focusDate, isFrog: false })` then `doMove` at `snapToZoneByRank(0, zone, taskRank(task))` to position at TOP of the correct rank group. The old "skip doMove" pattern is gone — `doMove` IS called now.
 
 ### Maya tasks grouped by star rank in DayView
 Maya tasks in DayView core tasks are NOT in a separate section. They sort alongside hi/md/lo tasks by `taskRank()`: 3★ ranks with hi (rank 1), 2★ with md (rank 2), 1★ with lo (rank 3). They still render purple. `priRank` still used for backlog/other views; `taskRank` is DayView-specific.
@@ -205,8 +217,8 @@ Maya tasks in DayView core tasks are NOT in a separate section. They sort alongs
 ### Maya tasks go to TOP of rank group
 When scheduled (drag, AssignPopup) or when stars change on a scheduled task, maya tasks insert at the TOP of their rank group. `handleStarChange` passes `insertAt=0` to `snapToZoneByRank`. AssignPopup `onScheduled` callback triggers repositioning for same-day scheduling.
 
-### carryForwardTasks includes maya tasks and preserves frog
-`carryForwardTasks(toDate)` now moves maya tasks too (previously excluded). It no longer hardcodes `isFrog: false` — frog status is preserved.
+### carryForwardTasks includes maya/ai/idea tasks and preserves frog
+`carryForwardTasks(toDate)` moves maya/ai/idea tasks too. It no longer hardcodes `isFrog: false` — frog status is preserved.
 
 ### Theme system — dark is the default, no class
 Dark theme uses `:root` defaults. Other themes apply a class on `<html>`. Light-mode overrides must always be in named `html.theme-*` blocks:

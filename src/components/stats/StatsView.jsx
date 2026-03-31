@@ -3,7 +3,7 @@ import styles from '../../styles/components/StatsView.module.css';
 import { TITLES, scoreDay, expForLevel } from '../../utils/scoring.js';
 import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
-import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget, toggleFastingEnabled, toggleCaloriesEnabled, getState } from '../../store/store.js';
+import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget, toggleFastingEnabled, toggleCaloriesEnabled, toggleFrogsEnabled, getState } from '../../store/store.js';
 import { sumCalories } from '../../utils/parsing.js';
 import { useToast } from '../shared/Toast.jsx';
 import ContribHeatmap from '../shared/ContribHeatmap.jsx';
@@ -186,10 +186,11 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   const radarFasting = active30.length > 0
     ? active30.filter(d => !days[d]?.fastBroken).length / 30
     : 0;
-  const radarValues = [radarTasks, radarDailies, radarWorkout, radarFrogs, radarDiscipline, ...(settings.fastingEnabled ? [radarFasting] : [])];
+  const frogsOn = settings.frogsEnabled ?? true;
+  const radarValues = [radarTasks, radarDailies, radarWorkout, ...(frogsOn ? [radarFrogs] : []), radarDiscipline, ...(settings.fastingEnabled ? [radarFasting] : [])];
 
-  const RADAR_AXES   = ['TASKS', 'DAILIES', 'WORKOUT', 'FROGS', 'DISCIPLINE', ...(settings.fastingEnabled ? ['FASTING'] : [])];
-  const RADAR_COLORS = ['var(--gold)', 'var(--pur)', 'var(--hot)', 'var(--grn)', 'var(--tel)', ...(settings.fastingEnabled ? ['var(--ora)'] : [])];
+  const RADAR_AXES   = ['TASKS', 'DAILIES', 'WORKOUT', ...(frogsOn ? ['FROGS'] : []), 'DISCIPLINE', ...(settings.fastingEnabled ? ['FASTING'] : [])];
+  const RADAR_COLORS = ['var(--gold)', 'var(--pur)', 'var(--hot)', ...(frogsOn ? ['var(--grn)'] : []), 'var(--tel)', ...(settings.fastingEnabled ? ['var(--ora)'] : [])];
   const RADAR_N = RADAR_AXES.length, RADAR_CX = 90, RADAR_CY = 90, RADAR_R = 68;
 
   function radarTip(i, scale = 1) {
@@ -348,7 +349,7 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
           <div className={styles.statCell}><div className={styles.scVal}>{profile.longest || 0}</div><div className={styles.scLbl}>Longest Streak</div></div>
           <div className={styles.statCell}><div className={styles.scVal}>{profile.perfect || 0}</div><div className={styles.scLbl}>Perfect Days</div></div>
           <div className={styles.statCell}><div className={styles.scVal}>{pastDayKeys.length}</div><div className={styles.scLbl}>Days Tracked</div></div>
-          <div className={styles.statCell}><div className={styles.scVal}>{frogsCompleted}</div><div className={styles.scLbl}>Frogs Done</div></div>
+          {frogsOn && <div className={styles.statCell}><div className={styles.scVal}>{frogsCompleted}</div><div className={styles.scLbl}>Frogs Done</div></div>}
           <div className={styles.statCell}><div className={styles.scVal}>{avgPts}</div><div className={styles.scLbl}>Avg Pts / Day</div></div>
         </div>
 
@@ -703,13 +704,6 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
             onClick={() => { toggleFastingEnabled(); }}
           >{settings.fastingEnabled ? 'ON' : 'OFF'}</button>
         </div>
-        <div className={styles.flexRow} style={{ marginTop: 8 }}>
-          <span className={styles.targetLabel}>Calorie Tracking</span>
-          <button
-            className={`${styles.btn} ${settings.caloriesEnabled ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
-            onClick={() => { toggleCaloriesEnabled(); }}
-          >{settings.caloriesEnabled ? 'ON' : 'OFF'}</button>
-        </div>
         {settings.fastingEnabled && <div className={styles.flexRow} style={{ marginTop: 8 }}>
           <span className={styles.targetLabel}>Eating window:</span>
           <input
@@ -727,6 +721,13 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
           />
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveFasting}>Save</button>
         </div>}
+        <div className={styles.flexRow} style={{ marginTop: 8 }}>
+          <span className={styles.targetLabel}>Calorie Tracking</span>
+          <button
+            className={`${styles.btn} ${settings.caloriesEnabled ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
+            onClick={() => { toggleCaloriesEnabled(); }}
+          >{settings.caloriesEnabled ? 'ON' : 'OFF'}</button>
+        </div>
         {settings.caloriesEnabled && <div className={styles.flexRow} style={{ marginTop: 8 }}>
           <span className={styles.targetLabel}>Calorie target / day:</span>
           <input
@@ -739,6 +740,13 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
           />
           <button className={`${styles.btn} ${styles.btnGhost} ${styles.btnSm}`} onClick={handleSaveCalTarget}>Save</button>
         </div>}
+        <div className={styles.flexRow} style={{ marginTop: 8 }}>
+          <span className={styles.targetLabel}>Eat the Frog</span>
+          <button
+            className={`${styles.btn} ${frogsOn ? styles.btnPrimary : styles.btnGhost} ${styles.btnSm}`}
+            onClick={() => { toggleFrogsEnabled(); }}
+          >{frogsOn ? 'ON' : 'OFF'}</button>
+        </div>
       </div>
 
       <div className={styles.divider} />

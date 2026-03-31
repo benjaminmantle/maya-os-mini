@@ -15,7 +15,7 @@ if (!window.__mayaS) window.__mayaS = {
   profile: { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' },
   target: 10,
   frogsComplete: {},
-  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false },
+  settings: { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [] },
 };
 let S = window.__mayaS;
 
@@ -72,11 +72,12 @@ function load() {
     if (d.frogsComplete) S.frogsComplete = d.frogsComplete;
     if (d.settings) S.settings = d.settings;
     // Ensure settings defaults exist
-    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false };
+    if (!S.settings) S.settings = { fastStart: '13:00', fastEnd: '21:00', calorieTarget: 2000, fastingEnabled: false, caloriesEnabled: false, frogsEnabled: true, ideaTopics: [] };
     if (!S.settings.fastStart) S.settings.fastStart = '13:00';
     if (!S.settings.fastEnd) S.settings.fastEnd = '21:00';
     if (!S.settings.calorieTarget) S.settings.calorieTarget = 2000;
     // fastingEnabled and caloriesEnabled default to false (undefined is falsy, fine)
+    // frogsEnabled defaults to true (undefined → true via ?? in getters)
   } catch (e) {
     console.warn('Failed to load state:', e);
   }
@@ -84,6 +85,10 @@ function load() {
 
 // Initialize
 load();
+// Migrate string-based ideaTopics to objects (if present from older version)
+if (S.settings.ideaTopics?.length && typeof S.settings.ideaTopics[0] === 'string') {
+  S.settings.ideaTopics = S.settings.ideaTopics.map(t => ({ name: t, color: 'slv' }));
+}
 if (!S.dailies.length) S.dailies = DEFAULT_DAILIES;
 if (!S.tasks.length) {
   S.tasks = seedTasks();
@@ -202,7 +207,7 @@ export function sortTasksForView(date, field, dir, specialPri = false) {
   const match = date === null
     ? specialPri
       ? (t) => !t.scheduledDate && t.priority === specialPri
-      : (t) => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai'
+      : (t) => !t.scheduledDate && t.priority !== 'maya' && t.priority !== 'ai' && t.priority !== 'idea'
     : (t) => t.scheduledDate === date && !t.isFrog;
   const indices = [];
   const slice = [];
@@ -227,6 +232,15 @@ export function sortTasksForView(date, field, dir, specialPri = false) {
       return dir === 'desc'
         ? (b.mayaPts ?? 1) - (a.mayaPts ?? 1)
         : (a.mayaPts ?? 1) - (b.mayaPts ?? 1);
+    }
+    if (field === 'topic') {
+      // Sort by topic name alphabetically; no-topic sorts to end
+      const at = a.topic || '';
+      const bt = b.topic || '';
+      if (!at && !bt) return 0;
+      if (!at) return 1;
+      if (!bt) return -1;
+      return dir === 'asc' ? at.localeCompare(bt) : bt.localeCompare(at);
     }
     // dur — null durations sort to end regardless of direction
     const av = parseDurMs(a.timeEstimate);
@@ -416,7 +430,7 @@ export function carryForwardTasks(toDate) {
   S.tasks = S.tasks.map(t => {
     if (!t.scheduledDate) return t;
     if (t.scheduledDate >= todayStr) return t;  // only past dates
-    if (t.priority === 'maya' || t.priority === 'ai') {
+    if (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') {
       if (t.done) return t; // special priority completion is task.done
     } else {
       const dayRec = S.days[t.scheduledDate];
@@ -511,6 +525,72 @@ export function toggleFastingEnabled() {
 export function toggleCaloriesEnabled() {
   S.settings.caloriesEnabled = !S.settings.caloriesEnabled;
   save();
+}
+
+export function toggleFrogsEnabled() {
+  S.settings.frogsEnabled = !(S.settings.frogsEnabled ?? true);
+  save();
+}
+
+// ── Idea topics ─────────────────────────────────────────────────────────
+// Topics are { name: string, color: string } objects. Color is a CSS token name (e.g. 'blu', 'ora').
+
+function migrateIdeaTopics() {
+  if (!S.settings.ideaTopics || !S.settings.ideaTopics.length) return;
+  // Migrate old string-based topics to objects
+  if (typeof S.settings.ideaTopics[0] === 'string') {
+    S.settings.ideaTopics = S.settings.ideaTopics.map(t => ({ name: t, color: 'slv' }));
+  }
+}
+
+export function getIdeaTopics() {
+  return S.settings.ideaTopics || [];
+}
+
+export function addIdeaTopic(name) {
+  const trimmed = name.trim();
+  if (!trimmed) return false;
+  if (!S.settings.ideaTopics) S.settings.ideaTopics = [];
+  migrateIdeaTopics();
+  const exists = S.settings.ideaTopics.some(t => t.name.toLowerCase() === trimmed.toLowerCase());
+  if (exists) return false;
+  S.settings.ideaTopics.push({ name: trimmed, color: 'slv' });
+  save();
+  return true;
+}
+
+export function editIdeaTopic(oldName, newName) {
+  const trimmed = newName.trim();
+  if (!trimmed || !S.settings.ideaTopics) return;
+  migrateIdeaTopics();
+  const topic = S.settings.ideaTopics.find(t => t.name.toLowerCase() === oldName.toLowerCase());
+  if (!topic) return;
+  topic.name = trimmed;
+  S.tasks.forEach(t => {
+    if (t.priority === 'idea' && t.topic && t.topic.toLowerCase() === oldName.toLowerCase()) {
+      t.topic = trimmed;
+    }
+  });
+  save();
+}
+
+export function deleteIdeaTopic(name) {
+  if (!S.settings.ideaTopics) return;
+  migrateIdeaTopics();
+  S.settings.ideaTopics = S.settings.ideaTopics.filter(t => t.name.toLowerCase() !== name.toLowerCase());
+  S.tasks.forEach(t => {
+    if (t.priority === 'idea' && t.topic && t.topic.toLowerCase() === name.toLowerCase()) {
+      t.topic = null;
+    }
+  });
+  save();
+}
+
+export function setIdeaTopicColor(name, color) {
+  if (!S.settings.ideaTopics) return;
+  migrateIdeaTopics();
+  const topic = S.settings.ideaTopics.find(t => t.name.toLowerCase() === name.toLowerCase());
+  if (topic) { topic.color = color; save(); }
 }
 
 export function resetToday() {

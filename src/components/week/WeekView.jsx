@@ -51,7 +51,7 @@ export default function WeekView({ tasks, dailies, days, profile, target, onGoTo
                 {sc.pts}/{sc.tgt}
               </div>
               {dayTasks.slice(0, 4).map(t => {
-                const dn = (t.priority === 'maya' || t.priority === 'ai') ? (t.done ?? false) : dayRec.cIds.includes(t.id);
+                const dn = (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? (t.done ?? false) : dayRec.cIds.includes(t.id);
                 return (
                   <div key={t.id} className={`${styles.dcTask} ${dn ? styles.dcTaskDone : ''} ${t.isFrog ? styles.dcTaskFrog : ''}`}>
                     {t.name}

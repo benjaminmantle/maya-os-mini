@@ -59,11 +59,12 @@ export default function DayView({
   const sc = scoreDay(focusDate, state);
   const spId = activeTaskId || focusedTaskId;
   // Special-priority tasks (maya, ai) use task.done; all others use the day record
-  const isDone = t => (t.priority === 'maya' || t.priority === 'ai') ? (t.done ?? false) : dayRecord.cIds.includes(t.id);
+  const isDone = t => (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? (t.done ?? false) : dayRecord.cIds.includes(t.id);
   const spTask = spId ? tasks.find(x => x.id === spId && !isDone(x) && x.scheduledDate === focusDate) : null;
   const allForDay = tasks.filter(t => t.scheduledDate === focusDate);
-  const frogs = allForDay.filter(t => t.isFrog && !isDone(t) && t.id !== spId);
-  const active = allForDay.filter(t => !t.isFrog && !isDone(t) && t.id !== spId);
+  const frogsOn = settings.frogsEnabled ?? true;
+  const frogs = frogsOn ? allForDay.filter(t => t.isFrog && !isDone(t) && t.id !== spId) : [];
+  const active = allForDay.filter(t => (frogsOn ? !t.isFrog : true) && !isDone(t) && t.id !== spId);
   // Maya tasks grouped by stars into hi/md/lo rank groups; stable sort preserves S.tasks order within rank
   const activeSorted = [...active].sort((a, b) => taskRank(a) - taskRank(b));
   const done = allForDay.filter(t => isDone(t));
@@ -121,7 +122,7 @@ export default function DayView({
     ? tasks.filter(t =>
         t.scheduledDate &&
         t.scheduledDate < todayStr &&
-        !((t.priority === 'maya' || t.priority === 'ai') ? t.done : days[t.scheduledDate]?.cIds?.includes(t.id))
+        !((t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? t.done : days[t.scheduledDate]?.cIds?.includes(t.id))
       )
     : [];
 
@@ -134,7 +135,7 @@ export default function DayView({
   }, [allFrogsDoneAuto, focusDate]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Clear focus/active state when the focused task is checked off
-  const mayaDoneKey = allForDay.filter(t => (t.priority === 'maya' || t.priority === 'ai') && t.done).map(t => t.id).join(',');
+  const mayaDoneKey = allForDay.filter(t => (t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') && t.done).map(t => t.id).join(',');
   const cIdsKey = dayRecord.cIds.join(',') + '|' + mayaDoneKey;
   useEffect(() => {
     const spTaskObj = spId ? tasks.find(x => x.id === spId) : null;
@@ -242,6 +243,7 @@ export default function DayView({
       const id = e.dataTransfer.getData('tid');
       if (!id) return;
       const draggedTask = tasks.find(t => t.id === id);
+      if (draggedTask?.priority === 'idea') return;
       const directCard = e.target.closest('[data-taskid]');
       const targetCard = directCard || hoveredCard;
       const needsZoneChange = !draggedTask ||
@@ -253,7 +255,7 @@ export default function DayView({
         const before = e.clientY < rect.top + rect.height / 2;
         if (zone === 'day') {
           const draggedPri = draggedTask?.priority ?? null;
-          if (draggedPri === 'maya' || draggedPri === 'ai') {
+          if (draggedPri === 'maya' || draggedPri === 'ai' || draggedPri === 'idea') {
             if (needsZoneChange) {
               // Initial assignment: schedule and position at top of effective rank group
               updateTask(id, { scheduledDate: focusDate, isFrog: false });
@@ -280,7 +282,7 @@ export default function DayView({
               // Recolor/decolor if sandwiched between two tasks of identical non-maya priority
               const prevPri = insertAt > 0 ? (zoneList[insertAt - 1]?.priority ?? null) : undefined;
               const nextPri = insertAt < zoneList.length ? (zoneList[insertAt]?.priority ?? null) : undefined;
-              if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && prevPri !== 'ai' && draggedPri !== 'maya' && draggedPri !== 'ai') {
+              if (prevPri !== undefined && nextPri !== undefined && prevPri === nextPri && prevPri !== draggedPri && prevPri !== 'maya' && prevPri !== 'ai' && prevPri !== 'idea' && draggedPri !== 'maya' && draggedPri !== 'ai' && draggedPri !== 'idea') {
                 const patch = { priority: prevPri };
                 if (needsZoneChange) { patch.scheduledDate = focusDate; patch.isFrog = false; }
                 updateTask(id, patch);
@@ -354,7 +356,7 @@ export default function DayView({
     const id = e.dataTransfer.getData('tid');
     if (!id || id === spId) return;
     const draggedTask = tasks.find(t => t.id === id);
-    if (!draggedTask) return;
+    if (!draggedTask || draggedTask.priority === 'idea') return;
     // Un-frog the outgoing spotlight task so it returns to core tasks (not frogs)
     if (spTask?.isFrog) {
       updateTask(spTask.id, { isFrog: false });
@@ -430,7 +432,7 @@ export default function DayView({
         inlineBump
         showAssign={showAssign}
         onAssign={handleAssign}
-        onDelete={(t.priority === 'maya' || t.priority === 'ai') ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
+        onDelete={(t.priority === 'maya' || t.priority === 'ai' || t.priority === 'idea') ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
         onMoveToBacklog={showBacklog ? (id) => updateTask(id, { scheduledDate: null }) : undefined}
         onBump={onBump}
       />
@@ -442,13 +444,13 @@ export default function DayView({
     { label: taskCtx.task.id === focusedTaskId ? '☁️ Unfocus' : '⚡ Focus', action: () => onFocusTask(taskCtx.task.id) },
     { label: taskCtx.task.isFrog ? '🐸 Unfrog' : '🐸 Frog', active: taskCtx.task.isFrog, action: () => updateTask(taskCtx.task.id, { isFrog: !taskCtx.task.isFrog }) },
     { label: '✏️ Edit', action: () => setEditTask(taskCtx.task) },
-    ...(taskCtx.task.priority !== 'maya' && taskCtx.task.priority !== 'ai') ? [
+    ...(taskCtx.task.priority !== 'maya' && taskCtx.task.priority !== 'ai' && taskCtx.task.priority !== 'idea') ? [
       { separator: true },
       { label: '\uD83D\uDD34 High priority', active: taskCtx.task.priority === 'hi', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'hi' ? null : 'hi') },
       { label: '\uD83D\uDFE1 Med priority',  active: taskCtx.task.priority === 'md', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'md' ? null : 'md') },
       { label: '\uD83D\uDD35 Low priority',  active: taskCtx.task.priority === 'lo', action: () => handlePriorityChange(taskCtx.task.id, taskCtx.task.priority === 'lo' ? null : 'lo') },
     ] : [],
-    (taskCtx.task.priority === 'maya' || taskCtx.task.priority === 'ai')
+    (taskCtx.task.priority === 'maya' || taskCtx.task.priority === 'ai' || taskCtx.task.priority === 'idea')
       ? { label: '🗓️ Remove from day', danger: true, action: () => updateTask(taskCtx.task.id, { scheduledDate: null }) }
       : { label: '🗑️ Delete', danger: true, action: () => deleteTask(taskCtx.task.id) },
   ] : [];
@@ -534,6 +536,7 @@ export default function DayView({
         )}
 
         {/* Frogs */}
+        {frogsOn && (
         <div className={allFrogsDoneAuto ? styles.frogSecAllDone : (frogsDone ? styles.frogSecDone : styles.frogSec)} onContextMenu={handleFrogContextMenu}>
           <div className={styles.secLbl + ' ' + styles.secLblFrog} style={{ marginBottom:7, cursor:'pointer' }} onClick={handleFrogContextMenu}>
             {'\uD83D\uDC38'}&nbsp;Frogs{(frogsDone || allFrogsDoneAuto) && <span className={styles.frogCheck}>{' \u2713'}</span>}
@@ -542,6 +545,7 @@ export default function DayView({
             {displayFrogs.map(t => renderCard(t))}
           </div>
         </div>
+        )}
 
         {/* Spotlight — always rendered as a drop zone */}
         <div

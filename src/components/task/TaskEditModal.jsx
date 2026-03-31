@@ -10,7 +10,8 @@ const MAYA_PREFIX = 'MAYA — ';
 export default function TaskEditModal({ task, onClose }) {
   const isMaya = task.priority === 'maya';
   const isAi = task.priority === 'ai';
-  const isSpecial = isMaya || isAi;
+  const isIdea = task.priority === 'idea';
+  const isSpecial = isMaya || isAi || isIdea;
   const rawName = isMaya && task.name.startsWith(MAYA_PREFIX)
     ? task.name.slice(MAYA_PREFIX.length)
     : task.name;
@@ -60,14 +61,14 @@ export default function TaskEditModal({ task, onClose }) {
 
   return (
     <Modal onClose={onClose}>
-      <div className={styles.modalTitle}>{isMaya ? 'Edit Maya Task' : isAi ? 'Edit AI Task' : 'Edit Task'}</div>
+      <div className={styles.modalTitle}>{isMaya ? 'Edit Maya Task' : isAi ? 'Edit AI Task' : isIdea ? 'Edit Idea' : 'Edit Task'}</div>
       <div className={styles.mf}>
         <div className={styles.ml}>{isMaya ? `Name  (MAYA — will be prepended)` : 'Name'}</div>
         <input className={styles.mi} type="text" value={name} onChange={e => setName(applyEmDash(e.target.value))} />
       </div>
       {isSpecial && (
         <div className={styles.mf}>
-          <div className={styles.ml}>{isAi ? 'AI Priority' : 'Maya Priority'}</div>
+          <div className={styles.ml}>{isAi ? 'AI Priority' : isIdea ? 'Idea Priority' : 'Maya Priority'}</div>
           <div className={styles.btnRow}>
             {[1, 2, 3].map(v => (
               <button
@@ -113,7 +114,7 @@ export default function TaskEditModal({ task, onClose }) {
           ))}
         </div>
       </div>
-      {!isMaya && (
+      {!isSpecial && (
         <div
           className={`${styles.frogToggle} ${frog ? styles.frogToggleOn : ''}`}
           onClick={() => setFrog(!frog)}

@@ -37,6 +37,8 @@
 .btn { padding: 7px 13px; border-radius: var(--rs); font-size: 10px; font-weight: 700; transition: all var(--tr); font-family: var(--fd); letter-spacing: 2px; text-transform: uppercase; }
 .btnGhost { background: var(--s1); color: var(--t2); border: 1px solid var(--b2); }
 .btnGhost:hover { border-color: var(--gold); color: var(--gold); }
+.btnPrimary { background: var(--gold); color: #000; border: 1px solid var(--gold); }
+.btnPrimary:hover { box-shadow: 0 0 14px rgba(240,176,48,.45); }
 .btnDanger { background: transparent; color: var(--hot); border: 1px solid rgba(255,48,96,.28); }
 .btnDanger:hover { box-shadow: 0 0 10px rgba(255,48,96,.2); }
 .btnSm { padding: 5px 10px; font-size: 9px; }

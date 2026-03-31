@@ -4,6 +4,7 @@ import DailiesPanel from './DailiesPanel.jsx';
 import BacklogPanel from './BacklogPanel.jsx';
 import MayaPanel from './MayaPanel.jsx';
 import AIPanel from './AIPanel.jsx';
+import IdeaPanel from './IdeaPanel.jsx';
 import { updateTask } from '../../store/store.js';
 
 export default function Sidebar({
@@ -39,7 +40,7 @@ export default function Sidebar({
     const id = e.dataTransfer.getData('tid');
     if (!id) return;
     const task = tasks.find(t => t.id === id);
-    if (!task || !task.scheduledDate || task.priority === 'maya' || task.priority === 'ai') return;
+    if (!task || !task.scheduledDate || task.priority === 'maya' || task.priority === 'ai' || task.priority === 'idea') return;
     updateTask(id, { scheduledDate: null, isFrog: false });
     setTab('backlog');
   }
@@ -61,7 +62,7 @@ export default function Sidebar({
           onDragLeave={handleBacklogDragLeave}
           onDrop={handleBacklogDrop}
         >
-          Backlog
+          Tasks
         </button>
         <button
           className={`${styles.stab} ${tab === 'maya' ? styles.stabActive : ''}`}
@@ -76,6 +77,13 @@ export default function Sidebar({
           onClick={() => setTab('ai')}
         >
           AI
+        </button>
+        <button
+          className={`${styles.stab} ${tab === 'idea' ? styles.stabActive : ''}`}
+          style={tab === 'idea' ? { color: 'var(--pri-idea)', borderBottomColor: 'var(--pri-idea)' } : {}}
+          onClick={() => setTab('idea')}
+        >
+          Idea
         </button>
       </div>
 
@@ -114,6 +122,14 @@ export default function Sidebar({
           activeTaskId={activeTaskId}
           focusedTaskId={focusedTaskId}
           getTimerDisplay={getTimerDisplay}
+          onContextMenu={onTaskContextMenu}
+        />
+      )}
+      {tab === 'idea' && (
+        <IdeaPanel
+          tasks={tasks}
+          activeTaskId={activeTaskId}
+          focusedTaskId={focusedTaskId}
           onContextMenu={onTaskContextMenu}
         />
       )}

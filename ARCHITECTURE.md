@@ -55,12 +55,13 @@ maya-os-mini/               ← repo root (.git lives here)
         │   │                            spotlight, core tasks, done section
         │   │
         │   ├── sidebar/
-        │   │   ├── Sidebar.jsx        ← Tab container (Day / Backlog / Maya / AI)
+        │   │   ├── Sidebar.jsx        ← Tab container (Day / Tasks / Maya / AI / Idea)
         │   │   ├── DailiesPanel.jsx   ← Daily list, drag reorder, add form
         │   │   ├── DailyItem.jsx      ← Single daily row with actions
-        │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes maya+ai)
+        │   │   ├── BacklogPanel.jsx   ← Backlog task list, quick-add (excludes maya+ai+idea)
         │   │   ├── MayaPanel.jsx      ← Maya task backlog, quick-add, star rating
-        │   │   ├── AIPanel.jsx        ← AI task backlog, quick-add, star rating (blue)
+        │   │   ├── AIPanel.jsx        ← AI task backlog, quick-add, star rating (dark blue)
+        │   │   ├── IdeaPanel.jsx      ← Idea task backlog, quick-add, star rating (dark green)
         │   │   └── FoodItem.jsx       ← Food log item card (inline edit, delete)
         │   │
         │   ├── task/
