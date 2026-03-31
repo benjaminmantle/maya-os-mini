@@ -49,6 +49,8 @@ export default function TaskCard({
   const projObj = task.project ? (getProjects().find(p => p.name?.toLowerCase() === task.project.toLowerCase())) : null;
   const projColor = projObj?.color || null;
 
+  const isProjCard = !isIdea && !!projColor && !isFocused && !isActive && !task.isFrog;
+
   const cardClass = [
     styles.taskCard,
     task.isFrog ? styles.isFrog : '',
@@ -58,12 +60,15 @@ export default function TaskCard({
     inSidebar ? styles.sidebarCard : '',
     isIdea && !isFocused && !isActive && !task.isFrog ? styles.priIdea : '',
     !isIdea && !isFocused && !isActive && !task.isFrog ? styles.priNormal : '',
+    isProjCard ? styles.hasProject : '',
   ].filter(Boolean).join(' ');
 
   // Dynamic inline style for project-colored cards
-  const cardStyle = (!isIdea && projColor && !isFocused && !isActive && !task.isFrog) ? {
+  // --card-strip drives the ::before left edge so CSS classes can't override it with the wrong color
+  const cardStyle = isProjCard ? {
     background: `color-mix(in srgb, var(--${projColor}) 5%, transparent)`,
     borderColor: `color-mix(in srgb, var(--${projColor}) 22%, transparent)`,
+    '--card-strip': `var(--${projColor})`,
   } : {};
 
   function handleCheck(e) {

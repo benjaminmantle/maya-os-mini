@@ -8,7 +8,6 @@
   padding: 8px 10px;
   transition: border-color var(--tr), background var(--tr);
   position: relative;
-  opacity: 0.82;
 }
 .taskCard::before {
   content: '';
@@ -144,6 +143,10 @@
 .priIdea::before { background: transparent; box-shadow: none; }
 .priIdea:hover { background: rgba(48,187,112,.10); border-color: rgba(48,187,112,.40); }
 .priIdea:hover::before { background: transparent; box-shadow: none; }
+
+/* Project card — left strip uses project color via --card-strip CSS var */
+.hasProject::before { background: var(--card-strip, transparent); box-shadow: none; }
+.hasProject:hover::before { background: var(--card-strip, transparent); box-shadow: none; }
 
 /* Star row */
 .starRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
@@ -446,6 +449,9 @@
 :global(html.theme-kraft) .priNormal:hover { background: rgba(10,138,170,.18); border-color: rgba(10,138,170,.70); }
 :global(html.theme-kraft) .priNormal::before { background: var(--tel); box-shadow: 0 0 7px rgba(10,138,170,.38); }
 :global(html.theme-kraft) .priNormal:hover::before { box-shadow: 0 0 13px rgba(10,138,170,.54); }
+/* Project cards override the teal strip with their own color */
+:global(html.theme-kraft) .hasProject.priNormal::before { background: var(--card-strip); box-shadow: 0 0 7px color-mix(in srgb, var(--card-strip) 55%, transparent); }
+:global(html.theme-kraft) .hasProject.priNormal:hover::before { box-shadow: 0 0 13px color-mix(in srgb, var(--card-strip) 70%, transparent); }
 
 /* kraft idea: --pri-idea is #1e8a50 on kraft */
 :global(html.theme-kraft) .priIdea { background: rgba(30,138,80,.13); border-color: rgba(30,138,80,.50); }

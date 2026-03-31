@@ -77,9 +77,9 @@ html.theme-light {
   --s1:   #ece8f8;
   --s2:   #ddd6ec;
   --s3:   #d0c9e1;
-  /* Borders — slightly stronger so structure reads on light */
-  --b1:   rgba(110,88,168,.18);
-  --b2:   rgba(110,88,168,.32);
+  /* Borders — stronger so structure reads clearly on light */
+  --b1:   rgba(110,88,168,.28);
+  --b2:   rgba(110,88,168,.48);
   /* Text */
   --text: #1c1030;
   --t2:   #4e3c78;
@@ -103,7 +103,7 @@ html.theme-light {
   --grid-line:    rgba(110,88,168,.055);
   --vignette:     rgba(140,120,200,.055);
   --topbar-scan:  rgba(110,88,168,.018);
-  --heatmap-empty: #c4bcd4;  /* ~15L darker than bg #e8e3f4 */
+  --heatmap-empty: #bebcc8;  /* neutral cool-grey, clearly darker than bg #e8e3f4 */
 }
 
 /* ── Vanilla theme ──────────────────────────────────────────────────────── */
@@ -115,9 +115,9 @@ html.theme-vanilla {
   --s1:   #f3ede0;
   --s2:   #e0d9ca;
   --s3:   #d4ccb8;
-  /* Borders — warm tan/brown */
-  --b1:   rgba(120,100,55,.16);
-  --b2:   rgba(120,100,55,.30);
+  /* Borders — warm tan/brown, stronger for readable structure */
+  --b1:   rgba(120,100,55,.26);
+  --b2:   rgba(120,100,55,.46);
   /* Text — dark warm brown */
   --text: #201c0e;
   --t2:   #5c4c2a;
@@ -141,7 +141,7 @@ html.theme-vanilla {
   --grid-line:    rgba(120,100,55,.035);
   --vignette:     rgba(50,35,8,.04);
   --topbar-scan:  rgba(120,100,55,.012);
-  --heatmap-empty: #c8c0ab;  /* ~15L darker than bg #ede8dc */
+  --heatmap-empty: #c2bdb0;  /* neutral warm-grey, clearly darker than bg #ede8dc */
 }
 
 /* ── Kraft theme ────────────────────────────────────────────────────────── */
@@ -185,7 +185,7 @@ html.theme-kraft {
   --grid-line:    rgba(92,68,26,.052);
   --vignette:     rgba(50,35,8,.058);
   --topbar-scan:  rgba(92,68,26,.016);
-  --heatmap-empty: #a09060;  /* ~25L darker than bg #c6b286 — extra punch needed on mid-tone */
+  --heatmap-empty: #9e9282;  /* neutral warm-grey, no olive/green cast, clearly darker than bg #c6b286 */
 }
 
 /* ── White theme ────────────────────────────────────────────────────────── */
@@ -197,9 +197,9 @@ html.theme-white {
   --s1:   #f6f5f3;
   --s2:   #e4e3e0;
   --s3:   #d8d7d4;
-  /* Borders — very subtle neutral */
-  --b1:   rgba(80,75,65,.14);
-  --b2:   rgba(80,75,65,.26);
+  /* Borders — neutral, stronger for readable structure */
+  --b1:   rgba(80,75,65,.22);
+  --b2:   rgba(80,75,65,.38);
   /* Text — dark neutral-warm */
   --text: #1a1916;
   --t2:   #4a4740;
@@ -223,5 +223,5 @@ html.theme-white {
   --grid-line:    rgba(80,75,65,.025);
   --vignette:     rgba(30,25,15,.03);
   --topbar-scan:  rgba(80,75,65,.010);
-  --heatmap-empty: #d0cecc;  /* ~14L darker than bg #f0efed */
+  --heatmap-empty: #c8c8c6;  /* neutral grey, clearly darker than bg #f0efed */
 }
