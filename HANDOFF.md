@@ -79,6 +79,32 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
+### Theme polish + task card fixes (2026-03-31)
+
+**Color palette reorder** — All 4 color pickers (ProjPanel, IdeaPanel, StatsView, TaskCard topic picker) now use a boustrophedon (snake) 8-column grid with a color-wheel gradient: red upper-left → hot pink → coral → pinks → magenta → purple (row 1) → indigo → blues → teal → greens → lime (row 2, visual R→L) → yellow → gold → orange → brown → grey → silver (row 3). Transitions are smooth at row boundaries.
+
+**Color token additions/adjustments**:
+- `--red: #e01828` added (with lighter-theme overrides)
+- `--lpnk: #ff80cc` (more vibrant than previous #ff99cc)
+- Final row 1 order: `red | hot | crl | pnk | lpnk | mgn | pri-maya | pur`
+
+**Heatmap contrast** — Added `--heatmap-empty` CSS custom property (defaults to `var(--s2)` on dark/dim). Per-theme overrides give the empty cells clear contrast against the background on all light themes. All values are neutral grey (no olive/green tint): kraft `#9e9282`, vanilla `#c2bdb0`, lav-light `#bebcc8`, white `#c8c8c6`. `ContribHeatmap.module.css` and legend now use `var(--heatmap-empty)`.
+
+**Kraft legibility** — Bumped `--s1` from `#d4c296` → `#ddd0a2` (clearer card/bg separation). Increased `--b1`/`--b2` opacity (`.24`→`.32`, `.46`→`.52`).
+
+**Project card left strip** — Project tasks on Kraft were getting the teal `::before` strip instead of their project color. Fix: added `hasProject` CSS class + `--card-strip` inline CSS variable set to the project's color token. The `::before` pseudo-element reads `var(--card-strip)`, so project cards always show their own color. Non-project cards fall back to existing behavior (transparent on dark, teal on kraft).
+
+**Card opacity removed** — Removed base `opacity: 0.82` from `.taskCard`. All cards now render at full opacity. Done and dragging states retain their own opacity rules.
+
+**Border strengthening** — Bumped `--b1`/`--b2` on all three remaining light themes for crisper structural definition:
+- lav-light: b1 `.18→.28`, b2 `.32→.48`
+- vanilla: b1 `.16→.26`, b2 `.30→.46`
+- white: b1 `.14→.22`, b2 `.26→.38`
+
+**What's still "faded" on light themes** — Section labels, DayView panel dividers, and structural section headers haven't been addressed yet. The card-level fixes above help significantly but the overall "sleepy" feeling on non-dark themes may still warrant further work on DayView.module.css structural elements.
+
+---
+
 ### Code review & cleanup — project labels, dead code removal (2026-03-31)
 
 **Project labels fixed** — Regular (non-project) tasks no longer show a project chip or "+ proj" button on TaskCard. Only tasks with `task.project` set show the project label. Condition changed from `!isIdea` to `!isIdea && task.project` in TaskCard.jsx.
