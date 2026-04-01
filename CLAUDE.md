@@ -138,7 +138,7 @@ Err on the side of over-documenting. Even small changes should be noted if they'
 
 **Image blobs are separate** — board JSON stores `blobKey` references. Blobs live in a separate IndexedDB object store. Never inline base64 in the element data.
 
-**Render style abstraction** — element data is style-agnostic. Style renderers (`sketchStyle.js`, `cleanStyle.js`) interpret element data independently. Never store style-specific rendering data on elements.
+**Render style abstraction** — element data is style-agnostic. Style renderers (`sketchStyle.js`, `cleanStyle.js`, `neonStyle.js`) interpret element data independently. Never store style-specific rendering data on elements.
 
 **No confirm() dialogs** — same rule as Maya and Vault.
 
@@ -339,6 +339,15 @@ The 200ms debounce means unsaved changes can exist briefly. The `beforeunload` h
 
 ### Image blob lifecycle
 When an image element is deleted, the blob is NOT immediately deleted (undo might restore it). Run `deleteOrphanedBlobs` on board load or periodically to clean up unreferenced blobs. Never delete blobs inside undo/redo logic.
+
+### Alignment guides are ephemeral — not persisted
+`guides` state follows the same pattern as `ghost` and `marquee`: React state → ref → getter → render loop. Computed in `selectTool.js` during drag via `computeAlignmentGuides()` from `snap.js`. Cleared on mouse up. Never stored in board data.
+
+### Pointer events — tool methods still named onMouseDown
+`WhiteboardApp.jsx` uses `onPointerDown/Move/Up` on the canvas, but tool methods are still named `onMouseDown/Move/Up`. This works because `PointerEvent` extends `MouseEvent` — the event object has all the same properties. Do not rename tool methods unless also updating all tool files.
+
+### Neon style — no roughjs, no caching
+`neonStyle.js` uses pure Canvas 2D with `shadowBlur` for glow effects. It has no cache (like `cleanStyle.js`). Double-pass rendering: glow pass with shadow, then crisp pass without. Do not add roughjs dependency.
 
 ### Shell appWrapFull — no topbar padding override needed
 The `.appWrapFull` wrapper (used by Vault and CosmiCanvas) does NOT have the `:global([class^="_topbar_"])` padding override. CosmiCanvas has no topbar — it's full canvas. The portal bubble still appears (absolutely positioned in the wrapper div) but there's no Maya-style topbar to push over.

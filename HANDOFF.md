@@ -4,7 +4,7 @@
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
 **Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
 **Vault: Step 7 + UI polish + 5 major features + DB improvements + Showcase overhaul (4 rounds) + Timeline/Era system complete.** 8 characters with 47 columns of data. Full interactive skeleton with local/mock mode. Awaiting Supabase setup to persist data.
-**CosmiCanvas: Phases 1–3 complete + polish.** Infinite canvas whiteboard with roughjs sketch + clean renderers, 7 drawing tools, select/move/resize, undo/redo, context menu, color picker, groups, z-ordering, copy/paste, PNG export, keyboard help. See WHITEBOARD_SPEC.md for spec.
+**CosmiCanvas: Phases 1–4 + Phase 5 (partial) complete.** Infinite canvas whiteboard with 3 render styles (sketch/clean/neon), 7 drawing tools, alignment guides, touch/pointer support, select/move/resize, undo/redo, context menu, color picker, groups, z-ordering, copy/paste, PNG/SVG/JSON export, keyboard help. See WHITEBOARD_SPEC.md for spec.
 
 ---
 
@@ -66,18 +66,40 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - [ ] Focus Mode
 - [ ] Remaining column types (image upload, relation picker UI)
 
-### CosmiCanvas (Phases 1–4 complete + polish)
+### CosmiCanvas (Phases 1–5 partial)
 - [x] WHITEBOARD_SPEC.md — full spec with file structure, element model, render architecture, 5 phases
 - [x] CLAUDE.md updated — app isolation rules, critical rules, gotchas, key files
 - [x] Phase 1 — Canvas + camera + IndexedDB storage + board picker
 - [x] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
 - [x] Phase 3 — Arrows + context menu + groups + color picker + copy/paste + z-ordering
 - [x] Phase 4 — Image paste, PNG/SVG/JSON export, minimap, dot grid, snap-to-grid, keyboard help, board rename
-- [ ] Phase 5 — Alignment guides, additional render styles, performance for large boards
+- [x] Phase 5 (partial) — Alignment guides, neon render style, pointer/touch events
+- [ ] Phase 5 (remaining) — Performance for large boards, multi-board tabs
 
 ---
 
 ## Recent session changes
+
+### Code review, refactoring, CosmiCanvas Phase 5 (2026-04-01)
+
+**Maya OS code review & cleanup:**
+- Fixed `TIER_LEGEND` in StatsView — was showing old 6-tier names (good/decent/half/poor), now shows 9-tier percentages (90%/80%/.../fail) matching `TIER_CLR`
+- Renamed duplicate heatmap title from "Activity" to "Completion" for clarity
+- Fixed `toggleWorkout()` to use `getDayRecord()` instead of duplicating init logic
+- Removed unused `useCallback` import from DailiesPanel
+- Removed 5 unused store getter exports (getTasks, getTasksForDate, getDailies, getProfile, getTarget, getFrogsComplete)
+- Removed ~90 lines of dead CSS: priority paint tool classes (priBtn, priDot, toolSep), old spotlight classes (spotlightCard/Zone/Focused/Active/FrogFocused + all theme overrides), old workout button classes (workoutBtn/BtnOn), unused .draggable class
+- Added `overflow-x: auto` to nav bar for horizontal scrolling on mobile/small screens (WEEK/BACKEND tabs now reachable at all widths)
+
+**CosmiCanvas Phase 5 features:**
+- **Alignment guides** — When dragging elements, dashed blue guide lines appear when edges/centers align with other elements. Snaps to alignment (overrides grid snap). Pure function in `snap.js`, integrated via selectTool drag handler, rendered in world space by renderer.
+- **Neon render style** — Cyberpunk glow renderer using Canvas 2D `shadowBlur`. Double-pass (glow + crisp). Handles all 7 element types. Hover intensifies glow. Registered as 3rd style in StyleSwitcher.
+- **Pointer events / touch support** — Replaced `onMouse*` with `onPointer*` for unified mouse/touch/pen input. Two-finger pan + pinch-to-zoom via gesture state tracking. `touch-action: none` on canvas. `setPointerCapture` for reliable tracking.
+
+**Files changed (Maya):** `StatsView.jsx`, `DailiesPanel.jsx`, `store.js`, `DayView.module.css`, `TaskCard.module.css`, `Topbar.module.css`
+**Files changed (CosmiCanvas):** `snap.js`, `selectTool.js`, `renderer.js`, `canvas.js`, `WhiteboardApp.jsx`, `WhiteboardApp.module.css`, `StyleSwitcher.jsx`, NEW `neonStyle.js`
+
+---
 
 ### XP scoring overhaul — 9-tier system + retroactive replay (2026-03-31)
 
