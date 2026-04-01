@@ -73,8 +73,7 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - [x] Phase 2 — Drawing primitives + select tool + roughjs + undo/redo
 - [x] Phase 3 — Arrows + context menu + groups + color picker + copy/paste + z-ordering
 - [x] Phase 4 — Image paste, PNG/SVG/JSON export, minimap, dot grid, snap-to-grid, keyboard help, board rename
-- [x] Phase 5 (partial) — Alignment guides, neon render style, pointer/touch events
-- [ ] Phase 5 (remaining) — Performance for large boards, multi-board tabs
+- [x] Phase 5 — Alignment guides, neon render style, pointer/touch events, performance optimizations, multi-board tabs
 
 ---
 
