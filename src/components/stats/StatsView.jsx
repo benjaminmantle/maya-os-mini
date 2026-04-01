@@ -23,10 +23,13 @@ const TIER_CLR = {
 
 const TIER_LEGEND = [
   ['perfect', 'var(--gold)'],
-  ['good', 'var(--grn)'],
-  ['decent', 'var(--tel)'],
-  ['half', 'var(--slv)'],
-  ['poor', '#a855a0'],
+  ['90%', 'var(--grn)'],
+  ['80%', 'var(--tel)'],
+  ['70%', '#3aada0'],
+  ['60%', 'var(--slv)'],
+  ['50%', '#8888aa'],
+  ['40%', '#a855a0'],
+  ['30%', 'var(--ora)'],
   ['fail', 'var(--hot)'],
 ];
 
@@ -650,7 +653,7 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
         </div>
 
         <div className={styles.sg}>
-          <div className={styles.sgTitle}>Activity — Last {HEAT_WEEKS} Weeks</div>
+          <div className={styles.sgTitle}>Completion — Last {HEAT_WEEKS} Weeks</div>
           <ContribHeatmap weeks={HEAT_WEEKS} cellSize={10} gap={2} showDayLabels showMonthLabels showLegend />
         </div>
       </div>

@@ -57,36 +57,6 @@
 /* Contributions heatmap strip */
 .contribStrip { margin: 8px 0 4px; }
 
-.workoutBtn {
-  font-size: 9px;
-  padding: 4px 10px;
-  border-radius: 2px;
-  background: rgba(255,48,96,.08);
-  border: 1px solid rgba(255,48,96,.35);
-  color: var(--hot);
-  box-shadow: 0 0 8px rgba(255,48,96,.18);
-  transition: all var(--tr);
-  font-family: var(--fd);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.workoutBtn:hover { box-shadow: 0 0 14px rgba(255,48,96,.32); border-color: rgba(255,48,96,.55); }
-.workoutBtnOn {
-  font-size: 9px;
-  padding: 4px 10px;
-  border-radius: 2px;
-  background: transparent;
-  border: 1px solid var(--b1);
-  color: var(--t3);
-  opacity: 0.35;
-  transition: all var(--tr);
-  font-family: var(--fd);
-  letter-spacing: 1.5px;
-  text-transform: uppercase;
-  cursor: pointer;
-}
-.workoutBtnOn:hover { opacity: 0.55; }
 .scoreFootRight { display: flex; align-items: center; gap: 6px; }
 
 .carryBtn {
@@ -131,29 +101,6 @@
 .frogSecAllDone { opacity: .35; }
 .frogSecAllDone .secLblFrog { color: var(--t3); text-shadow: none; animation: none; }
 .frogCheck { color: var(--grn); text-shadow: 0 0 8px rgba(34,238,128,.6); margin-left: 4px; font-size: 12px; }
-
-/* Spotlight */
-.spotlightZone { display: none; }
-.spotlightHasItem { display: block; }
-.spotlightCard {
-  background: rgba(240,176,48,.04);
-  border: 1px solid rgba(240,176,48,.3);
-  border-radius: var(--r);
-  padding: 11px 12px;
-  position: relative;
-}
-.spotlightCard::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 0;
-  bottom: 0;
-  width: 3px;
-  border-radius: var(--r) 0 0 var(--r);
-}
-.spotlightFocused::before { background: var(--gold); box-shadow: 0 0 10px var(--gold); }
-.spotlightActive::before { background: var(--grn); box-shadow: 0 0 10px var(--grn); }
-.spotlightFrogFocused::before { background: var(--grn); box-shadow: 0 0 10px var(--grn); }
 
 /* Quick add */
 .qaRow { display: flex; gap: 6px; }
@@ -217,27 +164,6 @@
 /* Priority + sort toolbar */
 .toolbar { display: flex; align-items: center; gap: 5px; flex-wrap: wrap; margin-bottom: 6px; min-height: 22px; }
 .toolGroup { display: flex; align-items: center; gap: 3px; }
-.toolSep { display: none; }
-.priBtn {
-  width: 22px; height: 22px;
-  border-radius: var(--rs);
-  display: flex; align-items: center; justify-content: center;
-  border: 1px solid transparent;
-  background: transparent;
-  cursor: pointer;
-  transition: all var(--tr);
-}
-.priBtn:hover { background: var(--s2); }
-.priBtnActive { border-color: var(--gold); background: rgba(240,176,48,.06); }
-.priDot {
-  width: 9px; height: 9px;
-  border-radius: 2px;
-  background: var(--pc, #fff);
-  opacity: .55;
-  transition: opacity var(--tr), box-shadow var(--tr);
-}
-.priBtn:hover .priDot { opacity: .85; }
-.priBtnActive .priDot { opacity: 1; box-shadow: 0 0 5px var(--pc, #fff); }
 .sortBtn {
   font-size: 9px;
   padding: 2px 6px;
@@ -308,16 +234,6 @@
 :global(html.theme-white) .secLblFocused { text-shadow: none; }
 
 /* Spotlight strip — no glow on light */
-:global(html.theme-light) .spotlightFocused::before,
-:global(html.theme-vanilla) .spotlightFocused::before,
-:global(html.theme-white) .spotlightFocused::before { box-shadow: none; }
-:global(html.theme-light) .spotlightActive::before,
-:global(html.theme-vanilla) .spotlightActive::before,
-:global(html.theme-white) .spotlightActive::before { box-shadow: none; }
-:global(html.theme-light) .spotlightFrogFocused::before,
-:global(html.theme-vanilla) .spotlightFrogFocused::before,
-:global(html.theme-white) .spotlightFrogFocused::before { box-shadow: none; }
-
 /* Spotlight hint — no opacity reduction on light (gold is already darkened) */
 :global(html.theme-light) .spotlightHint,
 :global(html.theme-vanilla) .spotlightHint,
@@ -377,9 +293,6 @@
 /* Kraft spotlight */
 :global(html.theme-kraft) .spotlightHint { color: var(--gold); opacity: 1; font-weight: 600; }
 :global(html.theme-kraft) .spotlightDropActive { background: color-mix(in srgb, var(--gold) 10%, transparent); outline: 1px dashed color-mix(in srgb, var(--gold) 55%, transparent); }
-:global(html.theme-kraft) .spotlightFocused::before { background: #f0c840; box-shadow: none; }
-:global(html.theme-kraft) .spotlightActive::before { box-shadow: none; }
-:global(html.theme-kraft) .spotlightFrogFocused::before { box-shadow: none; }
 
 /* Kraft fasting */
 :global(html.theme-kraft) .fastLabelActive { color: var(--tel); text-shadow: 0 0 4px color-mix(in srgb, var(--tel) 45%, transparent); }

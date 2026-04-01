@@ -200,34 +200,10 @@ export function getState() {
   return { ...S, tasks: [...S.tasks], days: { ...S.days }, settings: { ...S.settings } };
 }
 
-export function getTasks() {
-  return S.tasks;
-}
-
-export function getTasksForDate(date) {
-  return S.tasks.filter(t => t.scheduledDate === date);
-}
-
-export function getDailies() {
-  return S.dailies;
-}
-
 export function getDayRecord(date) {
   if (!S.days[date]) S.days[date] = { cIds: [], dIds: [], closed: false, workout: false };
   if (S.days[date].workout === undefined) S.days[date].workout = false;
   return S.days[date];
-}
-
-export function getProfile() {
-  return S.profile;
-}
-
-export function getTarget() {
-  return S.target;
-}
-
-export function getFrogsComplete(date) {
-  return !!S.frogsComplete[date];
 }
 
 // --- Mutators ---
@@ -525,9 +501,8 @@ export function carryForwardTasks(toDate) {
 }
 
 export function toggleWorkout(date) {
-  if (!S.days[date]) S.days[date] = { cIds: [], dIds: [], closed: false, workout: false };
-  if (S.days[date].workout === undefined) S.days[date].workout = false;
-  S.days[date].workout = !S.days[date].workout;
+  const day = getDayRecord(date);
+  day.workout = !day.workout;
   save();
 }
 

@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState } from 'react';
 import styles from '../../styles/components/Sidebar.module.css';
 import DailyItem from './DailyItem.jsx';
 import FoodItem from './FoodItem.jsx';

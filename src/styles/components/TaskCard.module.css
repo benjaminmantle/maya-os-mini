@@ -27,8 +27,6 @@
 .isFrog:hover::before { background: var(--grn); box-shadow: 0 0 22px var(--grn); }
 .done { opacity: .28; }
 .doneName { text-decoration: line-through; }
-.draggable { cursor: grab; }
-.draggable:active { cursor: grabbing; }
 .dragging { opacity: .2; }
 .activeTask { background: rgba(68,136,255,.06); border-color: rgba(68,136,255,.4); opacity: 1; }
 .activeTask::before { background: var(--blu); box-shadow: 0 0 16px var(--blu); }
