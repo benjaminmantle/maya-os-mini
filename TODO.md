@@ -15,8 +15,8 @@ Mark items [x] when done — do not delete them.
 
 ## CosmiCanvas Phase 5
 
-- [ ] **Alignment guides** — snap lines when dragging elements near other elements' edges/centers. Visual guide lines.
-- [ ] **Additional render styles** — watercolor, blueprint, neon, etc. New style modules in `render/styles/`.
-- [ ] **Performance for large boards** — virtual rendering (only draw visible), spatial index tuning, throttle store notifications during drag.
-- [ ] **Multi-board tabs** — open multiple boards simultaneously with tab bar.
-- [ ] **Touch support** — touch events for mobile/tablet (pinch zoom, two-finger pan, tap to select).
+- [x] **Alignment guides** — snap lines when dragging elements near other elements' edges/centers. Visual guide lines.
+- [x] **Additional render styles** — watercolor, blueprint, neon, etc. New style modules in `render/styles/`.
+- [x] **Performance for large boards** — virtual rendering (only draw visible), spatial index tuning, throttle store notifications during drag.
+- [x] **Multi-board tabs** — open multiple boards simultaneously with tab bar.
+- [x] **Touch support** — touch events for mobile/tablet (pinch zoom, two-finger pan, tap to select).

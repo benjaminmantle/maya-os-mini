@@ -120,7 +120,12 @@ export const selectTool = {
         y: snap.before.y + dy,
       }));
       if (patches.length) {
-        updateElements(patches);
+        // silent update: mutates store without React notify (avoids re-render per mousemove)
+        if (ctx.updateElementsSilent) {
+          ctx.updateElementsSilent(patches);
+        } else {
+          updateElements(patches);
+        }
         setDirty();
       }
       return;
@@ -158,14 +163,21 @@ export const selectTool = {
       return;
     }
 
-    // hover detection
+    // hover detection — use spatial index when available for O(log n) candidate lookup
     if (mode === 'idle') {
-      const sorted = [...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
       let found = null;
-      for (const el of sorted) {
-        if (hitTest(el, w.x, w.y, 4 / camera.zoom)) {
-          found = el.id;
-          break;
+      const pad = 4 / camera.zoom;
+      if (ctx.spatialIdx) {
+        const candidates = ctx.spatialIdx.queryPoint(w.x, w.y);
+        if (candidates.length > 0) {
+          candidates.sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
+          const el = candidates.find(c => hitTest(c, w.x, w.y, pad));
+          found = el ? el.id : null;
+        }
+      } else {
+        const sorted = [...elements].sort((a, b) => (b.zIndex || 0) - (a.zIndex || 0));
+        for (const el of sorted) {
+          if (hitTest(el, w.x, w.y, pad)) { found = el.id; break; }
         }
       }
       setHoveredId(found);
@@ -211,6 +223,8 @@ export const selectTool = {
     }
 
     if (ctx.setGuides) ctx.setGuides(null);
+    // sync React state after silent drag updates
+    if (ctx.syncNotify) ctx.syncNotify();
     mode = 'idle';
     dragStart = null;
     dragSnap = null;

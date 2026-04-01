@@ -354,6 +354,12 @@ The `.appWrapFull` wrapper (used by Vault and CosmiCanvas) does NOT have the `:g
 
 ---
 
+### Multi-board tabs — openTabs tracks open boards
+`S.openTabs` is an array of `{ id, name }` tracking which boards are open as tabs. `openBoardTab(id)` adds a tab (or switches to existing). `switchTab(id)` swaps the active board. `closeBoardTab(id)` closes a tab and switches to adjacent (or returns to picker if last). `closeBoard()` clears all tabs. Tab bar always shows when a board is open. Board picker shows "← Back to canvas" when opened from "+" tab button (tabs preserved via `showPicker` state).
+
+### Silent drag updates — updateElementsSilent
+`updateElementsSilent(patches)` mutates element positions without calling `notify()` — avoids React re-renders during drag. `syncNotify()` fires one notify on drag end. The spatial index only rebuilds when `_structVersion` changes (add/delete/board open), NOT on position moves. This keeps drag smooth on large boards.
+
 ## Commands
 ```bash
 npm run dev      # localhost:5173
@@ -395,6 +401,8 @@ Run from the project root (`maya-os-mini/`).
 - `src/whiteboard/render/renderer.js` — style orchestrator
 - `src/whiteboard/render/styles/sketchStyle.js` — roughjs renderer (default)
 - `src/whiteboard/render/styles/cleanStyle.js` — geometric renderer
+- `src/whiteboard/render/styles/neonStyle.js` — cyberpunk glow renderer (Canvas 2D shadowBlur)
+- `src/whiteboard/components/TabBar.jsx` — multi-board tab bar
 
 See ARCHITECTURE.md for Maya file tree and patterns.
 See VAULT_ARCHITECTURE.md for Vault file tree, store API, and patterns.

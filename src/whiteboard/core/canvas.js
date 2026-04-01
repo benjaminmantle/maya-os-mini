@@ -9,6 +9,7 @@ export function setupCanvas(canvasEl) {
   let dirty = true;
   let rafId = null;
   let destroyed = false;
+  let _lastStructVersion = -1; // tracks when spatial index needs a rebuild
 
   // state getters — set by the caller
   let _getElements = () => [];
@@ -19,16 +20,18 @@ export function setupCanvas(canvasEl) {
   let _getGhost    = () => null;
   let _getMarquee  = () => null;
   let _getGuides   = () => null;
+  let _getStructVersion = () => 0;
 
   function setGetters(g) {
-    if (g.elements)    _getElements    = g.elements;
-    if (g.camera)      _getCamera      = g.camera;
-    if (g.selection)   _getSelection   = g.selection;
-    if (g.hoveredId)   _getHoveredId   = g.hoveredId;
-    if (g.renderStyle) _getRenderStyle = g.renderStyle;
-    if (g.ghost)       _getGhost       = g.ghost;
-    if (g.marquee)     _getMarquee     = g.marquee;
-    if (g.guides)      _getGuides      = g.guides;
+    if (g.elements)       _getElements       = g.elements;
+    if (g.camera)         _getCamera         = g.camera;
+    if (g.selection)      _getSelection      = g.selection;
+    if (g.hoveredId)      _getHoveredId      = g.hoveredId;
+    if (g.renderStyle)    _getRenderStyle    = g.renderStyle;
+    if (g.ghost)          _getGhost          = g.ghost;
+    if (g.marquee)        _getMarquee        = g.marquee;
+    if (g.guides)         _getGuides         = g.guides;
+    if (g.structVersion)  _getStructVersion  = g.structVersion;
     dirty = true; // re-render with new getters
   }
 
@@ -56,7 +59,12 @@ export function setupCanvas(canvasEl) {
     if (dirty) {
       dirty = false;
       const elements = _getElements();
-      spatialIdx.rebuild(elements);
+      // Only rebuild spatial index when elements are added/deleted (not during position-only moves)
+      const sv = _getStructVersion();
+      if (sv !== _lastStructVersion) {
+        spatialIdx.rebuild(elements);
+        _lastStructVersion = sv;
+      }
       renderer.render(
         elements,
         _getCamera(),

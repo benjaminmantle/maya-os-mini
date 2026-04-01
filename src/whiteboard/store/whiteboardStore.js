@@ -11,6 +11,7 @@ if (!window.__boardS) {
   window.__boardS = {
     board: null,   // active board (full object) or null
     boards: [],    // lightweight list [{id,name,updatedAt}]
+    openTabs: [],  // [{ id, name }] — boards open as tabs
     ready: false,
   };
 }
@@ -19,6 +20,10 @@ const S = window.__boardS;
 function notify() { listeners.forEach(fn => fn()); }
 export function subscribe(fn)   { listeners.add(fn); }
 export function unsubscribe(fn) { listeners.delete(fn); }
+
+/* ---- structural version (increments on add/delete, not position moves) ---- */
+let _structVersion = 0;
+export function getStructVersion() { return _structVersion; }
 export function getBoardSnapshot() { return { ...S }; }
 
 /* ---- debounced persist ---- */
@@ -76,6 +81,7 @@ export async function openBoard(id) {
   const board = await idb.loadBoard(id);
   if (!board) return;
   S.board = board;
+  _structVersion++; // new board = new element set, force spatial index rebuild
   localStorage.setItem('maya_board_lastId', id);
   notify();
   // GC orphaned blobs in background
@@ -85,16 +91,83 @@ export async function openBoard(id) {
 export function closeBoard() {
   flushSave();
   S.board = null;
+  S.openTabs = [];
   notify();
 }
 
 export async function deleteBoardById(id) {
   await idb.deleteBoard(id);
+  // remove from open tabs
+  S.openTabs = S.openTabs.filter(t => t.id !== id);
   if (S.board && S.board.id === id) {
     S.board = null;
     localStorage.removeItem('maya_board_lastId');
   }
   S.boards = await idb.listBoards();
+  notify();
+}
+
+/* ---- multi-board tabs ---- */
+
+export function getOpenTabs() { return S.openTabs; }
+
+/** Open a board as a tab (or switch to it if already open). */
+export async function openBoardTab(id) {
+  // Already in tabs? Just switch.
+  if (S.openTabs.some(t => t.id === id)) {
+    await switchTab(id);
+    return;
+  }
+  // Load board
+  flushSave();
+  const board = await idb.loadBoard(id);
+  if (!board) return;
+  S.board = board;
+  _structVersion++;
+  S.openTabs.push({ id: board.id, name: board.name });
+  localStorage.setItem('maya_board_lastId', id);
+  notify();
+  idb.deleteOrphanedBlobs(id).catch(() => {});
+}
+
+/** Switch active tab to a different open board. */
+export async function switchTab(id) {
+  if (S.board && S.board.id === id) return; // already active
+  flushSave();
+  const board = await idb.loadBoard(id);
+  if (!board) return;
+  S.board = board;
+  _structVersion++;
+  localStorage.setItem('maya_board_lastId', id);
+  notify();
+}
+
+/** Close a tab. Switches to adjacent tab or returns to picker. */
+export async function closeBoardTab(id) {
+  const idx = S.openTabs.findIndex(t => t.id === id);
+  if (idx === -1) return;
+  // If closing the active board, flush first
+  if (S.board && S.board.id === id) flushSave();
+  S.openTabs.splice(idx, 1);
+  if (S.openTabs.length === 0) {
+    // No tabs left — return to board picker
+    S.board = null;
+    notify();
+    return;
+  }
+  // Switch to adjacent tab if we closed the active one
+  if (S.board && S.board.id === id) {
+    const nextIdx = Math.min(idx, S.openTabs.length - 1);
+    const next = S.openTabs[nextIdx];
+    const board = await idb.loadBoard(next.id);
+    if (board) {
+      S.board = board;
+      _structVersion++;
+      localStorage.setItem('maya_board_lastId', next.id);
+    } else {
+      S.board = null;
+    }
+  }
   notify();
 }
 
@@ -104,6 +177,9 @@ export function renameBoard(id, name) {
   }
   const entry = S.boards.find(b => b.id === id);
   if (entry) entry.name = name;
+  // sync tab name
+  const tab = S.openTabs.find(t => t.id === id);
+  if (tab) tab.name = name;
   _queueSave();
   notify();
 }
@@ -139,6 +215,7 @@ export function getRenderStyle() {
 export function addElement(el) {
   if (!S.board) return;
   S.board.elements.push(el);
+  _structVersion++;
   _queueSave();
   notify();
 }
@@ -165,6 +242,7 @@ export function updateElements(patches) {
 export function deleteElement(id) {
   if (!S.board) return;
   S.board.elements = S.board.elements.filter(e => e.id !== id);
+  _structVersion++;
   _queueSave();
   notify();
 }
@@ -173,9 +251,25 @@ export function deleteElements(ids) {
   if (!S.board) return;
   const set = new Set(ids);
   S.board.elements = S.board.elements.filter(e => !set.has(e.id));
+  _structVersion++;
   _queueSave();
   notify();
 }
+
+/** Mutate element positions without triggering a React notify (used during drag).
+ *  The canvas is dirtied via setDirty() by the caller. Call syncNotify() on drag end. */
+export function updateElementsSilent(patches) {
+  if (!S.board) return;
+  for (const { id, ...patch } of patches) {
+    const el = S.board.elements.find(e => e.id === id);
+    if (el) Object.assign(el, patch);
+  }
+  _queueSave();
+  // deliberately no notify() — avoids React re-renders on every mousemove
+}
+
+/** Fire a notify after silent updates complete (call on drag end). */
+export function syncNotify() { notify(); }
 
 export function getElement(id) {
   if (!S.board) return null;
@@ -263,11 +357,13 @@ export function applyUndo(cmd) {
     // undo create = delete
     const ids = new Set(cmd.elementIds);
     S.board.elements = S.board.elements.filter(e => !ids.has(e.id));
+    _structVersion++;
   } else if (cmd.type === 'delete') {
     // undo delete = restore
     for (const snap of cmd.before) {
       S.board.elements.push(JSON.parse(JSON.stringify(snap)));
     }
+    _structVersion++;
   } else if (cmd.type === 'move' || cmd.type === 'resize' || cmd.type === 'style') {
     // restore before state
     for (const snap of cmd.before) {
@@ -286,10 +382,12 @@ export function applyRedo(cmd) {
     for (const snap of cmd.after) {
       S.board.elements.push(JSON.parse(JSON.stringify(snap)));
     }
+    _structVersion++;
   } else if (cmd.type === 'delete') {
     // redo delete = remove again
     const ids = new Set(cmd.elementIds);
     S.board.elements = S.board.elements.filter(e => !ids.has(e.id));
+    _structVersion++;
   } else if (cmd.type === 'move' || cmd.type === 'resize' || cmd.type === 'style') {
     for (const snap of cmd.after) {
       const el = S.board.elements.find(e => e.id === snap.id);

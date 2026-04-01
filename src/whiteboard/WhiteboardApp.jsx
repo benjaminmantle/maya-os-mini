@@ -4,9 +4,11 @@ import {
   initBoards, createBoard, openBoard, closeBoard, deleteBoardById, renameBoard,
   setCamera, getCamera, getElements, getRenderStyle, setRenderStyle,
   addElement, updateElement, updateElements, deleteElements,
+  updateElementsSilent, syncNotify, getStructVersion,
   applyUndo, applyRedo,
   bringForward, sendBackward, bringToFront, sendToBack,
   getGroups, setGroups,
+  openBoardTab, switchTab, closeBoardTab, getOpenTabs,
 } from './store/whiteboardStore.js';
 import { setupCanvas } from './core/canvas.js';
 import { zoomAtPoint, pan, screenToWorld, zoomToFit } from './core/camera.js';
@@ -32,6 +34,7 @@ import StyleSwitcher from './components/StyleSwitcher.jsx';
 import ContextMenu from './components/ContextMenu.jsx';
 import KeyboardHelp from './components/KeyboardHelp.jsx';
 import Minimap from './components/Minimap.jsx';
+import TabBar from './components/TabBar.jsx';
 import s from './WhiteboardApp.module.css';
 
 /* ---- clipboard (module-level) ---- */
@@ -49,27 +52,36 @@ const TOOLS = {
 };
 
 export default function WhiteboardApp() {
-  const { board, boards, ready } = useWhiteboardStore();
+  const { board, boards, openTabs, ready } = useWhiteboardStore();
+  const [showPicker, setShowPicker] = useState(false);
 
   useEffect(() => { initBoards(); }, []);
 
   if (!ready) return <div className={s.boardPicker}><p>Loading...</p></div>;
-  if (!board) return <BoardPicker boards={boards} />;
-  return <CanvasView board={board} />;
+  // Show picker when no board open OR explicitly requested (e.g. "+" tab)
+  if (!board || showPicker) {
+    return <BoardPicker boards={boards} hasTabs={openTabs.length > 0} onCancel={() => setShowPicker(false)} />;
+  }
+  return <CanvasView board={board} openTabs={openTabs} onShowPicker={() => setShowPicker(true)} />;
 }
 
 /* ---- Board Picker ---- */
 
-function BoardPicker({ boards }) {
+function BoardPicker({ boards, hasTabs, onCancel }) {
   const [editingId, setEditingId] = useState(null);
   const [editName, setEditName] = useState('');
 
   const handleNew = async () => {
     const id = await createBoard('Untitled Board');
-    await openBoard(id);
+    await openBoardTab(id);
+    if (onCancel) onCancel(); // dismiss picker
   };
 
-  const handleOpen = (id) => { if (editingId) return; openBoard(id); };
+  const handleOpen = (id) => {
+    if (editingId) return;
+    openBoardTab(id);
+    if (onCancel) onCancel(); // dismiss picker
+  };
 
   const handleDelete = (e, id) => {
     e.stopPropagation();
@@ -96,7 +108,10 @@ function BoardPicker({ boards }) {
 
   return (
     <div className={s.boardPicker}>
-      <div className={s.bpTitle}>CosmiCanvas</div>
+      <div className={s.bpTitle}>
+        CosmiCanvas
+        {hasTabs && <button className={s.bpCancel} onClick={onCancel}>← Back to canvas</button>}
+      </div>
       {boards.length === 0 && (
         <div className={s.bpEmpty}>No boards yet. Create one to get started.</div>
       )}
@@ -136,7 +151,7 @@ function BoardPicker({ boards }) {
 
 /* ---- Canvas View ---- */
 
-function CanvasView({ board }) {
+function CanvasView({ board, openTabs, onShowPicker }) {
   const canvasRef = useRef(null);
   const engineRef = useRef(null);
   const panState = useRef({ panning: false, lastX: 0, lastY: 0, spaceDown: false });
@@ -185,14 +200,15 @@ function CanvasView({ board }) {
     setImageDirtyCallback(() => engine.setDirty());
 
     engine.setGetters({
-      elements:    () => getElements(),
-      camera:      () => getCamera(),
-      selection:   () => selRef.current,
-      hoveredId:   () => hovRef.current,
-      renderStyle: () => getRenderStyle(),
-      ghost:       () => ghostRef.current,
-      marquee:     () => marqueeRef.current,
-      guides:      () => guidesRef.current,
+      elements:       () => getElements(),
+      camera:         () => getCamera(),
+      selection:      () => selRef.current,
+      hoveredId:      () => hovRef.current,
+      renderStyle:    () => getRenderStyle(),
+      ghost:          () => ghostRef.current,
+      marquee:        () => marqueeRef.current,
+      guides:         () => guidesRef.current,
+      structVersion:  () => getStructVersion(),
     });
 
     clearHistory();
@@ -212,6 +228,9 @@ function CanvasView({ board }) {
     addElement,
     updateElement,
     updateElements,
+    updateElementsSilent,
+    syncNotify,
+    spatialIdx: engineRef.current?.spatialIdx,
     deleteElements,
     canvasEl: canvasRef.current,
     defaultStroke,
@@ -702,8 +721,13 @@ function CanvasView({ board }) {
         }}
       />
 
-      <button className={s.backBtn} onClick={handleBack}>←</button>
-      <BoardTitle name={board.name} boardId={board.id} />
+      <TabBar
+        tabs={openTabs}
+        activeBoardId={board.id}
+        onSwitch={switchTab}
+        onClose={closeBoardTab}
+        onNew={onShowPicker}
+      />
       <div className={s.zoomBadge}>
         {zoom}%
         {snapEnabled && <span className={s.snapBadge}>SNAP</span>}

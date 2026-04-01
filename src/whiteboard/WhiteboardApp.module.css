@@ -15,6 +15,21 @@
   letter-spacing: 0.5px;
 }
 
+.bpCancel {
+  margin-left: 16px;
+  background: none;
+  border: none;
+  color: var(--blu);
+  font-family: var(--f);
+  font-size: 13px;
+  cursor: pointer;
+  opacity: 0.8;
+  transition: opacity 0.15s;
+}
+.bpCancel:hover {
+  opacity: 1;
+}
+
 .bpList {
   list-style: none;
   padding: 0;
@@ -137,6 +152,100 @@
 .backBtn:hover {
   opacity: 1;
   background: var(--s3);
+}
+
+/* ---- multi-board tab bar ---- */
+
+.tabBar {
+  position: absolute;
+  top: 0;
+  left: 42px; /* clear portal bubble */
+  right: 0;
+  z-index: 100;
+  display: flex;
+  align-items: stretch;
+  gap: 1px;
+  height: 32px;
+  padding: 0 4px;
+  background: var(--s1);
+  border-bottom: 1px solid var(--b1);
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.tabBar::-webkit-scrollbar { display: none; }
+
+.tab {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 0 10px;
+  max-width: 160px;
+  min-width: 60px;
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--dim);
+  font-family: var(--f);
+  font-size: 12px;
+  cursor: pointer;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  transition: background 0.15s, color 0.15s;
+}
+.tab:hover {
+  background: var(--s2);
+  color: var(--text);
+}
+
+.tabActive {
+  composes: tab;
+  color: var(--text);
+  border-bottom-color: var(--blu);
+  background: var(--s2);
+}
+
+.tabName {
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.tabClose {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 11px;
+  padding: 0 2px;
+  cursor: pointer;
+  border-radius: 3px;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s;
+}
+.tab:hover .tabClose,
+.tabActive .tabClose {
+  opacity: 0.6;
+}
+.tabClose:hover {
+  opacity: 1 !important;
+  background: rgba(255, 48, 96, 0.15);
+  color: var(--hot);
+}
+
+.tabNew {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  background: none;
+  border: none;
+  color: var(--dim);
+  font-size: 14px;
+  padding: 0 8px;
+  cursor: pointer;
+  transition: color 0.15s;
+}
+.tabNew:hover {
+  color: var(--blu);
 }
 
 .boardTitle {

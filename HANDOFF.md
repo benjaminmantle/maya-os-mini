@@ -4,7 +4,7 @@
 **Maya OS: Phase 6 complete.** Fully functional. All docs current.
 **Portal Shell: Complete.** Bubble + launcher working. Maya and Vault switch cleanly.
 **Vault: Step 7 + UI polish + 5 major features + DB improvements + Showcase overhaul (4 rounds) + Timeline/Era system complete.** 8 characters with 47 columns of data. Full interactive skeleton with local/mock mode. Awaiting Supabase setup to persist data.
-**CosmiCanvas: Phases 1–4 + Phase 5 (partial) complete.** Infinite canvas whiteboard with 3 render styles (sketch/clean/neon), 7 drawing tools, alignment guides, touch/pointer support, select/move/resize, undo/redo, context menu, color picker, groups, z-ordering, copy/paste, PNG/SVG/JSON export, keyboard help. See WHITEBOARD_SPEC.md for spec.
+**CosmiCanvas: Phases 1–4 + Phase 5 complete.** Infinite canvas whiteboard with 3 render styles (sketch/clean/neon), 7 drawing tools, alignment guides, touch/pointer support, performance-optimized rendering, select/move/resize, undo/redo, context menu, color picker, groups, z-ordering, copy/paste, PNG/SVG/JSON export, keyboard help. See WHITEBOARD_SPEC.md for spec.
 
 ---
 
@@ -98,6 +98,41 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 **Files changed (Maya):** `StatsView.jsx`, `DailiesPanel.jsx`, `store.js`, `DayView.module.css`, `TaskCard.module.css`, `Topbar.module.css`
 **Files changed (CosmiCanvas):** `snap.js`, `selectTool.js`, `renderer.js`, `canvas.js`, `WhiteboardApp.jsx`, `WhiteboardApp.module.css`, `StyleSwitcher.jsx`, NEW `neonStyle.js`
+
+### CosmiCanvas Performance (2026-03-31)
+
+**Problem:** Spatial index was rebuilt every dirty frame; React re-rendered on every drag mousemove (wasted CPU on large boards).
+
+**Fixes:**
+- `whiteboardStore.js` — Added `_structVersion` counter (increments on add/delete/openBoard, NOT on position moves). Exported `getStructVersion()`, `updateElementsSilent(patches)` (mutates without notify), `syncNotify()`.
+- `canvas.js` — Added `_getStructVersion` getter slot. Spatial index now only rebuilds when struct version changes (skips rebuild during drag). Board switches always rebuild (openBoard bumps version).
+- `selectTool.js` — Drag mousemove now calls `ctx.updateElementsSilent()` instead of `ctx.updateElements()` — prevents React re-render on every pointer move. `onMouseUp` calls `ctx.syncNotify()` to sync React state after drag. Hover detection uses `ctx.spatialIdx.queryPoint()` (O(log n)) instead of O(n) linear scan over all elements.
+- `WhiteboardApp.jsx` — Imports + forwards `updateElementsSilent`, `syncNotify`, `getStructVersion`, `spatialIdx` to tool context. Wires `structVersion` getter into canvas engine.
+
+**Result:** During a drag of N elements on a board with M total elements: spatial index rebuild goes from M per frame → 0 per frame; React renders during drag go from M per mousemove → 0 during drag (one sync on mouseup); hover hit-test goes from O(M) → O(log M).
+
+**Files changed:** `whiteboardStore.js`, `canvas.js`, `selectTool.js`, `WhiteboardApp.jsx`
+
+### CosmiCanvas Multi-Board Tabs (2026-04-01)
+
+**Feature:** Open multiple boards simultaneously as tabs. Tab bar appears at the top of the canvas.
+
+**Store additions** (`whiteboardStore.js`):
+- `S.openTabs` — array of `{ id, name }` for open board tabs
+- `openBoardTab(id)` — opens board as tab (or switches to existing tab)
+- `switchTab(id)` — switches active board (flushes save, loads from IDB)
+- `closeBoardTab(id)` — closes tab, switches to adjacent; last tab → board picker
+- `getOpenTabs()` — returns tab list
+- `closeBoard()` now clears `openTabs`. `renameBoard` syncs tab name. `deleteBoardById` removes from tabs.
+
+**UI** (`TabBar.jsx`, `WhiteboardApp.module.css`):
+- Tab bar: 32px strip at top, left-offset 42px (clears portal bubble). Tabs show board name + ✕ close button. Active tab has blue bottom border. "+" button opens board picker to add another tab.
+- Board picker: when opened from "+" button, shows "← Back to canvas" cancel button (preserves existing tabs). Opening a board adds it as a new tab.
+- `showPicker` React state in WhiteboardApp controls picker visibility without clearing tabs.
+
+**Flow:** Board picker → click board → canvas with tab bar → "+" → picker (tabs preserved) → click another board → 2 tabs → click tab to switch → ✕ to close → last tab close returns to picker.
+
+**Files changed:** `whiteboardStore.js`, `WhiteboardApp.jsx`, `WhiteboardApp.module.css`, NEW `components/TabBar.jsx`
 
 ---
 
