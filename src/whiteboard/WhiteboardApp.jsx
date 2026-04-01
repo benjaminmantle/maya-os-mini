@@ -245,9 +245,32 @@ function CanvasView({ board }) {
     return () => el.removeEventListener('wheel', handleWheel);
   }, [handleWheel]);
 
-  /* ---- mouse events routed to active tool ---- */
-  const handleMouseDown = useCallback((e) => {
-    // skip if text editor is open (click outside dismisses via blur)
+  /* ---- pointer events routed to active tool (unified mouse + touch) ---- */
+  const gestureState = useRef({ pointers: new Map(), gestureActive: false, lastDist: 0, lastMidX: 0, lastMidY: 0 });
+
+  const handlePointerDown = useCallback((e) => {
+    const gs = gestureState.current;
+    gs.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+
+    // Two-finger gesture: cancel tool, enter gesture mode
+    if (gs.pointers.size === 2) {
+      gs.gestureActive = true;
+      const pts = [...gs.pointers.values()];
+      gs.lastDist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      gs.lastMidX = (pts[0].x + pts[1].x) / 2;
+      gs.lastMidY = (pts[0].y + pts[1].y) / 2;
+      // cancel any in-progress tool operation
+      const ps = panState.current;
+      ps.panning = false;
+      return;
+    }
+
+    if (gs.gestureActive || gs.pointers.size > 2) return;
+
+    // Capture pointer for reliable move/up tracking
+    if (canvasRef.current) canvasRef.current.setPointerCapture(e.pointerId);
+
+    // skip if text editor is open
     if (textEditor) return;
     // pan takes priority
     const ps = panState.current;
@@ -266,7 +289,43 @@ function CanvasView({ board }) {
     if (tool && tool.onMouseDown) tool.onMouseDown(getToolCtx(), e);
   }, [activeTool, getToolCtx, textEditor]);
 
-  const handleMouseMove = useCallback((e) => {
+  const handlePointerMove = useCallback((e) => {
+    const gs = gestureState.current;
+    if (gs.pointers.has(e.pointerId)) {
+      gs.pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
+    }
+
+    // Two-finger gesture: pan + pinch zoom
+    if (gs.gestureActive && gs.pointers.size === 2) {
+      const pts = [...gs.pointers.values()];
+      const dist = Math.hypot(pts[1].x - pts[0].x, pts[1].y - pts[0].y);
+      const midX = (pts[0].x + pts[1].x) / 2;
+      const midY = (pts[0].y + pts[1].y) / 2;
+
+      // Pan
+      const panDx = midX - gs.lastMidX;
+      const panDy = midY - gs.lastMidY;
+      let cam = getCamera();
+      cam = pan(cam, panDx, panDy);
+
+      // Pinch zoom
+      if (gs.lastDist > 0 && dist > 0) {
+        const scale = dist / gs.lastDist;
+        const rect = canvasRef.current.getBoundingClientRect();
+        const sx = midX - rect.left;
+        const sy = midY - rect.top;
+        // Convert scale ratio to a deltaY-like value for zoomAtPoint
+        cam = zoomAtPoint(cam, sx, sy, (1 - scale) * 300);
+      }
+
+      setCamera(cam);
+      setDirty();
+      gs.lastDist = dist;
+      gs.lastMidX = midX;
+      gs.lastMidY = midY;
+      return;
+    }
+
     const ps = panState.current;
     if (ps.panning) {
       const dx = e.clientX - ps.lastX;
@@ -283,7 +342,14 @@ function CanvasView({ board }) {
     if (tool && tool.onMouseMove) tool.onMouseMove(getToolCtx(), e);
   }, [activeTool, getToolCtx, setDirty]);
 
-  const handleMouseUp = useCallback((e) => {
+  const handlePointerUp = useCallback((e) => {
+    const gs = gestureState.current;
+    gs.pointers.delete(e.pointerId);
+    if (gs.gestureActive) {
+      if (gs.pointers.size < 2) gs.gestureActive = false;
+      return;
+    }
+
     const ps = panState.current;
     if (ps.panning) {
       ps.panning = false;
@@ -604,9 +670,10 @@ function CanvasView({ board }) {
       <canvas
         ref={canvasRef}
         className={s.canvasEl}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        onPointerDown={handlePointerDown}
+        onPointerMove={handlePointerMove}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerUp}
         onDoubleClick={handleDoubleClick}
         onContextMenu={(e) => {
           e.preventDefault();

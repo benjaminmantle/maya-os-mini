@@ -115,6 +115,7 @@
 .canvasEl {
   display: block;
   background: var(--bg);
+  touch-action: none;
 }
 
 .backBtn {
