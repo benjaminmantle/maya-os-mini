@@ -85,6 +85,47 @@ function load() {
 
 // Initialize
 load();
+
+// ── One-time XP replay: recalculate profile from scratch using new 9-tier scoring ──
+// Runs once (xpVersion < 2). Replays all closed days in chronological order,
+// preserving habit bonuses. Only touches profile.{exp, level, streak, longest, perfect}.
+// Tasks, dailies, days, and all historical data are read-only.
+function replayProfileFromHistory() {
+  const closedDates = Object.keys(S.days).filter(d => S.days[d]?.closed).sort();
+  if (closedDates.length === 0) return;
+
+  let profile = { level: 1, exp: 0, streak: 0, longest: 0, perfect: 0, momentum: 'stable' };
+
+  for (const date of closedDates) {
+    const day = S.days[date];
+    const mockState = { ...S, profile };
+    const result = closeDayScoring(date, mockState);
+
+    // Habit bonuses (past dates always past the fasting window)
+    let habitBonus = 0;
+    if (day.workout) habitBonus += 8;
+    if (S.settings.fastingEnabled && !day.fastBroken) habitBonus += 8;
+    if (habitBonus > 0) {
+      result.profile.exp = Math.max(0, result.profile.exp + habitBonus);
+      while (result.profile.level < 100 && result.profile.exp >= expForLevel(result.profile.level + 1)) {
+        result.profile.exp -= expForLevel(result.profile.level + 1);
+        result.profile.level++;
+      }
+    }
+
+    profile = result.profile;
+  }
+
+  profile.momentum = S.profile.momentum;
+  profile.xpVersion = 2;
+  S.profile = profile;
+  persist(); // Write corrected profile; no notify (pre-React-mount)
+}
+
+if (!S.profile.xpVersion || S.profile.xpVersion < 2) {
+  replayProfileFromHistory();
+}
+
 // Migrate string-based ideaTopics to objects (if present from older version)
 if (S.settings.ideaTopics?.length && typeof S.settings.ideaTopics[0] === 'string') {
   S.settings.ideaTopics = S.settings.ideaTopics.map(t => ({ name: t, color: 'slv' }));

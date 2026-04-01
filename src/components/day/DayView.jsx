@@ -164,7 +164,12 @@ export default function DayView({
     if (r.leveled) {
       setLevelUp(r.profile.level);
     } else {
-      showToast(r.tier === 'perfect' ? '\u2746 perfect day' : r.tier === 'good' ? 'good day' : 'day closed');
+      showToast(
+        r.tier === 'perfect' ? '\u2746 perfect day' :
+        (r.tier === 'p90' || r.tier === 'p80') ? 'strong day' :
+        (r.tier === 'p70' || r.tier === 'p60') ? 'decent day' :
+        'day closed'
+      );
     }
   }
 

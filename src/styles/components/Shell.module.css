@@ -123,3 +123,21 @@
 .appLabel {
   letter-spacing: 0.04em;
 }
+
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+
+/* Bubble — no neon glow on light */
+:global(html.theme-light) .bubble,
+:global(html.theme-vanilla) .bubble,
+:global(html.theme-white) .bubble { box-shadow: 0 0 4px color-mix(in srgb, var(--blu) 35%, transparent); }
+:global(html.theme-light) .bubble:hover,
+:global(html.theme-vanilla) .bubble:hover,
+:global(html.theme-white) .bubble:hover { box-shadow: 0 0 8px color-mix(in srgb, var(--blu) 50%, transparent); }
+:global(html.theme-kraft) .bubble { box-shadow: 0 0 5px color-mix(in srgb, var(--blu) 40%, transparent); }
+:global(html.theme-kraft) .bubble:hover { box-shadow: 0 0 10px color-mix(in srgb, var(--blu) 55%, transparent); }
+
+/* Launcher — lighter shadow */
+:global(html.theme-light) .launcher,
+:global(html.theme-vanilla) .launcher,
+:global(html.theme-white) .launcher { box-shadow: 0 4px 16px rgba(0,0,0,.10), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .launcher { box-shadow: 0 4px 16px rgba(0,0,0,.16), 0 0 0 1px rgba(0,0,0,.08); }

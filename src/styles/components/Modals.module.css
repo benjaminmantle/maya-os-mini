@@ -207,3 +207,77 @@
 .ctxCustom { padding: 4px 10px; }
 .ctxItemActive { color: var(--text); }
 .ctxItemActive::after { content: ' ✓'; color: var(--gold); font-size: 11px; }
+
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+
+/* Overlays — lighter on light backgrounds */
+:global(html.theme-light) .overlay,
+:global(html.theme-vanilla) .overlay,
+:global(html.theme-white) .overlay { background: rgba(0,0,0,.38); }
+:global(html.theme-kraft) .overlay { background: rgba(0,0,0,.45); }
+
+/* Modal shadow — subtle on light */
+:global(html.theme-light) .modal,
+:global(html.theme-vanilla) .modal,
+:global(html.theme-white) .modal { box-shadow: 0 8px 32px rgba(0,0,0,.14), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .modal { box-shadow: 0 8px 32px rgba(0,0,0,.20), 0 0 0 1px rgba(0,0,0,.08); }
+
+/* Context menu + assign popup — lighter shadows */
+:global(html.theme-light) .ctxMenu,
+:global(html.theme-vanilla) .ctxMenu,
+:global(html.theme-white) .ctxMenu { box-shadow: 0 4px 16px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .ctxMenu { box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.08); }
+:global(html.theme-light) .assignPopup,
+:global(html.theme-vanilla) .assignPopup,
+:global(html.theme-white) .assignPopup { box-shadow: 0 4px 20px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .assignPopup { box-shadow: 0 4px 20px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.08); }
+
+/* Toast — subtle shadow */
+:global(html.theme-light) .toast,
+:global(html.theme-vanilla) .toast,
+:global(html.theme-white) .toast { box-shadow: 0 4px 16px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .toast { box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.08); }
+
+/* Level-up overlay — frosted glass on light, semi-dark on kraft */
+:global(html.theme-light) .lvlOverlay,
+:global(html.theme-vanilla) .lvlOverlay,
+:global(html.theme-white) .lvlOverlay { background: rgba(255,255,255,.80); }
+:global(html.theme-kraft) .lvlOverlay { background: rgba(0,0,0,.50); }
+
+/* Level-up card — clean, no neon glow */
+:global(html.theme-light) .lvlCard,
+:global(html.theme-vanilla) .lvlCard,
+:global(html.theme-white) .lvlCard { box-shadow: 0 8px 40px rgba(0,0,0,.12), 0 0 0 1px color-mix(in srgb, var(--gold) 40%, transparent); }
+:global(html.theme-kraft) .lvlCard { box-shadow: 0 8px 40px rgba(0,0,0,.20), 0 0 0 1px color-mix(in srgb, var(--gold) 50%, transparent); }
+
+/* Level-up text — no glow */
+:global(html.theme-light) .lvlGlyph,
+:global(html.theme-vanilla) .lvlGlyph,
+:global(html.theme-white) .lvlGlyph,
+:global(html.theme-kraft) .lvlGlyph { text-shadow: none; }
+:global(html.theme-light) .lvlNum,
+:global(html.theme-vanilla) .lvlNum,
+:global(html.theme-white) .lvlNum,
+:global(html.theme-kraft) .lvlNum { text-shadow: none; }
+
+/* Button hover glows — subtler on light */
+:global(html.theme-light) .btnPrimary:hover,
+:global(html.theme-vanilla) .btnPrimary:hover,
+:global(html.theme-white) .btnPrimary:hover { box-shadow: 0 2px 8px color-mix(in srgb, var(--gold) 30%, transparent); }
+:global(html.theme-kraft) .btnPrimary:hover { box-shadow: 0 2px 8px color-mix(in srgb, var(--gold) 35%, transparent); }
+
+/* Toggle glow — remove on light */
+:global(html.theme-light) .selBtnOn,
+:global(html.theme-vanilla) .selBtnOn,
+:global(html.theme-white) .selBtnOn { box-shadow: none; }
+:global(html.theme-kraft) .selBtnOn { box-shadow: none; }
+:global(html.theme-light) .frogToggleOn,
+:global(html.theme-vanilla) .frogToggleOn,
+:global(html.theme-white) .frogToggleOn { box-shadow: none; }
+:global(html.theme-kraft) .frogToggleOn { box-shadow: none; }
+
+/* Danger zone — use var-based colors */
+:global(html.theme-light) .dangerTitle,
+:global(html.theme-vanilla) .dangerTitle,
+:global(html.theme-white) .dangerTitle,
+:global(html.theme-kraft) .dangerTitle { text-shadow: none; }

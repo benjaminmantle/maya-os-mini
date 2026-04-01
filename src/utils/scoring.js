@@ -1,6 +1,16 @@
 import { today } from './dates.js';
 
-const TIER_EXP = { perfect: 100, good: 78, decent: 32, half: -5, poor: -18, fail: -30 };
+const TIER_EXP = {
+  perfect: 125,  // disproportionate top bonus
+  p90:      88,  // 90–99%
+  p80:      68,  // 80–89%
+  p70:      42,  // 70–79%
+  p60:      12,  // 60–69%
+  p50:      -8,  // 50–59%
+  p40:     -22,  // 40–49%
+  p30:     -40,  // 30–39%
+  fail:    -70,  // below 30%
+};
 
 export const TITLES = [
   'Adrift', 'First Light', 'Trying Anyway', 'In Motion', 'Finding Rhythm',
@@ -39,10 +49,13 @@ export function scoreDay(d, state) {
   const frac = (tgt + dTot) > 0 ? (Math.min(pts, tgt) + dDone) / (tgt + dTot) : 0;
   let tier;
   if (ptsMissed === 0 && dMissed === 0) tier = 'perfect';
-  else if ((ptsMissed <= 1 && dMissed === 0) || (ptsMissed === 0 && dMissed <= 1)) tier = 'good';
-  else if (frac >= 0.7) tier = 'decent';
-  else if (frac >= 0.5) tier = 'half';
-  else if (frac >= 0.25) tier = 'poor';
+  else if (frac >= 0.9) tier = 'p90';
+  else if (frac >= 0.8) tier = 'p80';
+  else if (frac >= 0.7) tier = 'p70';
+  else if (frac >= 0.6) tier = 'p60';
+  else if (frac >= 0.5) tier = 'p50';
+  else if (frac >= 0.4) tier = 'p40';
+  else if (frac >= 0.3) tier = 'p30';
   else tier = 'fail';
   return { tier, pts, dDone, dTot, tgt, frac };
 }
@@ -77,7 +90,7 @@ export function closeDayScoring(d, state) {
 }
 
 export function calcMomentum(state) {
-  const order = ['fail', 'poor', 'half', 'decent', 'good', 'perfect'];
+  const order = ['fail', 'p30', 'p40', 'p50', 'p60', 'p70', 'p80', 'p90', 'perfect'];
   const recent = Object.keys(state.days).filter(d => state.days[d]?.closed).sort().slice(-5);
   if (recent.length < 2) return 'stable';
   const avg = recent.map(d => order.indexOf(scoreDay(d, state).tier)).reduce((a, b) => a + b, 0) / recent.length;

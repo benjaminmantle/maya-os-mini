@@ -357,131 +357,137 @@
 /* Done tasks: .28 opacity vanishes on light bg */
 :global(html.theme-light) .done,
 :global(html.theme-vanilla) .done,
-:global(html.theme-white) .done { opacity: .48; }
+:global(html.theme-white) .done { opacity: .50; }
 
 /* Normal task — teal tint on light */
 :global(html.theme-light) .priNormal,
 :global(html.theme-vanilla) .priNormal,
-:global(html.theme-white) .priNormal { background: rgba(9,149,168,.08); border-color: rgba(9,149,168,.40); }
+:global(html.theme-white) .priNormal { background: color-mix(in srgb, var(--tel) 14%, transparent); border-color: color-mix(in srgb, var(--tel) 45%, transparent); }
 :global(html.theme-light) .priNormal:hover,
 :global(html.theme-vanilla) .priNormal:hover,
-:global(html.theme-white) .priNormal:hover { background: rgba(9,149,168,.14); border-color: rgba(9,149,168,.60); }
+:global(html.theme-white) .priNormal:hover { background: color-mix(in srgb, var(--tel) 20%, transparent); border-color: color-mix(in srgb, var(--tel) 62%, transparent); }
 :global(html.theme-light) .priNormal::before,
 :global(html.theme-vanilla) .priNormal::before,
-:global(html.theme-white) .priNormal::before { background: transparent; box-shadow: none; }
+:global(html.theme-white) .priNormal::before { background: var(--tel); box-shadow: none; }
 :global(html.theme-light) .priNormal:hover::before,
 :global(html.theme-vanilla) .priNormal:hover::before,
-:global(html.theme-white) .priNormal:hover::before { background: transparent; box-shadow: none; }
+:global(html.theme-white) .priNormal:hover::before { background: var(--tel); box-shadow: none; }
+/* Project cards override the teal strip with their own color */
+:global(html.theme-light) .hasProject.priNormal::before,
+:global(html.theme-vanilla) .hasProject.priNormal::before,
+:global(html.theme-white) .hasProject.priNormal::before { background: var(--card-strip); box-shadow: none; }
+:global(html.theme-light) .hasProject.priNormal:hover::before,
+:global(html.theme-vanilla) .hasProject.priNormal:hover::before,
+:global(html.theme-white) .hasProject.priNormal:hover::before { background: var(--card-strip); box-shadow: none; }
 
 :global(html.theme-light) .priIdea,
 :global(html.theme-vanilla) .priIdea,
-:global(html.theme-white) .priIdea { background: rgba(26,122,72,.08); border-color: rgba(26,122,72,.32); }
+:global(html.theme-white) .priIdea { background: color-mix(in srgb, var(--pri-idea) 14%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 40%, transparent); }
 :global(html.theme-light) .priIdea:hover,
 :global(html.theme-vanilla) .priIdea:hover,
-:global(html.theme-white) .priIdea:hover { background: rgba(26,122,72,.14); border-color: rgba(26,122,72,.52); }
+:global(html.theme-white) .priIdea:hover { background: color-mix(in srgb, var(--pri-idea) 20%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 58%, transparent); }
 :global(html.theme-light) .priIdea::before,
 :global(html.theme-vanilla) .priIdea::before,
-:global(html.theme-white) .priIdea::before { background: transparent; box-shadow: none; }
+:global(html.theme-white) .priIdea::before { background: var(--pri-idea); box-shadow: none; }
 :global(html.theme-light) .priIdea:hover::before,
 :global(html.theme-vanilla) .priIdea:hover::before,
-:global(html.theme-white) .priIdea:hover::before { background: transparent; box-shadow: none; }
+:global(html.theme-white) .priIdea:hover::before { background: var(--pri-idea); box-shadow: none; }
 
-/* Frog card: darker green values, subtle bg tint */
+/* Frog card: darker green, subtle bg tint, no neon glow */
 :global(html.theme-light) .isFrog,
 :global(html.theme-vanilla) .isFrog,
-:global(html.theme-white) .isFrog { background: rgba(24,176,96,.08); border-color: rgba(24,176,96,.52); }
+:global(html.theme-white) .isFrog { background: color-mix(in srgb, var(--grn) 10%, transparent); border-color: color-mix(in srgb, var(--grn) 48%, transparent); }
 :global(html.theme-light) .isFrog::before,
 :global(html.theme-vanilla) .isFrog::before,
-:global(html.theme-white) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(24,176,96,.55); }
+:global(html.theme-white) .isFrog::before { background: var(--grn); box-shadow: none; }
 :global(html.theme-light) .isFrog:hover,
 :global(html.theme-vanilla) .isFrog:hover,
-:global(html.theme-white) .isFrog:hover { background: rgba(24,176,96,.13); border-color: rgba(24,176,96,.72); }
+:global(html.theme-white) .isFrog:hover { background: color-mix(in srgb, var(--grn) 16%, transparent); border-color: color-mix(in srgb, var(--grn) 65%, transparent); }
 :global(html.theme-light) .isFrog:hover::before,
 :global(html.theme-vanilla) .isFrog:hover::before,
-:global(html.theme-white) .isFrog:hover::before { box-shadow: 0 0 16px rgba(24,176,96,.65); }
+:global(html.theme-white) .isFrog:hover::before { box-shadow: 0 0 6px color-mix(in srgb, var(--grn) 40%, transparent); }
 
-/* Points badges: vivid neons too bright on light bg */
+/* Points badges: use var-based colors so they follow each theme */
 :global(html.theme-light) .p1,
 :global(html.theme-vanilla) .p1,
-:global(html.theme-white) .p1 { background: rgba(180,135,0,.12); color: #a87a00; border-color: rgba(180,135,0,.30); }
+:global(html.theme-white) .p1 { background: color-mix(in srgb, var(--gold) 14%, transparent); color: var(--gold); border-color: color-mix(in srgb, var(--gold) 35%, transparent); }
 :global(html.theme-light) .p2,
 :global(html.theme-vanilla) .p2,
-:global(html.theme-white) .p2 { background: rgba(195,72,0,.10); color: #b84400; border-color: rgba(195,72,0,.28); }
+:global(html.theme-white) .p2 { background: color-mix(in srgb, var(--ora) 12%, transparent); color: var(--ora); border-color: color-mix(in srgb, var(--ora) 32%, transparent); }
 :global(html.theme-light) .p3,
 :global(html.theme-vanilla) .p3,
-:global(html.theme-white) .p3 { background: rgba(185,15,48,.10); color: #b00c30; border-color: rgba(185,15,48,.28); }
+:global(html.theme-white) .p3 { background: color-mix(in srgb, var(--hot) 12%, transparent); color: var(--hot); border-color: color-mix(in srgb, var(--hot) 32%, transparent); }
 
-/* Focused task: more yellow, distinct from orange, glowy */
+/* Focused task: warm amber highlight, no neon glow */
 :global(html.theme-light) .focusedTask,
 :global(html.theme-vanilla) .focusedTask,
-:global(html.theme-white) .focusedTask { background: rgba(240,196,32,.22); border-color: rgba(240,196,32,.82); box-shadow: 0 0 10px rgba(240,176,48,.28); }
+:global(html.theme-white) .focusedTask { background: color-mix(in srgb, var(--gold) 18%, transparent); border-color: color-mix(in srgb, var(--gold) 70%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 20%, transparent); }
 :global(html.theme-light) .focusedTask:hover,
 :global(html.theme-vanilla) .focusedTask:hover,
-:global(html.theme-white) .focusedTask:hover { border-color: rgba(240,196,32,.95); box-shadow: 0 0 14px rgba(240,176,48,.38); }
+:global(html.theme-white) .focusedTask:hover { border-color: color-mix(in srgb, var(--gold) 85%, transparent); box-shadow: 0 0 0 1px color-mix(in srgb, var(--gold) 30%, transparent); }
 :global(html.theme-light) .focusedTask::before,
 :global(html.theme-vanilla) .focusedTask::before,
-:global(html.theme-white) .focusedTask::before { box-shadow: 0 0 22px rgba(240,176,48,.72); }
+:global(html.theme-white) .focusedTask::before { box-shadow: 0 0 8px color-mix(in srgb, var(--gold) 50%, transparent); }
 
-/* Icon buttons: .42 opacity reads near-invisible on light; bump to visible range */
+/* Icon buttons — use theme vars for consistency */
 :global(html.theme-light) .iconBtnEdit,
 :global(html.theme-vanilla) .iconBtnEdit,
-:global(html.theme-white) .iconBtnEdit { color: rgba(190,130,0,.70); }
+:global(html.theme-white) .iconBtnEdit { color: color-mix(in srgb, var(--gold) 75%, transparent); }
 :global(html.theme-light) .iconBtnEdit:hover,
 :global(html.theme-vanilla) .iconBtnEdit:hover,
 :global(html.theme-white) .iconBtnEdit:hover { color: var(--gold); }
 :global(html.theme-light) .del,
 :global(html.theme-vanilla) .del,
-:global(html.theme-white) .del { color: rgba(210,25,55,.65); }
+:global(html.theme-white) .del { color: color-mix(in srgb, var(--hot) 70%, transparent); }
 :global(html.theme-light) .del:hover,
 :global(html.theme-vanilla) .del:hover,
 :global(html.theme-white) .del:hover { color: var(--hot); }
 :global(html.theme-light) .iconBtnAssign,
 :global(html.theme-vanilla) .iconBtnAssign,
-:global(html.theme-white) .iconBtnAssign { color: rgba(35,85,215,.65); }
+:global(html.theme-white) .iconBtnAssign { color: color-mix(in srgb, var(--blu) 70%, transparent); }
 :global(html.theme-light) .iconBtnAssign:hover,
 :global(html.theme-vanilla) .iconBtnAssign:hover,
 :global(html.theme-white) .iconBtnAssign:hover { color: var(--blu); }
 
-/* ── Kraft theme overrides — mid-tone tan; glows partially restored for punchiness ── */
-:global(html.theme-kraft) .done { opacity: .46; }
+/* ── Kraft theme overrides — mid-tone tan; subtle glows for punchiness ── */
+:global(html.theme-kraft) .done { opacity: .48; }
 
-:global(html.theme-kraft) .priNormal { background: rgba(10,138,170,.11); border-color: rgba(10,138,170,.50); }
-:global(html.theme-kraft) .priNormal:hover { background: rgba(10,138,170,.18); border-color: rgba(10,138,170,.70); }
-:global(html.theme-kraft) .priNormal::before { background: var(--tel); box-shadow: 0 0 7px rgba(10,138,170,.38); }
-:global(html.theme-kraft) .priNormal:hover::before { box-shadow: 0 0 13px rgba(10,138,170,.54); }
+:global(html.theme-kraft) .priNormal { background: color-mix(in srgb, var(--tel) 13%, transparent); border-color: color-mix(in srgb, var(--tel) 48%, transparent); }
+:global(html.theme-kraft) .priNormal:hover { background: color-mix(in srgb, var(--tel) 20%, transparent); border-color: color-mix(in srgb, var(--tel) 65%, transparent); }
+:global(html.theme-kraft) .priNormal::before { background: var(--tel); box-shadow: 0 0 5px color-mix(in srgb, var(--tel) 35%, transparent); }
+:global(html.theme-kraft) .priNormal:hover::before { box-shadow: 0 0 10px color-mix(in srgb, var(--tel) 50%, transparent); }
 /* Project cards override the teal strip with their own color */
-:global(html.theme-kraft) .hasProject.priNormal::before { background: var(--card-strip); box-shadow: 0 0 7px color-mix(in srgb, var(--card-strip) 55%, transparent); }
-:global(html.theme-kraft) .hasProject.priNormal:hover::before { box-shadow: 0 0 13px color-mix(in srgb, var(--card-strip) 70%, transparent); }
+:global(html.theme-kraft) .hasProject.priNormal::before { background: var(--card-strip); box-shadow: 0 0 5px color-mix(in srgb, var(--card-strip) 45%, transparent); }
+:global(html.theme-kraft) .hasProject.priNormal:hover::before { box-shadow: 0 0 10px color-mix(in srgb, var(--card-strip) 60%, transparent); }
 
-/* kraft idea: --pri-idea is #1e8a50 on kraft */
-:global(html.theme-kraft) .priIdea { background: rgba(30,138,80,.13); border-color: rgba(30,138,80,.50); }
-:global(html.theme-kraft) .priIdea:hover { background: rgba(30,138,80,.20); border-color: rgba(30,138,80,.70); }
-:global(html.theme-kraft) .priIdea::before { background: var(--pri-idea); box-shadow: 0 0 7px rgba(30,138,80,.48); }
-:global(html.theme-kraft) .priIdea:hover::before { box-shadow: 0 0 14px rgba(30,138,80,.62); }
+:global(html.theme-kraft) .priIdea { background: color-mix(in srgb, var(--pri-idea) 15%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 48%, transparent); }
+:global(html.theme-kraft) .priIdea:hover { background: color-mix(in srgb, var(--pri-idea) 22%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 65%, transparent); }
+:global(html.theme-kraft) .priIdea::before { background: var(--pri-idea); box-shadow: 0 0 5px color-mix(in srgb, var(--pri-idea) 40%, transparent); }
+:global(html.theme-kraft) .priIdea:hover::before { box-shadow: 0 0 10px color-mix(in srgb, var(--pri-idea) 55%, transparent); }
 
-:global(html.theme-kraft) .isFrog { background: rgba(26,152,80,.12); border-color: rgba(26,152,80,.62); }
-:global(html.theme-kraft) .isFrog::before { background: var(--grn); box-shadow: 0 0 9px rgba(26,152,80,.50); }
-:global(html.theme-kraft) .isFrog:hover { background: rgba(26,152,80,.18); border-color: rgba(26,152,80,.82); }
-:global(html.theme-kraft) .isFrog:hover::before { box-shadow: 0 0 17px rgba(26,152,80,.66); }
+:global(html.theme-kraft) .isFrog { background: color-mix(in srgb, var(--grn) 14%, transparent); border-color: color-mix(in srgb, var(--grn) 55%, transparent); }
+:global(html.theme-kraft) .isFrog::before { background: var(--grn); box-shadow: 0 0 6px color-mix(in srgb, var(--grn) 40%, transparent); }
+:global(html.theme-kraft) .isFrog:hover { background: color-mix(in srgb, var(--grn) 20%, transparent); border-color: color-mix(in srgb, var(--grn) 72%, transparent); }
+:global(html.theme-kraft) .isFrog:hover::before { box-shadow: 0 0 12px color-mix(in srgb, var(--grn) 55%, transparent); }
 
-:global(html.theme-kraft) .p1 { background: rgba(185,140,0,.16); color: #8c6200; border-color: rgba(185,140,0,.38); }
-:global(html.theme-kraft) .p2 { background: rgba(200,72,0,.14); color: #9a3800; border-color: rgba(200,72,0,.36); }
-:global(html.theme-kraft) .p3 { background: rgba(200,15,48,.14); color: #920828; border-color: rgba(200,15,48,.36); }
-/* 0.5 pts badge — --slv (#9098b8) is too light on tan; use dark slate */
-:global(html.theme-kraft) .p05 { background: rgba(72,72,140,.14); color: #383870; border-color: rgba(72,72,140,.34); }
-/* Duration badge — --blu (#4488ff) washes out on tan; use dark indigo */
-:global(html.theme-kraft) .bdurSet { background: rgba(22,64,180,.13); color: #1640b8; border-color: rgba(22,64,180,.32); }
+:global(html.theme-kraft) .p1 { background: color-mix(in srgb, var(--gold) 18%, transparent); color: var(--gold); border-color: color-mix(in srgb, var(--gold) 42%, transparent); }
+:global(html.theme-kraft) .p2 { background: color-mix(in srgb, var(--ora) 16%, transparent); color: var(--ora); border-color: color-mix(in srgb, var(--ora) 40%, transparent); }
+:global(html.theme-kraft) .p3 { background: color-mix(in srgb, var(--hot) 16%, transparent); color: var(--hot); border-color: color-mix(in srgb, var(--hot) 40%, transparent); }
+/* 0.5 pts badge */
+:global(html.theme-kraft) .p05 { background: color-mix(in srgb, var(--slv) 16%, transparent); color: var(--slv); border-color: color-mix(in srgb, var(--slv) 38%, transparent); }
+/* Duration badge */
+:global(html.theme-kraft) .bdurSet { background: color-mix(in srgb, var(--blu) 14%, transparent); color: var(--blu); border-color: color-mix(in srgb, var(--blu) 35%, transparent); }
 
-:global(html.theme-kraft) .focusedTask { background: rgba(240,196,32,.25); border-color: rgba(240,196,32,.88); box-shadow: 0 0 10px rgba(240,176,48,.32); }
-:global(html.theme-kraft) .focusedTask:hover { border-color: rgba(240,196,32,.98); box-shadow: 0 0 15px rgba(240,176,48,.44); }
-:global(html.theme-kraft) .focusedTask::before { background: #f0c840; box-shadow: 0 0 22px rgba(240,176,48,.76); }
+:global(html.theme-kraft) .focusedTask { background: rgba(240,196,32,.22); border-color: rgba(240,196,32,.85); box-shadow: 0 0 0 1px rgba(240,176,48,.18); }
+:global(html.theme-kraft) .focusedTask:hover { border-color: rgba(240,196,32,.95); box-shadow: 0 0 0 1px rgba(240,176,48,.28); }
+:global(html.theme-kraft) .focusedTask::before { background: #f0c840; box-shadow: 0 0 12px rgba(240,176,48,.50); }
 :global(html.theme-kraft) .focusedTask:hover::before { background: #f0c840; }
 
-:global(html.theme-kraft) .iconBtnEdit { color: rgba(120,85,0,.80); }
+:global(html.theme-kraft) .iconBtnEdit { color: color-mix(in srgb, var(--gold) 80%, transparent); }
 :global(html.theme-kraft) .iconBtnEdit:hover { color: var(--gold); }
-:global(html.theme-kraft) .del { color: rgba(185,18,45,.74); }
+:global(html.theme-kraft) .del { color: color-mix(in srgb, var(--hot) 78%, transparent); }
 :global(html.theme-kraft) .del:hover { color: var(--hot); }
-:global(html.theme-kraft) .iconBtnAssign { color: rgba(20,65,185,.74); }
+:global(html.theme-kraft) .iconBtnAssign { color: color-mix(in srgb, var(--blu) 78%, transparent); }
 :global(html.theme-kraft) .iconBtnAssign:hover { color: var(--blu); }
-:global(html.theme-kraft) .iconBtnBack { color: rgba(90,65,20,.68); }
+:global(html.theme-kraft) .iconBtnBack { color: color-mix(in srgb, var(--t2) 72%, transparent); }
 :global(html.theme-kraft) .iconBtnBack:hover { color: var(--text); }

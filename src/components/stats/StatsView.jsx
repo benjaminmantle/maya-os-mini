@@ -8,14 +8,17 @@ import { sumCalories, applyEmDash } from '../../utils/parsing.js';
 import { useToast } from '../shared/Toast.jsx';
 import ContribHeatmap from '../shared/ContribHeatmap.jsx';
 
-// Tier → neon color for heatmap and bar chart
+// Tier → color for heatmap and bar chart (9-tier system)
 const TIER_CLR = {
   perfect: 'var(--gold)',
-  good: 'var(--grn)',
-  decent: 'var(--tel)',
-  half: 'var(--slv)',
-  poor: '#a855a0',
-  fail: 'var(--hot)',
+  p90:     'var(--grn)',
+  p80:     'var(--tel)',
+  p70:     '#3aada0',
+  p60:     'var(--slv)',
+  p50:     '#8888aa',
+  p40:     '#a855a0',
+  p30:     'var(--ora)',
+  fail:    'var(--hot)',
 };
 
 const TIER_LEGEND = [
@@ -369,11 +372,14 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
   });
 
   function weekTierColor(frac) {
-    if (frac >= 0.90) return TIER_CLR.perfect;
-    if (frac >= 0.70) return TIER_CLR.good;
-    if (frac >= 0.50) return TIER_CLR.decent;
-    if (frac >= 0.35) return TIER_CLR.half;
-    if (frac > 0.05)  return TIER_CLR.poor;
+    if (frac >= 0.9) return TIER_CLR.p90;
+    if (frac >= 0.8) return TIER_CLR.p80;
+    if (frac >= 0.7) return TIER_CLR.p70;
+    if (frac >= 0.6) return TIER_CLR.p60;
+    if (frac >= 0.5) return TIER_CLR.p50;
+    if (frac >= 0.4) return TIER_CLR.p40;
+    if (frac >= 0.3) return TIER_CLR.p30;
+    if (frac > 0.05) return TIER_CLR.fail;
     return null;
   }
 

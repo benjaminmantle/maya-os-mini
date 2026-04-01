@@ -147,10 +147,7 @@
 :global(html.theme-kraft) .dailyItemDone,
 :global(html.theme-white) .dailyItemDone { opacity: .46; }
 
-/* Kraft: dailies cards use s1 which is too pale against tan sidebar — pull toward s2 */
-:global(html.theme-kraft) .dailyItem { background: var(--s2); }
-/* Kraft: ink-tone dots don't need a neon glow halo */
-:global(html.theme-kraft) .dDot { box-shadow: none !important; }
+/* (kraft dailies overrides moved to bottom of file) */
 
 /* ── Food Log ────────────────────────────────────────────────────────────── */
 .foodDivider { height: 1px; background: var(--b1); margin: 10px 0 8px; }
@@ -258,10 +255,28 @@
   flex-shrink: 0;
 }
 
+/* Light theme overrides for food log */
+:global(html.theme-light) .foodCal,
+:global(html.theme-vanilla) .foodCal,
+:global(html.theme-white) .foodCal { color: var(--tel); background: color-mix(in srgb, var(--tel) 10%, transparent); }
+:global(html.theme-light) .foodCheck,
+:global(html.theme-vanilla) .foodCheck,
+:global(html.theme-white) .foodCheck { color: var(--grn); text-shadow: 0 0 3px color-mix(in srgb, var(--grn) 35%, transparent); }
+
 /* Kraft overrides for food log */
 :global(html.theme-kraft) .foodItem { background: var(--s2); }
-:global(html.theme-kraft) .foodCal { color: #0097a7; background: rgba(0,151,167,.08); }
-:global(html.theme-kraft) .foodCheck { color: #2e7d32; text-shadow: 0 0 6px rgba(46,125,50,.5); }
+:global(html.theme-kraft) .foodCal { color: var(--tel); background: color-mix(in srgb, var(--tel) 10%, transparent); }
+:global(html.theme-kraft) .foodCheck { color: var(--grn); text-shadow: 0 0 3px color-mix(in srgb, var(--grn) 42%, transparent); }
+
+/* Kraft dailies */
+:global(html.theme-kraft) .dailyItem { background: var(--s2); }
+:global(html.theme-kraft) .dDot { box-shadow: none !important; }
+
+/* All light themes — button hover glows subtler */
+:global(html.theme-light) .btnPrimary:hover,
+:global(html.theme-vanilla) .btnPrimary:hover,
+:global(html.theme-white) .btnPrimary:hover,
+:global(html.theme-kraft) .btnPrimary:hover { box-shadow: 0 2px 8px color-mix(in srgb, var(--gold) 30%, transparent); }
 
 @media(max-width: 680px) {
   .sidebar { border-right: none; border-top: 1px solid var(--b2); max-height: 280px; }

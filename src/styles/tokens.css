@@ -70,158 +70,212 @@ html.theme-dim {
 
 /* ── Lavender Light theme ───────────────────────────────────────────────── */
 html.theme-light {
-  --red: #cc1020;
+  --red: #b81428;
   /* Surfaces — enough tint to feel colored, not washed-out white */
   --bg:   #e8e3f4;
   --s0:   #e1daf0;
   --s1:   #ece8f8;
   --s2:   #ddd6ec;
   --s3:   #d0c9e1;
-  /* Borders — stronger so structure reads clearly on light */
-  --b1:   rgba(110,88,168,.28);
-  --b2:   rgba(110,88,168,.48);
+  /* Borders — strong enough for clear structure on light */
+  --b1:   rgba(90,68,148,.32);
+  --b2:   rgba(90,68,148,.52);
   /* Text */
   --text: #1c1030;
-  --t2:   #4e3c78;
-  --t3:   #9080bc;
-  /* Tint backgrounds — slightly stronger on light so they read */
-  --gd2:  rgba(240,176,48,.18);
-  --ht2:  rgba(255,48,96,.14);
-  --gn2:  rgba(34,238,128,.16);
-  --tel2: rgba(32,200,216,.14);
-  /* Accent colours adjusted for light — less neon, more readable */
-  --grn:     #18b060;   /* darker green: less neon, better contrast */
-  --tel:     #0995a8;   /* darker teal: lo-priority reads on lavender */
-  --pri-md:  #d96000;   /* more orange: distinct from gold focus color */
-  --pri-ai:  #1a44aa;   /* darker blue for light bg */
-  --pri-idea: #1a7a48;  /* darker green for light bg */
-  --mgn:     #bb2288;
-  --lpnk:    #dd6699;
-  --ora2:    #cc4411;
-  --lgrn:    #339955;
+  --t2:   #4a3870;
+  --t3:   #6b5a96;
+  /* Gold — amber that pops against lavender (≈4.5:1) */
+  --gold: #9e7400;
+  --gd2:  rgba(158,116,0,.20);
+  /* Tint backgrounds — stronger on light so they register */
+  --ht2:  rgba(184,20,40,.18);
+  --gn2:  rgba(24,140,76,.20);
+  --tel2: rgba(9,120,138,.18);
+  /* Accent colours — darkened for light bg, cool-leaning personality */
+  --hot:     #c42040;
+  --grn:     #18874a;
+  --tel:     #087888;
+  --blu:     #2860c8;
+  --ora:     #c05200;
+  --yel:     #8a6c00;
+  --pri-md:  #c05800;
+  --pri-maya: #7c28b8;
+  --pri-ai:  #1a44aa;
+  --pri-idea: #18704a;
+  --pur:     #6432b8;
+  --slv:     #5c6488;
+  --pnk:     #b84078;
+  --lim:     #3c7c18;
+  --ind:     #4838b0;
+  --brn:     #7a5230;
+  --crl:     #b83848;
+  --mgn:     #a81c78;
+  --lpnk:    #c04880;
+  --ora2:    #b83c10;
+  --lgrn:    #2a7840;
+  --gry:     #5e5a68;
   /* Effects */
-  --grid-line:    rgba(110,88,168,.055);
-  --vignette:     rgba(140,120,200,.055);
-  --topbar-scan:  rgba(110,88,168,.018);
-  --heatmap-empty: #bebcc8;  /* neutral cool-grey, clearly darker than bg #e8e3f4 */
+  --grid-line:    rgba(90,68,148,.055);
+  --vignette:     rgba(140,120,200,.045);
+  --topbar-scan:  rgba(90,68,148,.014);
+  --heatmap-empty: #c4c0d0;
 }
 
 /* ── Vanilla theme ──────────────────────────────────────────────────────── */
 html.theme-vanilla {
-  --red: #cc1020;
+  --red: #b01020;
   /* Surfaces — warm off-white cream, slightly muted, no cold/purple tint */
   --bg:   #ede8dc;
   --s0:   #e5dfd0;
   --s1:   #f3ede0;
   --s2:   #e0d9ca;
   --s3:   #d4ccb8;
-  /* Borders — warm tan/brown, stronger for readable structure */
-  --b1:   rgba(120,100,55,.26);
-  --b2:   rgba(120,100,55,.46);
+  /* Borders — warm tan/brown, strong for readable structure */
+  --b1:   rgba(100,80,40,.32);
+  --b2:   rgba(100,80,40,.52);
   /* Text — dark warm brown */
   --text: #201c0e;
-  --t2:   #5c4c2a;
-  --t3:   #9c8a62;
-  /* Tint backgrounds */
-  --gd2:  rgba(240,176,48,.18);
-  --ht2:  rgba(255,48,96,.14);
-  --gn2:  rgba(34,238,128,.16);
-  --tel2: rgba(32,200,216,.14);
-  /* Accent colours adjusted for warm bg */
-  --grn:     #1a9050;   /* dark green, warm-compatible */
-  --tel:     #0a7a8a;   /* dark teal */
-  --pri-md:  #c85a00;   /* deep burnt orange, distinct from gold */
-  --pri-ai:  #1a44aa;
-  --pri-idea: #1a7a48;
-  --mgn:     #bb2288;
-  --lpnk:    #dd6699;
-  --ora2:    #cc4411;
-  --lgrn:    #339955;
+  --t2:   #504020;
+  --t3:   #7a6840;
+  /* Gold — rich amber for warm bg (≈4.5:1) */
+  --gold: #9a7000;
+  --gd2:  rgba(154,112,0,.20);
+  /* Tint backgrounds — warm-shifted, stronger */
+  --ht2:  rgba(176,16,32,.18);
+  --gn2:  rgba(26,116,60,.20);
+  --tel2: rgba(10,100,112,.18);
+  /* Accent colours — warm earthy personality */
+  --hot:     #b81830;
+  --grn:     #187848;
+  --tel:     #086878;
+  --blu:     #1e4cb0;
+  --ora:     #b04400;
+  --yel:     #7a5c00;
+  --pri-md:  #b04c00;
+  --pri-maya: #7420a8;
+  --pri-ai:  #183ca0;
+  --pri-idea: #186840;
+  --pur:     #5c28a8;
+  --slv:     #585e78;
+  --pnk:     #a83460;
+  --lim:     #387014;
+  --ind:     #3c2ca0;
+  --brn:     #6a4220;
+  --crl:     #a82c3c;
+  --mgn:     #981868;
+  --lpnk:    #b04070;
+  --ora2:    #a83408;
+  --lgrn:    #287038;
+  --gry:     #5c584e;
   /* Effects */
-  --grid-line:    rgba(120,100,55,.035);
-  --vignette:     rgba(50,35,8,.04);
-  --topbar-scan:  rgba(120,100,55,.012);
-  --heatmap-empty: #c2bdb0;  /* neutral warm-grey, clearly darker than bg #ede8dc */
+  --grid-line:    rgba(100,80,40,.040);
+  --vignette:     rgba(50,35,8,.035);
+  --topbar-scan:  rgba(100,80,40,.012);
+  --heatmap-empty: #c4bfb2;
 }
 
 /* ── Kraft theme ────────────────────────────────────────────────────────── */
 html.theme-kraft {
-  --red: #c41020;
+  --red: #a00c1c;
   /* Surfaces — warm tan, like kraft paper / manila folders; ~30% darker than vanilla */
   --bg:   #c6b286;
   --s0:   #bba87c;
-  --s1:   #ddd0a2;  /* was #d4c296 — lifted for clearer card/bg separation */
+  --s1:   #ddd0a2;
   --s2:   #bfaa80;
   --s3:   #b09870;
-  /* Borders — warm brown, stronger than vanilla for structure */
-  --b1:   rgba(92,68,26,.32);  /* was .24 — crisper edges on mid-tone bg */
-  --b2:   rgba(92,68,26,.52);  /* was .46 */
+  /* Borders — warm brown, strong for structure on mid-tone bg */
+  --b1:   rgba(72,52,16,.36);
+  --b2:   rgba(72,52,16,.56);
   /* Text — dark warm brown, high contrast on tan */
   --text: #1e1608;
-  --t2:   #4a3818;
-  --t3:   #7a6038;
-  /* Tint backgrounds — stronger than vanilla for punchier cards */
-  --gd2:  rgba(240,176,48,.22);
-  --ht2:  rgba(255,48,96,.17);
-  --gn2:  rgba(34,238,128,.19);
-  --tel2: rgba(32,200,216,.17);
-  /* Gold replaced with deep amber — #f0b030 washes out on tan; this contrasts cleanly */
+  --t2:   #403010;
+  --t3:   #5c4420;
+  /* Gold — deep amber for tan bg */
   --gold: #8c6200;
-  --gd2:  rgba(140,98,0,.22);
-  /* Purple/maya — #9955ff and #bf5fff both too light on tan; darken significantly */
-  --pur:      #6600cc;
-  --pri-maya: #8822cc;
-  --pri-ai:   #1a44aa;
-  --pri-idea:  #1e8a50;
-  --mgn:     #aa1177;
-  --lpnk:    #cc5588;
-  --ora2:    #bb3300;
-  --lgrn:    #2a8844;
-  /* Accent colours — slightly more vivid than vanilla; background dark enough to carry them */
-  --grn:     #1a9850;
-  --tel:     #0a8aaa;
-  --pri-md:  #d05500;
+  --gd2:  rgba(140,98,0,.24);
+  /* Tint backgrounds — punchier on mid-tone */
+  --ht2:  rgba(160,12,28,.20);
+  --gn2:  rgba(20,120,62,.22);
+  --tel2: rgba(8,100,130,.20);
+  /* Accent colours — all darkened for mid-tone tan bg */
+  --hot:     #a00820;
+  --grn:     #146840;
+  --tel:     #086898;
+  --blu:     #1a48b0;
+  --ora:     #a04000;
+  --yel:     #6a5000;
+  --pri-md:  #b84c00;
+  --pur:     #5c18b8;
+  --pri-maya: #7418b8;
+  --pri-ai:  #183ca0;
+  --pri-idea: #1a7848;
+  --slv:     #484c68;
+  --pnk:     #982850;
+  --lim:     #306410;
+  --ind:     #3828a0;
+  --brn:     #5c3818;
+  --crl:     #982430;
+  --mgn:     #8c1060;
+  --lpnk:    #a83860;
+  --ora2:    #982c00;
+  --lgrn:    #226830;
+  --gry:     #504c40;
   /* Effects — subtle warm presence */
-  --grid-line:    rgba(92,68,26,.052);
+  --grid-line:    rgba(72,52,16,.052);
   --vignette:     rgba(50,35,8,.058);
-  --topbar-scan:  rgba(92,68,26,.016);
-  --heatmap-empty: #9e9282;  /* neutral warm-grey, no olive/green cast, clearly darker than bg #c6b286 */
+  --topbar-scan:  rgba(72,52,16,.016);
+  --heatmap-empty: #b2a278;
 }
 
 /* ── White theme ────────────────────────────────────────────────────────── */
 html.theme-white {
-  --red: #cc1020;
+  --red: #b81420;
   /* Surfaces — clean near-white, faint neutral warmth, not cold */
   --bg:   #f0efed;
   --s0:   #e8e7e4;
   --s1:   #f6f5f3;
   --s2:   #e4e3e0;
   --s3:   #d8d7d4;
-  /* Borders — neutral, stronger for readable structure */
-  --b1:   rgba(80,75,65,.22);
-  --b2:   rgba(80,75,65,.38);
-  /* Text — dark neutral-warm */
+  /* Borders — neutral, visible structure */
+  --b1:   rgba(70,65,55,.28);
+  --b2:   rgba(70,65,55,.46);
+  /* Text — dark neutral */
   --text: #1a1916;
-  --t2:   #4a4740;
-  --t3:   #8c8880;
-  /* Tint backgrounds */
-  --gd2:  rgba(240,176,48,.18);
-  --ht2:  rgba(255,48,96,.14);
-  --gn2:  rgba(34,238,128,.16);
-  --tel2: rgba(32,200,216,.14);
-  /* Accent colours — same as vanilla, work on near-white */
-  --grn:     #1a9050;
-  --tel:     #0a7a8a;
-  --pri-md:  #c85a00;
-  --pri-ai:  #1a44aa;
-  --pri-idea: #1a7a48;
-  --mgn:     #bb2288;
-  --lpnk:    #dd6699;
-  --ora2:    #cc4411;
-  --lgrn:    #339955;
+  --t2:   #444038;
+  --t3:   #6e6a64;
+  /* Gold — warm neutral amber (≈4.5:1) */
+  --gold: #9c7400;
+  --gd2:  rgba(156,116,0,.20);
+  /* Tint backgrounds — stronger on near-white */
+  --ht2:  rgba(184,20,32,.16);
+  --gn2:  rgba(26,128,64,.18);
+  --tel2: rgba(10,108,124,.16);
+  /* Accent colours — balanced neutral, mid-saturation */
+  --hot:     #c01838;
+  --grn:     #187c48;
+  --tel:     #087488;
+  --blu:     #2254c0;
+  --ora:     #b84c00;
+  --yel:     #886800;
+  --pri-md:  #b85000;
+  --pri-maya: #7828b8;
+  --pri-ai:  #1840a8;
+  --pri-idea: #186c42;
+  --pur:     #5e2cb0;
+  --slv:     #585e78;
+  --pnk:     #b03868;
+  --lim:     #3c7c18;
+  --ind:     #4030a8;
+  --brn:     #744c28;
+  --crl:     #b03040;
+  --mgn:     #a01870;
+  --lpnk:    #b84478;
+  --ora2:    #b03808;
+  --lgrn:    #287438;
+  --gry:     #58564e;
   /* Effects — nearly invisible */
-  --grid-line:    rgba(80,75,65,.025);
-  --vignette:     rgba(30,25,15,.03);
-  --topbar-scan:  rgba(80,75,65,.010);
-  --heatmap-empty: #c8c8c6;  /* neutral grey, clearly darker than bg #f0efed */
+  --grid-line:    rgba(70,65,55,.028);
+  --vignette:     rgba(30,25,15,.025);
+  --topbar-scan:  rgba(70,65,55,.010);
+  --heatmap-empty: #c8c7c4;
 }

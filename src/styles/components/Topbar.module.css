@@ -193,6 +193,46 @@
 }
 .themeCheck { margin-left: auto; font-size: 11px; color: var(--gold); }
 
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+
+/* Logo accent — no neon glow on light backgrounds */
+:global(html.theme-light) .logoAccent,
+:global(html.theme-vanilla) .logoAccent,
+:global(html.theme-white) .logoAccent { text-shadow: none; }
+:global(html.theme-kraft) .logoAccent { text-shadow: 0 0 4px color-mix(in srgb, var(--gold) 40%, transparent); }
+
+/* Active nav tab — clean text, no glow */
+:global(html.theme-light) .navTabActive,
+:global(html.theme-vanilla) .navTabActive,
+:global(html.theme-white) .navTabActive { text-shadow: none; }
+:global(html.theme-kraft) .navTabActive { text-shadow: none; }
+
+/* Momentum dots — no glow halos on light */
+:global(html.theme-light) .rising,
+:global(html.theme-vanilla) .rising,
+:global(html.theme-white) .rising,
+:global(html.theme-kraft) .rising { box-shadow: none; }
+:global(html.theme-light) .stable,
+:global(html.theme-vanilla) .stable,
+:global(html.theme-white) .stable,
+:global(html.theme-kraft) .stable { box-shadow: none; }
+:global(html.theme-light) .slipping,
+:global(html.theme-vanilla) .slipping,
+:global(html.theme-white) .slipping,
+:global(html.theme-kraft) .slipping { box-shadow: none; }
+
+/* Today nav tab — no glow */
+:global(html.theme-light) .navTabToday .navTabDayNum,
+:global(html.theme-vanilla) .navTabToday .navTabDayNum,
+:global(html.theme-white) .navTabToday .navTabDayNum,
+:global(html.theme-kraft) .navTabToday .navTabDayNum { text-shadow: none; }
+
+/* Theme menu — lighter shadow on light backgrounds */
+:global(html.theme-light) .themeMenu,
+:global(html.theme-vanilla) .themeMenu,
+:global(html.theme-white) .themeMenu { box-shadow: 0 4px 16px rgba(0,0,0,.12), 0 0 0 1px rgba(0,0,0,.06); }
+:global(html.theme-kraft) .themeMenu { box-shadow: 0 4px 16px rgba(0,0,0,.18), 0 0 0 1px rgba(0,0,0,.08); }
+
 @media(max-width: 680px) {
   .momentumChip { display: none; }
   .lvTitle { display: none; }

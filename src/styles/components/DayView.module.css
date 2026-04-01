@@ -268,14 +268,14 @@
 }
 
 /* ── Light theme overrides ─────────────────────────────────────────────── */
-/* Light-mode pulse keyframes — same rhythm, muted glow (no neon) */
+/* Light-mode pulse keyframes — same rhythm, gentle glow (no neon) */
 @keyframes frogPulseLight {
-  from { text-shadow: 0 0 6px rgba(24,176,96,.5);  color: var(--grn); }
-  to   { text-shadow: 0 0 14px rgba(24,176,96,.85), 0 0 28px rgba(24,176,96,.28); color: #16c870; }
+  from { text-shadow: 0 0 4px color-mix(in srgb, var(--grn) 50%, transparent); color: var(--grn); }
+  to   { text-shadow: 0 0 8px color-mix(in srgb, var(--grn) 70%, transparent); color: var(--grn); }
 }
 @keyframes workoutPulseLight {
-  from { text-shadow: 0 0 6px rgba(200,25,50,.45);  color: var(--hot); }
-  to   { text-shadow: 0 0 14px rgba(200,25,50,.78), 0 0 28px rgba(200,25,50,.22); color: #e82040; }
+  from { text-shadow: 0 0 4px color-mix(in srgb, var(--hot) 45%, transparent); color: var(--hot); }
+  to   { text-shadow: 0 0 8px color-mix(in srgb, var(--hot) 65%, transparent); color: var(--hot); }
 }
 :global(html.theme-light) .frogSec .secLblFrog,
 :global(html.theme-vanilla) .frogSec .secLblFrog,
@@ -285,10 +285,10 @@
 }
 :global(html.theme-light) .secLblFrog,
 :global(html.theme-vanilla) .secLblFrog,
-:global(html.theme-white) .secLblFrog { text-shadow: 0 0 5px rgba(24,176,96,.35); }
+:global(html.theme-white) .secLblFrog { text-shadow: 0 0 3px color-mix(in srgb, var(--grn) 35%, transparent); }
 :global(html.theme-light) .frogCheck,
 :global(html.theme-vanilla) .frogCheck,
-:global(html.theme-white) .frogCheck  { text-shadow: 0 0 5px rgba(24,176,96,.4); }
+:global(html.theme-white) .frogCheck  { text-shadow: 0 0 3px color-mix(in srgb, var(--grn) 40%, transparent); }
 :global(html.theme-light) .workoutLabel,
 :global(html.theme-vanilla) .workoutLabel,
 :global(html.theme-white) .workoutLabel {
@@ -297,11 +297,59 @@
 }
 :global(html.theme-light) .workoutCheck,
 :global(html.theme-vanilla) .workoutCheck,
-:global(html.theme-white) .workoutCheck { text-shadow: 0 0 5px rgba(200,25,50,.4); }
+:global(html.theme-white) .workoutCheck { text-shadow: 0 0 3px color-mix(in srgb, var(--hot) 40%, transparent); }
+
+/* Section labels — no neon glow on light */
+:global(html.theme-light) .secLblActive,
+:global(html.theme-vanilla) .secLblActive,
+:global(html.theme-white) .secLblActive { text-shadow: none; }
+:global(html.theme-light) .secLblFocused,
+:global(html.theme-vanilla) .secLblFocused,
+:global(html.theme-white) .secLblFocused { text-shadow: none; }
+
+/* Spotlight strip — no glow on light */
+:global(html.theme-light) .spotlightFocused::before,
+:global(html.theme-vanilla) .spotlightFocused::before,
+:global(html.theme-white) .spotlightFocused::before { box-shadow: none; }
+:global(html.theme-light) .spotlightActive::before,
+:global(html.theme-vanilla) .spotlightActive::before,
+:global(html.theme-white) .spotlightActive::before { box-shadow: none; }
+:global(html.theme-light) .spotlightFrogFocused::before,
+:global(html.theme-vanilla) .spotlightFrogFocused::before,
+:global(html.theme-white) .spotlightFrogFocused::before { box-shadow: none; }
+
+/* Spotlight hint — no opacity reduction on light (gold is already darkened) */
+:global(html.theme-light) .spotlightHint,
+:global(html.theme-vanilla) .spotlightHint,
+:global(html.theme-white) .spotlightHint { opacity: 1; }
+
+/* Drop zones — use var-based colors */
+:global(html.theme-light) .dropZoneActive,
+:global(html.theme-vanilla) .dropZoneActive,
+:global(html.theme-white) .dropZoneActive { background: var(--gd2); outline-color: color-mix(in srgb, var(--gold) 40%, transparent); }
+:global(html.theme-light) .spotlightDropActive,
+:global(html.theme-vanilla) .spotlightDropActive,
+:global(html.theme-white) .spotlightDropActive { background: color-mix(in srgb, var(--gold) 8%, transparent); outline: 1px dashed color-mix(in srgb, var(--gold) 50%, transparent); }
+
+/* Fasting — softer glows for lav/van/wht */
+:global(html.theme-light) .fastLabelActive,
+:global(html.theme-vanilla) .fastLabelActive,
+:global(html.theme-white) .fastLabelActive { text-shadow: 0 0 4px color-mix(in srgb, var(--tel) 40%, transparent); }
+:global(html.theme-light) .fastCheck,
+:global(html.theme-vanilla) .fastCheck,
+:global(html.theme-white) .fastCheck { text-shadow: 0 0 3px color-mix(in srgb, var(--grn) 40%, transparent); }
+:global(html.theme-light) .fastBroken,
+:global(html.theme-vanilla) .fastBroken,
+:global(html.theme-white) .fastBroken { text-shadow: 0 0 3px color-mix(in srgb, var(--hot) 35%, transparent); }
+:global(html.theme-light) .fastBreakBtn,
+:global(html.theme-vanilla) .fastBreakBtn,
+:global(html.theme-white) .fastBreakBtn { border-color: color-mix(in srgb, var(--hot) 30%, transparent); }
+
+/* Kraft frog */
 :global(html.theme-kraft) .frogSec .secLblFrog {
   animation: frogPulseLight 1.6s ease-in-out infinite alternate;
   color: var(--grn);
-  text-shadow: 0 0 5px rgba(26,152,80,.42);
+  text-shadow: 0 0 4px color-mix(in srgb, var(--grn) 42%, transparent);
 }
 :global(html.theme-kraft) .frogSecDone .secLblFrog,
 :global(html.theme-kraft) .frogSecAllDone .secLblFrog {
@@ -309,22 +357,35 @@
   color: var(--t3);
   text-shadow: none;
 }
-:global(html.theme-kraft) .frogCheck  { text-shadow: 0 0 5px rgba(26,152,80,.48); }
-/* Kraft workout: bigger dark→bright swing so it's as apparent as frog */
+:global(html.theme-kraft) .frogCheck  { text-shadow: 0 0 4px color-mix(in srgb, var(--grn) 48%, transparent); }
+
+/* Kraft workout */
 @keyframes workoutPulseKraft {
-  from { text-shadow: 0 0 4px rgba(160,10,30,.48); color: #8a0a1c; }
-  to   { text-shadow: 0 0 16px rgba(195,15,40,.92), 0 0 30px rgba(195,15,40,.28); color: #d81030; }
+  from { text-shadow: 0 0 4px color-mix(in srgb, var(--hot) 48%, transparent); color: var(--hot); }
+  to   { text-shadow: 0 0 10px color-mix(in srgb, var(--hot) 80%, transparent); color: var(--hot); }
 }
 :global(html.theme-kraft) .workoutLabel {
   animation: workoutPulseKraft 1.6s ease-in-out infinite alternate;
-  color: #8a0a1c;
+  color: var(--hot);
 }
-:global(html.theme-kraft) .workoutCheck { text-shadow: 0 0 6px rgba(195,15,40,.52); }
+:global(html.theme-kraft) .workoutCheck { text-shadow: 0 0 4px color-mix(in srgb, var(--hot) 52%, transparent); }
 
-/* Kraft spotlight — drop hint and focused strip */
+/* Kraft section labels — no glow */
+:global(html.theme-kraft) .secLblActive { text-shadow: none; }
+:global(html.theme-kraft) .secLblFocused { text-shadow: none; }
+
+/* Kraft spotlight */
 :global(html.theme-kraft) .spotlightHint { color: var(--gold); opacity: 1; font-weight: 600; }
-:global(html.theme-kraft) .spotlightDropActive { background: rgba(140,98,0,.10); outline: 1px dashed rgba(140,98,0,.55); }
+:global(html.theme-kraft) .spotlightDropActive { background: color-mix(in srgb, var(--gold) 10%, transparent); outline: 1px dashed color-mix(in srgb, var(--gold) 55%, transparent); }
 :global(html.theme-kraft) .spotlightFocused::before { background: #f0c840; box-shadow: none; }
+:global(html.theme-kraft) .spotlightActive::before { box-shadow: none; }
+:global(html.theme-kraft) .spotlightFrogFocused::before { box-shadow: none; }
+
+/* Kraft fasting */
+:global(html.theme-kraft) .fastLabelActive { color: var(--tel); text-shadow: 0 0 4px color-mix(in srgb, var(--tel) 45%, transparent); }
+:global(html.theme-kraft) .fastCheck { color: var(--grn); text-shadow: 0 0 4px color-mix(in srgb, var(--grn) 48%, transparent); }
+:global(html.theme-kraft) .fastBreakBtn { color: var(--hot); border-color: color-mix(in srgb, var(--hot) 30%, transparent); }
+:global(html.theme-kraft) .fastBroken { color: var(--hot); text-shadow: 0 0 4px color-mix(in srgb, var(--hot) 40%, transparent); }
 
 /* Workout label — frog-style but red */
 .workoutLabel {
@@ -431,8 +492,4 @@
   to { text-shadow: 0 0 18px rgba(32,200,216,.8), 0 0 36px rgba(32,200,216,.3); }
 }
 
-/* Kraft theme overrides for fasting */
-:global(html.theme-kraft) .fastLabelActive { color: #0097a7; text-shadow: 0 0 8px rgba(0,151,167,.5); }
-:global(html.theme-kraft) .fastCheck { color: #2e7d32; text-shadow: 0 0 6px rgba(46,125,50,.5); }
-:global(html.theme-kraft) .fastBreakBtn { color: #8a0a1c; border-color: rgba(138,10,28,.25); }
-:global(html.theme-kraft) .fastBroken { color: #8a0a1c; text-shadow: 0 0 6px rgba(138,10,28,.4); }
+/* (kraft fasting overrides are in the light theme section above) */

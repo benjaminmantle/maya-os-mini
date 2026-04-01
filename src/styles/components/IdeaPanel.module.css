@@ -6,7 +6,7 @@
   line-height: 1.4;
   font-family: inherit;
 }
-.ideaTextarea:focus { border-color: var(--pri-idea); box-shadow: 0 0 0 1px rgba(48,187,112,.1); }
+.ideaTextarea:focus { border-color: var(--pri-idea); box-shadow: 0 0 0 1px color-mix(in srgb, var(--pri-idea) 15%, transparent); }
 .ideaBtn { background: color-mix(in srgb, var(--s2) 78%, transparent); color: var(--t3); border-color: var(--b1); }
 .ideaBtn:hover { background: var(--s2); color: var(--t2); border-color: var(--b2); box-shadow: none; }
 
@@ -61,7 +61,7 @@
   margin-top: 2px;
   max-height: 200px;
   overflow-y: auto;
-  box-shadow: 0 4px 12px rgba(0,0,0,.3);
+  box-shadow: 0 4px 12px rgba(0,0,0,.18);
 }
 .topicItem {
   display: flex;
@@ -138,12 +138,12 @@
   outline: none;
   transition: transform 100ms ease, box-shadow 100ms ease;
 }
-.swatch:hover { transform: scale(1.3); box-shadow: 0 0 6px rgba(255,255,255,.25); }
+.swatch:hover { transform: scale(1.3); box-shadow: 0 0 6px color-mix(in srgb, var(--text) 30%, transparent); }
 .swatchActive {
   border-radius: 3px;
   outline: 2px solid var(--gold);
   outline-offset: 1px;
-  box-shadow: 0 0 8px var(--gold);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 50%, transparent);
 }
 
 /* Topic filter chips */

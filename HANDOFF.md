@@ -45,7 +45,7 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - **Timer** — countdown / open-ended / countup; focus vs start distinction
 - **Week View** — 7-day grid, drag to reschedule, click to navigate
 - **Stats View (Backend tab)** — progression cards, XP bar, workout stats, fasting stats (streak, ring chart), heatmap, bar chart, radar (6-axis hexagon), weekly rhythm, trend line, daily consistency, fasting config (eating window), export/import
-- **Scoring** — 6 tiers, XP awards, streak multiplier, +8 XP habit bonuses (workout + fasting), idempotent close/reopen, momentum
+- **Scoring** — 9 tiers (percentage-based), XP awards, streak multiplier, +8 XP habit bonuses (workout + fasting), idempotent close/reopen, momentum
 - **Leveling** — 100 levels, 100 titles
 - **Quick-add syntax** — `!1`–`!5` (stars), `@N` (pts), `Nh/Nm` (duration), `frog`
 - **Export/import** — full backup + tasks-only; always additive with fresh IDs
@@ -79,6 +79,65 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 
 ## Recent session changes
 
+### XP scoring overhaul — 9-tier system + retroactive replay (2026-03-31)
+
+**9-tier scoring system** replacing the old 6-tier system. `TIER_EXP` in `scoring.js` now maps:
+- `perfect`: 125 XP (was 100) — disproportionate top bonus; `p90`: 88; `p80`: 68; `p70`: 42; `p60`: 12; `p50`: −8; `p40`: −22; `p30`: −40; `fail` (< 30%): −70
+- Removed the old "miss by 1 point or daily" (`good`) special case — falls naturally into the 90%+ bucket
+- `scoreDay` tier logic now purely percentage-based thresholds (except `perfect` which still checks `ptsMissed===0 && dMissed===0`)
+- `calcMomentum` order array updated: `['fail','p30','p40','p50','p60','p70','p80','p90','perfect']`
+
+**Retroactive XP replay** (`store.js`): On first load after update (`S.profile.xpVersion < 2`), `replayProfileFromHistory()` replays all closed days in chronological order using new scoring, preserving habit bonuses. Sets `profile.xpVersion = 2` so it never runs again. Calls `persist()` (no `notify()` — pre-React-mount). Only `profile.{exp, level, streak, longest, perfect}` changes; all task/day/historical data read-only.
+
+**StatsView.jsx**: `TIER_CLR` expanded to 9 entries (smooth spectrum: gold → grn → tel → #3aada0 → slv → #8888aa → #a855a0 → ora → hot). `weekTierColor()` updated to match new thresholds.
+
+**DayView.jsx**: Close-day toast updated — `'good day'` replaced with `'strong day'` (p90/p80) and `'decent day'` (p70/p60).
+
+**Files changed**: `src/utils/scoring.js`, `src/store/store.js`, `src/components/stats/StatsView.jsx`, `src/components/day/DayView.jsx`
+
+---
+
+### Light theme card fixes (2026-03-31)
+
+**Left-side color strip restored** — `priNormal::before` and `priIdea::before` were accidentally set to `background: transparent` on lav/van/wht themes (to avoid neon glow). Fixed: now `background: var(--tel)` and `background: var(--pri-idea)` respectively, with `box-shadow: none`. Both base and `:hover::before` states fixed.
+
+**Card tint opacity bumped** — priNormal and priIdea background percentages raised: `10% → 14%` (normal), `16% → 20%` (hover). Border percentages bumped proportionally. Affects lav/van/wht themes only.
+
+**Kraft heatmap empty cell** — `--heatmap-empty` for kraft changed from `#9e9282` (too grey, clashing) to `#b2a278` (warm golden-tan matching kraft paper palette). Still clearly darker than bg without being olivey.
+
+**Files changed**: `src/styles/components/TaskCard.module.css`, `src/styles/tokens.css`
+
+---
+
+### Comprehensive light theme color overhaul (2026-03-31)
+
+Complete rewrite of color tokens and component overrides for all 4 non-dark themes (Lav-Light, Vanilla, Kraft, White). Dark and Soft-Dark themes untouched.
+
+**tokens.css — full accent palette per theme:**
+- `--gold` darkened on all 3 bright themes (was #f0b030, invisible ~2:1 contrast): Lav-Light #9e7400, Vanilla #9a7000, White #9c7400, Kraft unchanged #8c6200
+- `--t3` (muted text) darkened to ~4:1 contrast: Lav-Light #6b5a96, Vanilla #7a6840, White #6e6a64, Kraft #5c4420
+- 12+ accent colors now overridden per theme (were unchanged from dark neon values): `--hot`, `--blu`, `--ora`, `--yel`, `--slv`, `--pnk`, `--lim`, `--ind`, `--brn`, `--crl`, `--pur`, `--pri-maya`, `--gry`
+- Borders (`--b1`, `--b2`) strengthened on all 4 themes
+- Tint backgrounds (`--gd2`, `--ht2`, `--gn2`, `--tel2`) rebaselined to use darkened accent colors
+- Each theme has distinct personality: Lav-Light = cool/purple, Vanilla = warm/amber, White = neutral, Kraft = rugged earth
+
+**Component overrides added (5 files previously had zero theme overrides):**
+- `Topbar.module.css` — removed logo neon text-shadow, active tab glow, momentum dot glow, theme menu shadow lightened
+- `Modals.module.css` — overlay opacity (82%→38-45%), modal/ctx/toast shadows (75-90%→12-18%), level-up frosted glass overlay, removed neon gold glow on level-up card, subtler button hover glows, removed toggle box-shadows
+- `StatsView.module.css` — removed XP bar glow, radar drop-shadow filter, danger zone text-shadow, subtler button hovers
+- `WeekView.module.css` — today column crisp border (was diffuse glow), removed today number text-shadow, done task opacity bumped
+- `DayView.module.css` — expanded: section label glows removed for all light themes (secLblActive, secLblFocused), spotlight strip glows removed, fasting widget overrides for lav/van/wht (was kraft only), drop zones use var-based colors, pulse animations use color-mix() for theme adaptability
+
+**Existing overrides modernized:**
+- `TaskCard.module.css` — converted hardcoded rgba to `color-mix(in srgb, var(--X) N%, transparent)` so tints/shadows auto-follow each theme's variables
+- `Sidebar.module.css` — added food badge/check overrides for lav/van/wht, unified kraft overrides
+- `Shell.module.css` — bubble glow and launcher shadow reduced for light themes
+- `IdeaPanel.module.css` / `ProjPanel.module.css` — swatch hover uses `var(--text)` instead of white rgba (was invisible on light), dropdown shadows reduced
+
+**Files changed:** `tokens.css`, `TaskCard.module.css`, `Topbar.module.css`, `Modals.module.css`, `StatsView.module.css`, `WeekView.module.css`, `DayView.module.css`, `Sidebar.module.css`, `Shell.module.css`, `IdeaPanel.module.css`, `ProjPanel.module.css`
+
+---
+
 ### Theme polish + task card fixes (2026-03-31)
 
 **Color palette reorder** — All 4 color pickers (ProjPanel, IdeaPanel, StatsView, TaskCard topic picker) now use a boustrophedon (snake) 8-column grid with a color-wheel gradient: red upper-left → hot pink → coral → pinks → magenta → purple (row 1) → indigo → blues → teal → greens → lime (row 2, visual R→L) → yellow → gold → orange → brown → grey → silver (row 3). Transitions are smooth at row boundaries.
@@ -101,7 +160,7 @@ User runs this in their own terminal. Preview tools (preview_start, preview_scre
 - vanilla: b1 `.16→.26`, b2 `.30→.46`
 - white: b1 `.14→.22`, b2 `.26→.38`
 
-**What's still "faded" on light themes** — Section labels, DayView panel dividers, and structural section headers haven't been addressed yet. The card-level fixes above help significantly but the overall "sleepy" feeling on non-dark themes may still warrant further work on DayView.module.css structural elements.
+**What's still "faded" on light themes** — Addressed in the comprehensive light theme color overhaul session (see above). All accent colors, text hierarchy, borders, shadows, and glows now tuned per-theme.
 
 ---
 

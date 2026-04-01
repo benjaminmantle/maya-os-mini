@@ -66,8 +66,8 @@ export default function TaskCard({
   // Dynamic inline style for project-colored cards
   // --card-strip drives the ::before left edge so CSS classes can't override it with the wrong color
   const cardStyle = isProjCard ? {
-    background: `color-mix(in srgb, var(--${projColor}) 5%, transparent)`,
-    borderColor: `color-mix(in srgb, var(--${projColor}) 22%, transparent)`,
+    background: `color-mix(in srgb, var(--${projColor}) 11%, transparent)`,
+    borderColor: `color-mix(in srgb, var(--${projColor}) 32%, transparent)`,
     '--card-strip': `var(--${projColor})`,
   } : {};
 

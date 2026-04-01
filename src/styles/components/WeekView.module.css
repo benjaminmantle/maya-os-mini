@@ -25,6 +25,26 @@
 .dcDailies { font-size: 9px; color: var(--t3); margin-top: 3px; font-family: var(--fm); }
 .secLbl { font-size: 10px; font-weight: 700; letter-spacing: 2.5px; text-transform: uppercase; color: var(--t2); font-family: var(--fd); }
 
+/* ── Light theme overrides ─────────────────────────────────────────────── */
+
+/* Today column — crisp border instead of diffuse glow */
+:global(html.theme-light) .isToday,
+:global(html.theme-vanilla) .isToday,
+:global(html.theme-white) .isToday { box-shadow: 0 0 0 1px var(--gold); }
+:global(html.theme-kraft) .isToday { box-shadow: 0 0 0 1px var(--gold); }
+
+/* Today number — no text-shadow glow */
+:global(html.theme-light) .dcNumToday,
+:global(html.theme-vanilla) .dcNumToday,
+:global(html.theme-white) .dcNumToday,
+:global(html.theme-kraft) .dcNumToday { text-shadow: none; }
+
+/* Done tasks — slightly more visible on light */
+:global(html.theme-light) .dcTaskDone,
+:global(html.theme-vanilla) .dcTaskDone,
+:global(html.theme-white) .dcTaskDone { opacity: .50; }
+:global(html.theme-kraft) .dcTaskDone { opacity: .48; }
+
 @media(max-width: 680px) {
   .weekGrid { grid-template-columns: repeat(7, minmax(68px, 1fr)); overflow-x: auto; }
 }
