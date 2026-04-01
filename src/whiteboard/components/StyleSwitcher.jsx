@@ -15,6 +15,12 @@ export default function StyleSwitcher({ renderStyle, setRenderStyle }) {
       >
         Clean
       </button>
+      <button
+        className={`${s.styleBtn} ${renderStyle === 'neon' ? s.activeStyle : ''}`}
+        onClick={() => setRenderStyle('neon')}
+      >
+        Neon
+      </button>
     </div>
   );
 }

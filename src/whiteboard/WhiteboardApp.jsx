@@ -25,6 +25,7 @@ import { downloadSVG } from './core/exportSVG.js';
 import { saveBlob, loadBlob } from './store/idb.js';
 import * as sketchStyle from './render/styles/sketchStyle.js';
 import * as cleanStyle from './render/styles/cleanStyle.js';
+import * as neonStyle from './render/styles/neonStyle.js';
 import { setImageDirtyCallback } from './render/renderer.js';
 import Toolbar from './components/Toolbar.jsx';
 import StyleSwitcher from './components/StyleSwitcher.jsx';
@@ -180,6 +181,7 @@ function CanvasView({ board }) {
     // register style renderers
     engine.renderer.registerStyle('sketch', sketchStyle);
     engine.renderer.registerStyle('clean', cleanStyle);
+    engine.renderer.registerStyle('neon', neonStyle);
     setImageDirtyCallback(() => engine.setDirty());
 
     engine.setGetters({
