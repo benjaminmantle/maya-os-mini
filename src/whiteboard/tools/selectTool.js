@@ -3,7 +3,7 @@
 import { hitTest, hitTestHandle, getBounds, containedInRect } from '../elements/bounds.js';
 import { screenToWorld } from '../core/camera.js';
 import { pushCommand } from '../core/history.js';
-import { snapToGrid } from '../core/snap.js';
+import { snapToGrid, computeAlignmentGuides, getSelectionBounds } from '../core/snap.js';
 
 /** Resize snapshot uses getBounds so handles align with what user sees */
 function _resizeSnapshot(el) {
@@ -90,12 +90,30 @@ export const selectTool = {
     if (mode === 'dragging' && dragStart && dragSnap) {
       let dx = w.x - dragStart.x;
       let dy = w.y - dragStart.y;
-      // Snap: round the first element's target position to grid, derive delta
-      if (ctx.snapEnabled && dragSnap.length > 0) {
+
+      // Alignment guides: snap to other elements' edges/centers
+      const tolerance = 5 / camera.zoom;
+      const proposedBounds = getSelectionBounds(elements, selection, dx, dy);
+      let alignResult = null;
+      if (proposedBounds) {
+        alignResult = computeAlignmentGuides(proposedBounds, elements, selection, tolerance);
+      }
+
+      if (alignResult && (alignResult.snapDx !== 0 || alignResult.snapDy !== 0)) {
+        // Alignment snap takes priority
+        dx += alignResult.snapDx;
+        dy += alignResult.snapDy;
+        if (ctx.setGuides) ctx.setGuides(alignResult.guides);
+      } else if (ctx.snapEnabled && dragSnap.length > 0) {
+        // Fall back to grid snap
         const first = dragSnap[0].before;
         dx = snapToGrid(first.x + dx) - first.x;
         dy = snapToGrid(first.y + dy) - first.y;
+        if (ctx.setGuides) ctx.setGuides(null);
+      } else {
+        if (ctx.setGuides) ctx.setGuides(null);
       }
+
       const patches = dragSnap.map(snap => ({
         id: snap.id,
         x: snap.before.x + dx,
@@ -192,6 +210,7 @@ export const selectTool = {
       ctx.setMarquee(null);
     }
 
+    if (ctx.setGuides) ctx.setGuides(null);
     mode = 'idle';
     dragStart = null;
     dragSnap = null;

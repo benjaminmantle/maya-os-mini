@@ -48,7 +48,7 @@ export function createRenderer(canvas) {
 
   function registerStyle(name, mod) { _styles[name] = mod; }
 
-  function render(elements, camera, selection, hoveredId, renderStyle, spatialIdx, ghost, marquee) {
+  function render(elements, camera, selection, hoveredId, renderStyle, spatialIdx, ghost, marquee, guides) {
     const dpr = window.devicePixelRatio || 1;
     const w = canvas.width / dpr;
     const h = canvas.height / dpr;
@@ -118,6 +118,27 @@ export function createRenderer(canvas) {
     if (hoveredId && (!selection || !selection.has(hoveredId))) {
       const hEl = elements.find(e => e.id === hoveredId);
       if (hEl) _drawHoverBox(ctx, hEl, camera);
+    }
+
+    // alignment guides (world space)
+    if (guides && guides.length > 0) {
+      ctx.save();
+      ctx.strokeStyle = '#4488ff';
+      ctx.lineWidth = 1 / camera.zoom;
+      ctx.setLineDash([4 / camera.zoom, 4 / camera.zoom]);
+      for (const g of guides) {
+        ctx.beginPath();
+        if (g.axis === 'x') {
+          ctx.moveTo(g.pos, g.from);
+          ctx.lineTo(g.pos, g.to);
+        } else {
+          ctx.moveTo(g.from, g.pos);
+          ctx.lineTo(g.to, g.pos);
+        }
+        ctx.stroke();
+      }
+      ctx.setLineDash([]);
+      ctx.restore();
     }
 
     // reset transform for screen-space UI

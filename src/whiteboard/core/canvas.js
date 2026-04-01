@@ -18,6 +18,7 @@ export function setupCanvas(canvasEl) {
   let _getRenderStyle = () => 'sketch';
   let _getGhost    = () => null;
   let _getMarquee  = () => null;
+  let _getGuides   = () => null;
 
   function setGetters(g) {
     if (g.elements)    _getElements    = g.elements;
@@ -27,6 +28,7 @@ export function setupCanvas(canvasEl) {
     if (g.renderStyle) _getRenderStyle = g.renderStyle;
     if (g.ghost)       _getGhost       = g.ghost;
     if (g.marquee)     _getMarquee     = g.marquee;
+    if (g.guides)      _getGuides      = g.guides;
     dirty = true; // re-render with new getters
   }
 
@@ -64,6 +66,7 @@ export function setupCanvas(canvasEl) {
         spatialIdx,
         _getGhost(),
         _getMarquee(),
+        _getGuides(),
       );
     }
     rafId = requestAnimationFrame(frame);

@@ -149,6 +149,7 @@ function CanvasView({ board }) {
   const [hoveredId, setHoveredId] = useState(null);
   const [ghost, setGhost] = useState(null);
   const [marquee, setMarquee] = useState(null);
+  const [guides, setGuides] = useState(null);
   const [textEditor, setTextEditor] = useState(null);
   const [contextMenu, setContextMenu] = useState(null); // { x, y, elementIds }
   const [showHelp, setShowHelp] = useState(false);
@@ -159,10 +160,12 @@ function CanvasView({ board }) {
   const hovRef = useRef(hoveredId);
   const ghostRef = useRef(ghost);
   const marqueeRef = useRef(marquee);
+  const guidesRef = useRef(guides);
   selRef.current = selection;
   hovRef.current = hoveredId;
   ghostRef.current = ghost;
   marqueeRef.current = marquee;
+  guidesRef.current = guides;
 
   const setDirty = useCallback(() => {
     if (engineRef.current) engineRef.current.setDirty();
@@ -187,6 +190,7 @@ function CanvasView({ board }) {
       renderStyle: () => getRenderStyle(),
       ghost:       () => ghostRef.current,
       marquee:     () => marqueeRef.current,
+      guides:      () => guidesRef.current,
     });
 
     clearHistory();
@@ -215,6 +219,7 @@ function CanvasView({ board }) {
     setDirty,
     setGhost,
     setMarquee,
+    setGuides,
     setActiveTool,
     openTextEditor: setTextEditor,
   }), [selection, setDirty, defaultStroke, defaultFill, defaultStrokeWidth, snapEnabled]);
