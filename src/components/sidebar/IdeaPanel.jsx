@@ -200,15 +200,59 @@ export default function IdeaPanel({
   }
 
   function handleTextareaChange(e) {
-    setInputVal(applyEmDash(e.target.value));
+    let val = applyEmDash(e.target.value);
+    // Auto-bullet: convert "- " at start of a line to bullet
+    val = val.replace(/(^|\n)- /g, '$1\u2022 ');
+    setInputVal(val);
     e.target.style.height = 'auto';
     e.target.style.height = e.target.scrollHeight + 'px';
+  }
+
+  function wrapSelection(ta, before, after) {
+    const start = ta.selectionStart;
+    const end = ta.selectionEnd;
+    const text = ta.value;
+    const selected = text.slice(start, end);
+    // If already wrapped, unwrap
+    const bLen = before.length;
+    const aLen = after.length;
+    if (start >= bLen && text.slice(start - bLen, start) === before && text.slice(end, end + aLen) === after) {
+      const newVal = text.slice(0, start - bLen) + selected + text.slice(end + aLen);
+      setInputVal(newVal);
+      requestAnimationFrame(() => { ta.selectionStart = start - bLen; ta.selectionEnd = end - bLen; });
+    } else {
+      const newVal = text.slice(0, start) + before + selected + after + text.slice(end);
+      setInputVal(newVal);
+      requestAnimationFrame(() => { ta.selectionStart = start + bLen; ta.selectionEnd = end + bLen; });
+    }
   }
 
   function handleTextareaKeyDown(e) {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       handleAdd();
+    } else if (e.key === 'Enter' && e.shiftKey) {
+      // Auto-continue bullets on new line
+      const ta = e.target;
+      const pos = ta.selectionStart;
+      const lines = ta.value.slice(0, pos).split('\n');
+      const lastLine = lines[lines.length - 1];
+      if (lastLine.startsWith('\u2022 ')) {
+        e.preventDefault();
+        const before = ta.value.slice(0, pos);
+        const after = ta.value.slice(pos);
+        const newVal = before + '\n\u2022 ' + after;
+        setInputVal(newVal);
+        requestAnimationFrame(() => { ta.selectionStart = ta.selectionEnd = pos + 3; });
+        ta.style.height = 'auto';
+        ta.style.height = ta.scrollHeight + 'px';
+      }
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'b') {
+      e.preventDefault();
+      wrapSelection(e.target, '**', '**');
+    } else if ((e.ctrlKey || e.metaKey) && e.key === 'i') {
+      e.preventDefault();
+      wrapSelection(e.target, '*', '*');
     }
   }
 
@@ -250,8 +294,12 @@ export default function IdeaPanel({
         const existing = allTopics.find(t => t.name.toLowerCase() === typed.toLowerCase());
         if (existing) {
           setSelectedTopic(existing.name);
-          setTopicInput('');
+        } else {
+          // Create new topic on Enter
+          addIdeaTopic(typed);
+          setSelectedTopic(typed);
         }
+        setTopicInput('');
       }
       closeDropdown();
     } else if (e.key === 'Escape') {
@@ -354,7 +402,7 @@ export default function IdeaPanel({
               />
             </div>
           )}
-          {topicDropOpen && filteredTopics.length > 0 && (
+          {topicDropOpen && (filteredTopics.length > 0 || topicInput.trim()) && (
             <div className={iStyles.topicDrop}>
               {filteredTopics.map((t) => {
                 const realIdx = allTopics.indexOf(t);
@@ -395,6 +443,22 @@ export default function IdeaPanel({
                   </div>
                 );
               })}
+              {/* Create new topic option when typed text doesn't match */}
+              {topicInput.trim() && !allTopics.some(t => t.name.toLowerCase() === topicInput.trim().toLowerCase()) && (
+                <div
+                  className={iStyles.topicItem}
+                  style={{ color: 'var(--pri-idea)', cursor: 'pointer' }}
+                  onClick={() => {
+                    const name = topicInput.trim();
+                    addIdeaTopic(name);
+                    setSelectedTopic(name);
+                    setTopicInput('');
+                    closeDropdown();
+                  }}
+                >
+                  + Create "{topicInput.trim()}"
+                </div>
+              )}
             </div>
           )}
         </div>

@@ -271,12 +271,7 @@ export function getShowcase(templateKey) {
 // VaultApp.jsx — register on mount
 useEffect(() => {
   registerShowcase('endless-sky-character', CharacterShowcase)
-  registerShowcase('endless-sky-place', PlaceShowcase)
-  registerShowcase('endless-sky-race', RaceShowcase)
-  registerShowcase('endless-sky-ability', AbilityShowcase)
-  registerShowcase('endless-sky-item', ItemShowcase)
-  registerShowcase('endless-sky-magic-system', MagicSystemShowcase)
-  registerShowcase('endless-sky-element', ElementShowcase)
+  // Future: registerShowcase('endless-sky-place', PlaceShowcase), etc.
 }, [])
 ```
 

@@ -17,10 +17,13 @@ export default function Sidebar({
   onEditDaily,
   onDailyContextMenu,
   onTaskContextMenu,
+  onFocusTask,
+  onStartTask,
   theme,
 }) {
   const [tab, setTab] = useState('dailies');
   const [backlogDragOver, setBacklogDragOver] = useState(false);
+  const [projDragOver, setProjDragOver] = useState(false);
 
   function handleBacklogDragOver(e) {
     e.preventDefault();
@@ -33,6 +36,11 @@ export default function Sidebar({
     }
   }
 
+  function clearFocusAndActive(id) {
+    if (focusedTaskId === id && onFocusTask) onFocusTask(id); // toggle off
+    if (activeTaskId === id && onStartTask) onStartTask(id); // toggle off
+  }
+
   function handleBacklogDrop(e) {
     e.preventDefault();
     setBacklogDragOver(false);
@@ -40,8 +48,36 @@ export default function Sidebar({
     if (!id) return;
     const task = tasks.find(t => t.id === id);
     if (!task || !task.scheduledDate || task.priority === 'idea') return;
+    // Reject project tasks — they belong in Proj tab
+    if (task.project) return;
+    clearFocusAndActive(id);
     updateTask(id, { scheduledDate: null, isFrog: false });
     setTab('backlog');
+  }
+
+  function handleProjDragOver(e) {
+    e.preventDefault();
+    setProjDragOver(true);
+  }
+
+  function handleProjDragLeave(e) {
+    if (!e.currentTarget.contains(e.relatedTarget)) {
+      setProjDragOver(false);
+    }
+  }
+
+  function handleProjDrop(e) {
+    e.preventDefault();
+    setProjDragOver(false);
+    const id = e.dataTransfer.getData('tid');
+    if (!id) return;
+    const task = tasks.find(t => t.id === id);
+    if (!task || !task.scheduledDate || task.priority === 'idea') return;
+    // Only accept project tasks
+    if (!task.project) return;
+    clearFocusAndActive(id);
+    updateTask(id, { scheduledDate: null, isFrog: false });
+    setTab('proj');
   }
 
   return (
@@ -65,9 +101,12 @@ export default function Sidebar({
           Tasks
         </button>
         <button
-          className={`${styles.stab} ${tab === 'proj' ? styles.stabActive : ''}`}
+          className={`${styles.stab} ${tab === 'proj' ? styles.stabActive : ''} ${projDragOver ? styles.stabDragOver : ''}`}
           style={tab === 'proj' ? { color: 'var(--pur)', borderBottomColor: 'var(--pur)' } : {}}
           onClick={() => setTab('proj')}
+          onDragOver={handleProjDragOver}
+          onDragLeave={handleProjDragLeave}
+          onDrop={handleProjDrop}
         >
           Proj
         </button>
@@ -98,6 +137,8 @@ export default function Sidebar({
           getTimerDisplay={getTimerDisplay}
           onContextMenu={onTaskContextMenu}
           focusDate={focusDate}
+          onFocusTask={onFocusTask}
+          onStartTask={onStartTask}
         />
       )}
       {tab === 'proj' && (
@@ -107,6 +148,8 @@ export default function Sidebar({
           focusedTaskId={focusedTaskId}
           getTimerDisplay={getTimerDisplay}
           onContextMenu={onTaskContextMenu}
+          onFocusTask={onFocusTask}
+          onStartTask={onStartTask}
         />
       )}
       {tab === 'idea' && (

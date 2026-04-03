@@ -603,14 +603,14 @@ export function getIdeaTopics() {
   return S.settings.ideaTopics || [];
 }
 
-export function addIdeaTopic(name) {
+export function addIdeaTopic(name, color) {
   const trimmed = name.trim();
   if (!trimmed) return false;
   if (!S.settings.ideaTopics) S.settings.ideaTopics = [];
   migrateIdeaTopics();
   const exists = S.settings.ideaTopics.some(t => t.name.toLowerCase() === trimmed.toLowerCase());
   if (exists) return false;
-  S.settings.ideaTopics.push({ name: trimmed, color: 'slv' });
+  S.settings.ideaTopics.push({ name: trimmed, color: color || 'slv' });
   save();
   return true;
 }
@@ -656,13 +656,13 @@ export function getProjects() {
   return S.settings.projects || [];
 }
 
-export function addProject(name) {
+export function addProject(name, color) {
   const trimmed = name.trim();
   if (!trimmed) return false;
   if (!S.settings.projects) S.settings.projects = [];
   const exists = S.settings.projects.some(p => p.name.toLowerCase() === trimmed.toLowerCase());
   if (exists) return false;
-  S.settings.projects.push({ name: trimmed, color: 'slv' });
+  S.settings.projects.push({ name: trimmed, color: color || 'slv' });
   save();
   return true;
 }
@@ -696,6 +696,36 @@ export function setProjectColor(name, color) {
   if (!S.settings.projects) return;
   const proj = S.settings.projects.find(p => p.name.toLowerCase() === name.toLowerCase());
   if (proj) { proj.color = color; save(); }
+}
+
+export function moveProject(name, direction) {
+  if (!S.settings.projects) return;
+  const arr = S.settings.projects;
+  const idx = arr.findIndex(p => p.name.toLowerCase() === name.toLowerCase());
+  if (idx === -1) return;
+  const item = arr[idx];
+  arr.splice(idx, 1);
+  if (direction === 'up' && idx > 0) arr.splice(idx - 1, 0, item);
+  else if (direction === 'down') arr.splice(Math.min(idx + 1, arr.length), 0, item);
+  else if (direction === 'top') arr.unshift(item);
+  else if (direction === 'bottom') arr.push(item);
+  else arr.splice(idx, 0, item); // no-op fallback
+  save();
+}
+
+export function moveIdeaTopic(name, direction) {
+  if (!S.settings.ideaTopics) return;
+  const arr = S.settings.ideaTopics;
+  const idx = arr.findIndex(t => t.name.toLowerCase() === name.toLowerCase());
+  if (idx === -1) return;
+  const item = arr[idx];
+  arr.splice(idx, 1);
+  if (direction === 'up' && idx > 0) arr.splice(idx - 1, 0, item);
+  else if (direction === 'down') arr.splice(Math.min(idx + 1, arr.length), 0, item);
+  else if (direction === 'top') arr.unshift(item);
+  else if (direction === 'bottom') arr.push(item);
+  else arr.splice(idx, 0, item);
+  save();
 }
 
 export function resetToday() {

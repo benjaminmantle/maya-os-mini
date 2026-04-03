@@ -281,6 +281,30 @@ The colored dot in DailyItem is wrapped in a `.dDotBtn` span with `8px/6px` padd
 ### FUTURE_IDEAS.md — user-managed ideas
 `FUTURE_IDEAS.md` stores ideas for future implementation (food timestamps, exception days, Claude API calorie estimation). Do not start on these without explicit direction. Similar to TODO.md.
 
+### Task movement between tabs — strict separation
+**BacklogPanel** (Tasks tab) rejects drops of tasks with `task.project`. **ProjPanel** (Proj tab) rejects drops of tasks without `task.project`. Sidebar tab buttons have drop handlers that enforce the same rules. Moving any focused or active task to any backlog tab auto-unfocuses and stops it.
+
+### ProjectPicker — universal component
+`src/components/shared/ProjectPicker.jsx` is the single project picker dropdown used everywhere (TaskCard, context menus). Supports: select, edit name, change color, delete, create new with color. Positioned via `anchorRect` prop (from `getBoundingClientRect`). Always use this instead of rolling inline project pickers.
+
+### `#ProjectName` quick-add syntax
+`parseInput(raw, projects?)` accepts an optional `projects` array (pass `getProjects()`). `#Name` is matched case-insensitively against existing projects. If no match, the `#text` stays in the name as-is. Available in all quick-add inputs (DayView, BacklogPanel, ProjPanel).
+
+### Store reorder functions — projects and topics
+`moveProject(name, direction)` and `moveIdeaTopic(name, direction)` accept direction `'up'|'down'|'top'|'bottom'`. Used by Backend LabelManager arrow buttons and drag reorder. `addProject(name, color)` and `addIdeaTopic(name, color)` accept optional color param.
+
+### Idea rich text — markdown-style storage
+Ideas store formatting as plain text with `**bold**`, `*italic*`, `\u2022 ` bullets, and `\n` newlines. `renderRichText()` in `src/utils/richText.jsx` converts to React elements for display. Ctrl+B/Ctrl+I wrap selection in textarea. `- ` auto-converts to bullet on input. Only idea tasks use rich text rendering — normal task names remain plain text.
+
+### Project filter chips — opaque colored, bigger than sort buttons
+ProjPanel filter chips use `chipStyle()` which returns opaque `color-mix 72% with #000` background + `#fff` text — matching the card chip look. They are 11px font / 4px 10px padding — deliberately bigger than the 9px sort buttons above them. "ALL" chip is uppercase.
+
+### Project card hover — uses project color, not teal
+`.hasProject.priNormal:hover` in TaskCard.module.css overrides the default teal hover to use `--card-strip` (the project's color). This is set across all 6 themes (dark, light, vanilla, kraft, white, dim). If you add a new theme, add a matching `.hasProject.priNormal:hover` rule.
+
+### Sort by Project (J button) — in Core Tasks and Proj tab, NOT Tasks tab
+The J sort button is in DayView Core Tasks toolbar and ProjPanel toolbar. It is NOT in BacklogPanel (Tasks tab has no project tasks). Uses `sortTasksForView(date, 'proj', dir)`.
+
 ---
 
 ## Known Gotchas & Traps — Vault

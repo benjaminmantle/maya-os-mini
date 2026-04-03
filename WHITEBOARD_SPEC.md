@@ -36,7 +36,8 @@ src/whiteboard/
 │   ├── renderer.js                ← orchestrator: iterates elements, delegates to active style
 │   ├── styles/
 │   │   ├── sketchStyle.js         ← roughjs-based hand-drawn renderer (default)
-│   │   └── cleanStyle.js          ← geometric/techno renderer
+│   │   ├── cleanStyle.js          ← geometric/techno renderer
+│   │   └── neonStyle.js           ← cyberpunk glow renderer (Canvas 2D shadowBlur)
 │   └── minimap.js                 ← corner minimap renderer
 │
 ├── tools/
@@ -48,9 +49,10 @@ src/whiteboard/
 │
 ├── components/
 │   ├── Toolbar.jsx                ← floating tool palette (left edge or top)
+│   ├── TabBar.jsx                 ← multi-board tab bar (open multiple boards)
 │   ├── ContextMenu.jsx            ← right-click context menu on elements
 │   ├── ColorPicker.jsx            ← inline color picker (small, not a modal)
-│   ├── StyleSwitcher.jsx          ← render style toggle (sketch / clean / future modes)
+│   ├── StyleSwitcher.jsx          ← render style toggle (sketch / clean / neon)
 │   ├── Minimap.jsx                ← corner minimap overlay
 │   └── ExportMenu.jsx             ← PNG / SVG / JSON export
 │
@@ -529,7 +531,7 @@ The whiteboard is full-viewport (`wrap: 'full'`). The canvas `<canvas>` element 
 
 The canvas must handle `window.resize` — update canvas dimensions and re-render.
 
-No mobile optimization in Phase 1. Desktop-first (mouse + keyboard). Touch can be added later.
+Desktop-first (mouse + keyboard). Touch/pointer events added in Phase 5 (pinch zoom, two-finger pan, tap to select).
 
 ---
 
@@ -594,14 +596,13 @@ That's it. No other new dependencies. IndexedDB is native. Canvas 2D is native. 
 
 **Verification**: Can paste/drop images, resize them, change crop shape. All three export formats work. Minimap shows board overview and responds to clicks.
 
-### Phase 5 — Polish
-1. Alignment guides / snap-to-grid (optional, toggleable)
+### Phase 5 — Polish (complete)
+1. Alignment guides (snap to edges/centers of other elements, dashed blue lines)
 2. Keyboard shortcut help overlay
-3. Additional render styles (techno/cyber mode using Maya OS tokens)
-4. Element duplication on Alt+drag
-5. Shift-constrain for all tools
-6. Board rename
-7. Performance profiling and optimization for large boards
+3. Neon render style (cyberpunk glow via Canvas 2D shadowBlur, double-pass rendering)
+4. Pointer/touch events (pinch zoom, two-finger pan, `setPointerCapture`)
+5. Performance: silent drag updates (`updateElementsSilent`), struct-versioned spatial index rebuild
+6. Multi-board tabs (open multiple boards, tab bar with switch/close, "+" to add)
 
 ---
 

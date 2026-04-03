@@ -3,7 +3,7 @@ import styles from '../../styles/components/StatsView.module.css';
 import { TITLES, scoreDay, expForLevel } from '../../utils/scoring.js';
 import { todColor } from '../../utils/colors.js';
 import { today, addDays } from '../../utils/dates.js';
-import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget, toggleFastingEnabled, toggleCaloriesEnabled, toggleFrogsEnabled, getState, getProjects, addProject, editProject, deleteProject, setProjectColor, getIdeaTopics, addIdeaTopic, editIdeaTopic, deleteIdeaTopic, setIdeaTopicColor } from '../../store/store.js';
+import { setTarget, exportData, importData, exportTasks, importTasks, resetToday, clearAll, getFastingSettings, setFastingSettings, getCalorieTarget, setCalorieTarget, toggleFastingEnabled, toggleCaloriesEnabled, toggleFrogsEnabled, getState, getProjects, addProject, editProject, deleteProject, setProjectColor, moveProject, getIdeaTopics, addIdeaTopic, editIdeaTopic, deleteIdeaTopic, setIdeaTopicColor, moveIdeaTopic } from '../../store/store.js';
 import { sumCalories, applyEmDash } from '../../utils/parsing.js';
 import { useToast } from '../shared/Toast.jsx';
 import ContribHeatmap from '../shared/ContribHeatmap.jsx';
@@ -40,13 +40,15 @@ const LABEL_COLORS = [
   'yel','gold','pri-md','ora','ora2','brn','gry','slv',      // row 3 →
 ];
 
-function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange }) {
+function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange, onMove }) {
   const [addVal, setAddVal] = useState('');
   const [newItemColor, setNewItemColor] = useState('slv');
   const [newColorOpen, setNewColorOpen] = useState(false);
   const [editIdx, setEditIdx] = useState(-1);
   const [editVal, setEditVal] = useState('');
   const [colorIdx, setColorIdx] = useState(-1);
+  const [colorPos, setColorPos] = useState(null);
+  const dragItemRef = useRef(null);
 
   function handleAdd() {
     const trimmed = addVal.trim();
@@ -78,13 +80,41 @@ function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange }) 
     setColorIdx(-1);
   }
 
+  function handleColorDotClick(idx, e) {
+    if (colorIdx === idx) { setColorIdx(-1); setColorPos(null); return; }
+    const rect = e.currentTarget.getBoundingClientRect();
+    // Position color picker near the dot, clamped to viewport
+    const x = Math.min(rect.left, window.innerWidth - 160);
+    const y = rect.bottom + 4;
+    setColorIdx(idx);
+    setColorPos({ x, y: Math.min(y, window.innerHeight - 80) });
+  }
+
+  function handleDragStart(idx, e) {
+    dragItemRef.current = idx;
+    e.dataTransfer.effectAllowed = 'move';
+  }
+
+  function handleDragOver(e) { e.preventDefault(); }
+
+  function handleDrop(idx, e) {
+    e.preventDefault();
+    const fromIdx = dragItemRef.current;
+    if (fromIdx === null || fromIdx === idx) return;
+    const name = items[fromIdx].name;
+    const steps = Math.abs(idx - fromIdx);
+    const dir = idx < fromIdx ? 'up' : 'down';
+    for (let i = 0; i < steps; i++) onMove(name, dir);
+    dragItemRef.current = null;
+  }
+
   const iStyle = { background: 'var(--s2)', border: '1px solid var(--b2)', borderRadius: 'var(--rs)', padding: '5px 8px', fontSize: 12, color: 'var(--text)', outline: 'none', fontFamily: 'var(--f)', fontWeight: 500, flex: 1 };
+  const arrowBtn = { background: 'transparent', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 11, padding: '1px 3px', lineHeight: 1, fontFamily: 'var(--fm)' };
 
   return (
     <div style={{ padding: '0 14px', marginBottom: 8 }}>
       <div style={{ fontSize: 10, fontWeight: 700, fontFamily: 'var(--fd)', letterSpacing: 2, textTransform: 'uppercase', color: 'var(--gold)', marginBottom: 8 }}>{title}</div>
       <div style={{ display: 'flex', gap: 6, marginBottom: 8, alignItems: 'center' }}>
-        {/* Color swatch for new item — click to pick before adding */}
         <span style={{ position: 'relative', flexShrink: 0 }}>
           <span
             style={{ width: 16, height: 16, borderRadius: 3, background: `var(--${newItemColor})`, cursor: 'pointer', display: 'block', border: '1px solid rgba(255,255,255,.2)', boxShadow: newColorOpen ? '0 0 0 2px var(--gold)' : 'none' }}
@@ -97,11 +127,9 @@ function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange }) 
                 <span
                   key={c}
                   style={{
-                    width: 14,
-                    height: 14,
+                    width: 14, height: 14,
                     borderRadius: newItemColor === c ? 3 : 2,
-                    cursor: 'pointer',
-                    background: `var(--${c})`,
+                    cursor: 'pointer', background: `var(--${c})`,
                     outline: newItemColor === c ? '2px solid var(--gold)' : 'none',
                     outlineOffset: 1,
                     boxShadow: newItemColor === c ? '0 0 8px var(--gold)' : 'none',
@@ -128,10 +156,17 @@ function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange }) 
         >Add</button>
       </div>
       {items.map((item, idx) => (
-        <div key={item.name} style={{ display: 'flex', alignItems: 'center', gap: 6, padding: '4px 0', flexWrap: 'wrap' }}>
+        <div
+          key={item.name}
+          draggable
+          onDragStart={e => handleDragStart(idx, e)}
+          onDragOver={handleDragOver}
+          onDrop={e => handleDrop(idx, e)}
+          style={{ display: 'flex', alignItems: 'center', gap: 4, padding: '3px 0', cursor: 'grab', flexWrap: 'wrap' }}
+        >
           <span
             style={{ width: 10, height: 10, borderRadius: 2, background: `var(--${item.color || 'slv'})`, cursor: 'pointer', flexShrink: 0 }}
-            onClick={() => setColorIdx(colorIdx === idx ? -1 : idx)}
+            onClick={e => handleColorDotClick(idx, e)}
             title="Change color"
           />
           {editIdx === idx ? (
@@ -146,41 +181,52 @@ function LabelManager({ title, items, onAdd, onEdit, onDelete, onColorChange }) 
           ) : (
             <span style={{ flex: 1, fontSize: 12, color: 'var(--text)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.name}</span>
           )}
-          <button
-            style={{ background: 'transparent', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 13, padding: '2px 4px' }}
-            onClick={() => handleEditStart(idx)}
-            title="Edit"
-          >&#9998;</button>
-          <button
-            style={{ background: 'transparent', border: 'none', color: 'rgba(255,48,96,.6)', cursor: 'pointer', fontSize: 15, padding: '2px 4px' }}
-            onClick={() => handleDelete(idx)}
-            title="Delete"
-          >&times;</button>
-          {colorIdx === idx && (
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(8, 14px)', gap: 3, padding: '4px 0 2px 16px' }}>
-              {LABEL_COLORS.map(c => (
-                <span
-                  key={c}
-                  style={{
-                    width: 14,
-                    height: 14,
-                    borderRadius: item.color === c ? 3 : 2,
-                    cursor: 'pointer',
-                    background: `var(--${c})`,
-                    outline: item.color === c ? '2px solid var(--gold)' : 'none',
-                    outlineOffset: 1,
-                    boxShadow: item.color === c ? '0 0 8px var(--gold)' : 'none',
-                    transition: 'transform 100ms ease, box-shadow 100ms ease',
-                  }}
-                  onMouseEnter={e => { if (item.color !== c) { e.target.style.transform = 'scale(1.3)'; e.target.style.boxShadow = '0 0 6px rgba(255,255,255,.25)'; } }}
-                  onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = item.color === c ? '0 0 8px var(--gold)' : ''; }}
-                  onClick={() => { onColorChange(item.name, c); setColorIdx(-1); }}
-                />
-              ))}
-            </div>
-          )}
+          {/* Action buttons — single row, right side */}
+          <span style={{ display: 'flex', alignItems: 'center', gap: 1, flexShrink: 0 }}>
+            <button style={arrowBtn} onClick={() => onMove(item.name, 'top')} title="Move to top">{'\u21C8'}</button>
+            <button style={arrowBtn} onClick={() => onMove(item.name, 'up')} title="Move up">{'\u2191'}</button>
+            <button style={arrowBtn} onClick={() => onMove(item.name, 'down')} title="Move down">{'\u2193'}</button>
+            <button style={arrowBtn} onClick={() => onMove(item.name, 'bottom')} title="Move to bottom">{'\u21CA'}</button>
+            <button
+              style={{ background: 'transparent', border: 'none', color: 'var(--t3)', cursor: 'pointer', fontSize: 13, padding: '2px 4px' }}
+              onClick={() => handleEditStart(idx)}
+              title="Edit"
+            >&#9998;</button>
+            <button
+              style={{ background: 'transparent', border: 'none', color: 'rgba(255,48,96,.6)', cursor: 'pointer', fontSize: 15, padding: '2px 4px' }}
+              onClick={() => handleDelete(idx)}
+              title="Delete"
+            >&times;</button>
+          </span>
         </div>
       ))}
+      {/* Color picker popup — positioned near the clicked dot */}
+      {colorIdx !== -1 && colorPos && items[colorIdx] && (
+        <div style={{
+          position: 'fixed', left: colorPos.x, top: colorPos.y, zIndex: 50,
+          background: 'var(--s1)', border: '1px solid var(--b2)', borderRadius: 'var(--rs)',
+          padding: 6, display: 'grid', gridTemplateColumns: 'repeat(8, 14px)', gap: 3,
+          boxShadow: '0 4px 16px rgba(0,0,0,.4)',
+        }}>
+          {LABEL_COLORS.map(c => (
+            <span
+              key={c}
+              style={{
+                width: 14, height: 14,
+                borderRadius: items[colorIdx].color === c ? 3 : 2,
+                cursor: 'pointer', background: `var(--${c})`,
+                outline: items[colorIdx].color === c ? '2px solid var(--gold)' : 'none',
+                outlineOffset: 1,
+                boxShadow: items[colorIdx].color === c ? '0 0 8px var(--gold)' : 'none',
+                transition: 'transform 100ms ease, box-shadow 100ms ease',
+              }}
+              onMouseEnter={e => { if (items[colorIdx].color !== c) { e.target.style.transform = 'scale(1.3)'; e.target.style.boxShadow = '0 0 6px rgba(255,255,255,.25)'; } }}
+              onMouseLeave={e => { e.target.style.transform = ''; e.target.style.boxShadow = items[colorIdx]?.color === c ? '0 0 8px var(--gold)' : ''; }}
+              onClick={() => { onColorChange(items[colorIdx].name, c); setColorIdx(-1); setColorPos(null); }}
+            />
+          ))}
+        </div>
+      )}
       {items.length === 0 && <div style={{ fontSize: 11, color: 'var(--t3)', fontStyle: 'italic' }}>None yet</div>}
     </div>
   );
@@ -917,10 +963,11 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
       <LabelManager
         title="Projects"
         items={getProjects()}
-        onAdd={(name, color) => { if (addProject(name)) setProjectColor(name, color); }}
+        onAdd={(name, color) => { if (addProject(name, color)) {} }}
         onEdit={editProject}
         onDelete={deleteProject}
         onColorChange={setProjectColor}
+        onMove={moveProject}
       />
 
       <div className={styles.divider} />
@@ -929,10 +976,11 @@ export default function StatsView({ profile, dailies, days, target: currentTarge
       <LabelManager
         title="Idea Topics"
         items={getIdeaTopics()}
-        onAdd={(name, color) => { if (addIdeaTopic(name)) setIdeaTopicColor(name, color); }}
+        onAdd={(name, color) => { if (addIdeaTopic(name, color)) {} }}
         onEdit={editIdeaTopic}
         onDelete={deleteIdeaTopic}
         onColorChange={setIdeaTopicColor}
+        onMove={moveIdeaTopic}
       />
 
       <div className={styles.divider} />

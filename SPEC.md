@@ -93,9 +93,9 @@ Two-column layout: main column left, sidebar right.
 
 **Sidebar (tabbed, 4 tabs):** Each tab has its own active accent color — Day=teal, Tasks=gold, Proj=project color, Idea=green.
 - **Day tab** (default, teal accent) — list of daily habits; click to toggle completion; hover shows edit/delete buttons; drag to reorder; right-click for context menu; "+ add daily" collapsed button at bottom
-- **Tasks tab** (gold accent) — unscheduled normal tasks; quick-add input; assign button per task; sort buttons: P / T / G (star group: 5★→4★→3★→2★→1★)
-- **Proj tab** (project color accent) — tasks grouped by project; project management
-- **Idea tab** (green accent) — Idea tasks (`priority === 'idea'`) that are not yet done; quick-add (textarea, Enter submits, Shift+Enter = newline); star rating (1–5) per task; topic combobox; sort buttons: T / G; dropping non-idea tasks here is silently rejected
+- **Tasks tab** (gold accent) — unscheduled normal tasks (no project); quick-add input with `#project` syntax; assign button per task; sort buttons: P / T / G. **Rejects drops of project tasks** (they belong in Proj tab). Drop handler on tab button for cross-tab drag.
+- **Proj tab** (project color accent) — tasks grouped by project; project combobox for creating/selecting; filter chips (ALL + per-project, bigger/colored like card chips); `#project` syntax in input. **Rejects drops of non-project tasks** (they belong in Tasks tab). Drop handler on tab button. Filter chips use opaque colored backgrounds with white text.
+- **Idea tab** (green accent) — Idea tasks (`priority === 'idea'`) that are not yet done; quick-add (textarea, Enter submits, Shift+Enter = newline); star rating (1–5) per task; topic combobox with "Create new" option; sort buttons: T / G; rich text: Ctrl+B bold, Ctrl+I italic, `- ` auto-bullets, `--` em-dash. Dropping non-idea tasks here is silently rejected
 
 ### Week View
 7-day grid. Each day shows: weekday, date number, points progress bar, task snippets (up to 4), dailies completion count. Drag tasks to reschedule. Click day to navigate to it in Day view.
@@ -144,7 +144,7 @@ Defaults: pts=0.5, time=null, mayaPts=1, isFrog=false.
 - Duration badge — click to cycle through presets; blue when set, grey when blank; hidden on idea cards
   - Presets: null → 15m → 30m → 45m → 1h → 1.5h → 2h → 3h → 4h → ∞ → null
 - `+` toggle badge — appears when duration is set (not ∞); toggles open-ended mode (appends `+` to duration string)
-- Project chip — shown on non-idea cards; displays project name in project's color
+- Project chip — shown on ALL non-idea cards; displays project name with opaque colored background + white text when assigned, dim `+ proj` chip when unassigned; click opens universal ProjectPicker (select/edit/delete/create/color)
 - Topic chip — shown on idea cards; displays topic name in topic's color
 - Assign (📅) button — on core task list only; opens date picker popup
 - Delete ✕ button
@@ -226,19 +226,22 @@ Defaults: pts=0.5, time=null, mayaPts=1, isFrog=false.
 ### Scoring
 Day score computed from: points earned vs target, dailies completed vs total.
 
-Tiers: perfect / good / decent / half / poor / fail
+9-tier system (percentage-based thresholds):
 
-| Tier | Condition |
-|------|-----------|
-| perfect | pts ≥ target AND all dailies done |
-| good | missed ≤1 pt OR ≤1 daily |
-| decent | ≥70% combined |
-| half | ≥50% |
-| poor | ≥25% |
-| fail | <25% |
+| Tier | Condition | XP |
+|------|-----------|-----|
+| perfect | pts ≥ target AND all dailies done | +125 |
+| p90 | ≥90% combined | +88 |
+| p80 | ≥80% | +68 |
+| p70 | ≥70% | +42 |
+| p60 | ≥60% | +12 |
+| p50 | ≥50% | -8 |
+| p40 | ≥40% | -22 |
+| p30 | ≥30% | -40 |
+| fail | <30% | -70 |
 
 ### XP & Leveling
-- Each tier awards XP on Close Day: perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30
+- Each tier awards XP on Close Day (see table above). +8 XP bonus each for workout and successful fast.
 - Perfect day streak multiplier: up to 1.5× for 10+ day streaks
 - Level thresholds: `Math.round(19 * (n + 24) ** 1.15)` XP to reach level n from n-1
   - Level 2: ~800 XP (~5 days at perfect), Level 10: ~8 weeks total, Level 50: ~1.5 years, Level 100: ~5 years

@@ -142,9 +142,13 @@
 .priIdea:hover { background: rgba(48,187,112,.10); border-color: rgba(48,187,112,.40); }
 .priIdea:hover::before { background: transparent; box-shadow: none; }
 
-/* Project card — left strip uses project color via --card-strip CSS var */
+/* Project card — left strip + hover uses project color via --card-strip CSS var */
 .hasProject::before { background: var(--card-strip, transparent); box-shadow: none; }
 .hasProject:hover::before { background: var(--card-strip, transparent); box-shadow: none; }
+.hasProject.priNormal:hover {
+  background: color-mix(in srgb, var(--card-strip) 13%, transparent);
+  border-color: color-mix(in srgb, var(--card-strip) 40%, transparent);
+}
 
 /* Star row */
 .starRow { display: flex; align-items: center; gap: 6px; margin-top: 4px; }
@@ -377,6 +381,9 @@
 :global(html.theme-light) .hasProject.priNormal:hover::before,
 :global(html.theme-vanilla) .hasProject.priNormal:hover::before,
 :global(html.theme-white) .hasProject.priNormal:hover::before { background: var(--card-strip); box-shadow: none; }
+:global(html.theme-light) .hasProject.priNormal:hover,
+:global(html.theme-vanilla) .hasProject.priNormal:hover,
+:global(html.theme-white) .hasProject.priNormal:hover { background: color-mix(in srgb, var(--card-strip) 18%, transparent); border-color: color-mix(in srgb, var(--card-strip) 55%, transparent); }
 
 :global(html.theme-light) .priIdea,
 :global(html.theme-vanilla) .priIdea,
@@ -457,6 +464,7 @@
 /* Project cards override the teal strip with their own color */
 :global(html.theme-kraft) .hasProject.priNormal::before { background: var(--card-strip); box-shadow: 0 0 5px color-mix(in srgb, var(--card-strip) 45%, transparent); }
 :global(html.theme-kraft) .hasProject.priNormal:hover::before { box-shadow: 0 0 10px color-mix(in srgb, var(--card-strip) 60%, transparent); }
+:global(html.theme-kraft) .hasProject.priNormal:hover { background: color-mix(in srgb, var(--card-strip) 18%, transparent); border-color: color-mix(in srgb, var(--card-strip) 58%, transparent); }
 
 :global(html.theme-kraft) .priIdea { background: color-mix(in srgb, var(--pri-idea) 15%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 48%, transparent); }
 :global(html.theme-kraft) .priIdea:hover { background: color-mix(in srgb, var(--pri-idea) 22%, transparent); border-color: color-mix(in srgb, var(--pri-idea) 65%, transparent); }

@@ -1,8 +1,10 @@
-import { useState } from 'react';
+import { useState, useRef } from 'react';
 import styles from '../../styles/components/TaskCard.module.css';
 import { DURATIONS, isOpenEnded } from '../../utils/duration.js';
 import { updateTask, deleteTask, markTaskComplete, markSpecialDone, getIdeaTopics, getProjects, editIdeaTopic, setIdeaTopicColor } from '../../store/store.js';
 import { applyEmDash } from '../../utils/parsing.js';
+import { renderRichText } from '../../utils/richText.jsx';
+import ProjectPicker from '../shared/ProjectPicker.jsx';
 
 // 8-column boustrophedon grid: row 1 →, row 2 ← (reversed in array for snake), row 3 →
 const IDEA_PALETTE = [
@@ -33,6 +35,7 @@ export default function TaskCard({
   const [editingName, setEditingName] = useState(false);
   const [nameVal, setNameVal] = useState(task.name);
   const [projPickerOpen, setProjPickerOpen] = useState(false);
+  const [projPickerRect, setProjPickerRect] = useState(null);
   const [topicPickerOpen, setTopicPickerOpen] = useState(false);
   const [topicEditVal, setTopicEditVal] = useState('');
   const isIdea = task.priority === 'idea';
@@ -173,8 +176,9 @@ export default function TaskCard({
           <span
             className={`${styles.taskName} ${done ? styles.doneName : ''} ${!done ? styles.nameClickable : ''}`}
             onClick={handleNameClick}
+            style={isIdea && task.name.includes('\n') ? { whiteSpace: 'pre-wrap' } : {}}
           >
-            {task.name}
+            {isIdea ? renderRichText(task.name) : task.name}
           </span>
         )}
         {/* Points + duration badges — not for ideas */}
@@ -283,35 +287,29 @@ export default function TaskCard({
               </span>
             );
           })()}
-          {!isIdea && task.project && (() => {
+          {!isIdea && (() => {
             const pc = projColor || 'slv';
-            const allProjs = getProjects();
             return (
               <span style={{ position: 'relative', display: 'inline-flex' }}>
                 <span
                   className={styles.projectChip}
-                  style={task.project ? { background: `color-mix(in srgb, var(--${pc}) 72%, #000)` } : { background: 'var(--s2)', color: 'var(--t3)', fontSize: 9, padding: '2px 5px', borderRadius: 2, cursor: 'pointer' }}
-                  onClick={(e) => { e.stopPropagation(); setProjPickerOpen(!projPickerOpen); }}
+                  style={task.project
+                    ? { background: `color-mix(in srgb, var(--${pc}) 72%, #000)`, color: '#fff' }
+                    : { background: 'var(--s2)', color: 'var(--t3)', border: '1px dashed var(--b2)' }}
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    setProjPickerRect(rect);
+                    setProjPickerOpen(!projPickerOpen);
+                  }}
                 >{task.project || '+ proj'}</span>
                 {projPickerOpen && (
-                  <div className={styles.projPicker} onClick={e => e.stopPropagation()}>
-                    {allProjs.map(p => (
-                      <div
-                        key={p.name}
-                        className={styles.projPickerItem}
-                        style={{ color: '#fff', background: `color-mix(in srgb, var(--${p.color || 'slv'}) 72%, #000)` }}
-                        onClick={() => { updateTask(task.id, { project: p.name }); setProjPickerOpen(false); }}
-                      >{p.name}</div>
-                    ))}
-                    {task.project && (
-                      <div
-                        className={styles.projPickerItem}
-                        style={{ color: 'var(--t3)', background: 'var(--s2)' }}
-                        onClick={() => { updateTask(task.id, { project: null }); setProjPickerOpen(false); }}
-                      >None</div>
-                    )}
-                    {allProjs.length === 0 && <div style={{ padding: '4px 8px', fontSize: 10, color: 'var(--t3)' }}>No projects yet</div>}
-                  </div>
+                  <ProjectPicker
+                    current={task.project}
+                    onSelect={(name) => updateTask(task.id, { project: name })}
+                    onClose={() => setProjPickerOpen(false)}
+                    anchorRect={projPickerRect}
+                  />
                 )}
               </span>
             );

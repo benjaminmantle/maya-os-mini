@@ -134,7 +134,7 @@
   box-shadow: 0 0 6px color-mix(in srgb, var(--gold) 50%, transparent);
 }
 
-/* Project filter chips */
+/* Project filter chips — bigger, project-colored */
 .filterRow {
   display: flex;
   flex-wrap: wrap;
@@ -142,8 +142,8 @@
   margin-top: 6px;
 }
 .filterChip {
-  font-size: 9px;
-  padding: 2px 6px;
+  font-size: 11px;
+  padding: 4px 10px;
   border-radius: var(--rs);
   cursor: pointer;
   color: var(--t3);
@@ -151,7 +151,9 @@
   border: 1px solid var(--b1);
   transition: all var(--tr);
   font-family: var(--f);
+  font-weight: 600;
   letter-spacing: .3px;
 }
 .filterChip:hover { border-color: var(--b2); color: var(--t2); }
-.filterChipActive { border-color: var(--b2); color: var(--text); }
+.filterChipActive { color: #fff; font-weight: 600; }
+.filterChipAll { text-transform: uppercase; }

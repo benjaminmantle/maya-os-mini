@@ -14,13 +14,15 @@ The shell is introduced at the root level. `main.jsx` changes from rendering `<A
 
 ```
 src/
-├── Shell.jsx                  ← NEW: root wrapper; owns active-app state + bubble
-├── App.jsx                    ← unchanged; now rendered by Shell as the "maya" app
-├── vault/                     ← NEW: Vault app (see VAULT_SPEC.md)
-│   └── VaultApp.jsx           ← NEW: Vault root component
+├── Shell.jsx                  ← root wrapper; owns active-app state + bubble
+├── App.jsx                    ← rendered by Shell as the "maya" app
+├── vault/
+│   └── VaultApp.jsx           ← Vault root component
+├── whiteboard/
+│   └── WhiteboardApp.jsx      ← CosmiCanvas root component
 └── styles/
     └── components/
-        └── Shell.module.css   ← NEW: bubble + launcher styles
+        └── Shell.module.css   ← bubble + launcher styles
 ```
 
 ---
@@ -36,10 +38,9 @@ src/
 ### App Registry
 ```js
 const APPS = [
-  { id: 'maya',  label: 'Maya OS',  icon: '◆', component: <App /> },
-  { id: 'vault', label: 'Vault',    icon: '⬡', component: <VaultApp /> },
-  // future: { id: 'whiteboard', label: 'Board', icon: '▦', component: <WhiteboardApp /> },
-  // future: { id: 'endless',   label: 'Sky',   icon: '✦', component: <EndlessSkyApp /> },
+  { id: 'maya',  label: 'Maya OS',      icon: '◆', component: App,            wrap: 'center' },
+  { id: 'vault', label: 'Vault',        icon: '⬡', component: VaultApp,       wrap: 'full'   },
+  { id: 'board', label: 'CosmiCanvas',  icon: '▦', component: WhiteboardApp,  wrap: 'full'   },
 ];
 ```
 
@@ -207,5 +208,5 @@ root.render(<ToastProvider><Shell /></ToastProvider>)
 ## Known Traps
 
 - `ToastProvider` context only reaches components rendered inside it. Since Shell is a child of ToastProvider in main.jsx, all apps can use `useToast()` — do not move ToastProvider inside Shell.
-- The bubble's `position: fixed` is relative to the viewport, not any parent. `overflow: hidden` on `.shell` or `.appStage` does NOT clip fixed children — this is intentional and correct.
+- **Implementation note:** The bubble is `position: absolute` inside the per-app wrapper (`.appWrapCenter` / `.appWrapFull`), not `position: fixed` as originally spec'd. Both wrappers have `position: relative`. Shell.module.css overrides topbar/nav `padding-left` from 18px to 31px to make room (9px + 13px bubble + 9px). See CLAUDE.md for full positioning details.
 - Close-on-outside-click: the mousedown listener must call `e.stopPropagation()` on the launcher itself, not on the document handler. Pattern: check `!launcherRef.current.contains(e.target) && !bubbleRef.current.contains(e.target)`.

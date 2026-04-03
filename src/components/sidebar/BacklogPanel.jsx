@@ -3,7 +3,7 @@ import styles from '../../styles/components/Sidebar.module.css';
 import dStyles from '../../styles/components/DayView.module.css';
 import TaskCard from '../task/TaskCard.jsx';
 import AssignPopup from '../task/AssignPopup.jsx';
-import { saveTask, updateTask, moveTask, sortTasksForView } from '../../store/store.js';
+import { saveTask, updateTask, moveTask, sortTasksForView, getProjects } from '../../store/store.js';
 import { uid } from '../../utils/dates.js';
 import { parseInput, applyEmDash } from '../../utils/parsing.js';
 import { starRank, snapToStarZone, insertTopOfStarGroup, insertAtForStars, doMove } from '../../utils/taskPlacement.js';
@@ -15,6 +15,8 @@ export default function BacklogPanel({
   getTimerDisplay,
   onContextMenu,
   focusDate,
+  onFocusTask,
+  onStartTask,
 }) {
   const [inputVal, setInputVal] = useState('');
   const [assignPopup, setAssignPopup] = useState(null);
@@ -40,7 +42,7 @@ export default function BacklogPanel({
   function handleAdd() {
     const raw = inputVal.trim();
     if (!raw) return;
-    const p = parseInput(raw);
+    const p = parseInput(raw, getProjects());
     const stars = p.stars ?? 1;
     const newId = uid();
     saveTask({
@@ -53,6 +55,7 @@ export default function BacklogPanel({
       mayaPts: stars,
       scheduledDate: null,
       createdAt: new Date().toISOString(),
+      ...(p.project ? { project: p.project } : {}),
     });
     doMove(newId, insertTopOfStarGroup(stars, backlog), backlog);
     setInputVal('');
@@ -117,7 +120,13 @@ export default function BacklogPanel({
     const targetCard = directCard || hoveredCard;
     const draggedTask = tasks.find(t => t.id === id);
     if (!draggedTask || draggedTask.priority === 'idea') return;
+    // Reject project tasks — they belong in Proj tab
+    if (draggedTask.project) { clearCardIndicator(); return; }
     const needsZoneChange = draggedTask && !!draggedTask.scheduledDate;
+    if (needsZoneChange) {
+      if (focusedTaskId === id && onFocusTask) onFocusTask(id);
+      if (activeTaskId === id && onStartTask) onStartTask(id);
+    }
     const draggedStars = draggedTask?.mayaPts ?? 1;
     const zoneList = backlog.filter(t => t.id !== id);
     if (targetCard && targetCard.dataset.taskid !== id) {
@@ -189,7 +198,6 @@ export default function BacklogPanel({
             <button className={dStyles.sortBtn} title="Sort by points" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'pts', sortPts); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
             <button className={dStyles.sortBtn} title="Sort by duration" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'dur', sortDur); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
             <button className={dStyles.sortBtn} title="Sort by star group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'mgrp', sortGrp); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
-            <button className={dStyles.sortBtn} title="Sort by project" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'proj', sortProj); setSortProj(sortProj === 'desc' ? 'asc' : 'desc'); }}>{sortProj === 'desc' ? 'J↓' : 'J↑'}</button>
           </div>
         </div>
       </div>

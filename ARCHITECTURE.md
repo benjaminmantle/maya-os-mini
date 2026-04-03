@@ -82,6 +82,7 @@ maya-os-mini/               ← repo root (.git lives here)
         │   └── shared/
         │       ├── ContribHeatmap.jsx ← GitHub-style green contributions heatmap (reusable)
         │       ├── ContextMenu.jsx    ← Generic positioned context menu
+        │       ├── ProjectPicker.jsx  ← Universal project picker dropdown (select/edit/create/color)
         │       ├── Modal.jsx          ← Generic modal overlay wrapper
         │       ├── Toast.jsx          ← Bottom toast notifications (ToastProvider + useToast)
         │       └── LevelUpOverlay.jsx ← Fullscreen level up celebration
@@ -95,6 +96,8 @@ maya-os-mini/               ← repo root (.git lives here)
             ├── dates.js           ← today(), addDays(), dayLabel(), getWeekDays(), uid()
             ├── scoring.js         ← scoreDay(), closeDayScoring(), calcMomentum(), expForLevel(), TITLES
             ├── parsing.js         ← parseInput() inline syntax parser; applyEmDash() for -- → — conversion
+            ├── richText.jsx       ← renderRichText() mini-markdown renderer for idea names (**bold**, *italic*, bullets, newlines)
+            ├── taskPlacement.js   ← starRank(), snapToStarZone(), insertTopOfStarGroup(), doMove()
             ├── duration.js        ← parseDurMs(), fmtMs(), isOpenEnded(), DURATIONS
             └── colors.js          ← todColor(i, n, theme?) daily dot color interpolation;
                                        TOD_COLORS (neon, default) + TOD_COLORS_KRAFT (ink-on-parchment)
@@ -304,12 +307,13 @@ Parser lives in `utils/parsing.js`. Shared by Day view and Backlog. All tokens o
 | `Nh`/`Nm` | timeEstimate | `2h`, `45m` |
 | `Nh+`/`Nm+` | open-ended duration | `3h+` |
 | `frog` | isFrog: true | |
-| `★N` or `*N` | stars (1-5) | `★3`, `*5` |
+| `!N` | stars (1-5) | `!3`, `!5` |
+| `#Name` | project (case-insensitive match) | `#Maya`, `#Personal` |
 | remaining text | name | |
 
-`parseInput(raw)` returns `{ name, pts, time, isFrog, stars }`. Defaults: pts=0.5, time=null, isFrog=false, stars=0.
+`parseInput(raw, projects?)` returns `{ name, pts, time, isFrog, stars, project }`. Defaults: pts=0.5, time=null, isFrog=false, stars=null, project=null. Pass `getProjects()` as second arg to enable `#project` matching.
 
-`parseIdeaInput(raw)` — lightweight parser for Idea panel input. Returns `{ name }` (strips whitespace only, no token extraction).
+`parseIdeaInput(raw)` — lightweight parser for Idea panel input. Returns `{ name, stars }` (stars via `!N` syntax only).
 
 ---
 
@@ -342,18 +346,20 @@ Override order: frog (green) > active (green) > focused (gold) > star color.
 
 ## Scoring & XP
 
-### Day tiers
-| Tier | Condition |
-|------|-----------|
-| perfect | pts ≥ target AND all dailies done |
-| good | missed ≤1 pt OR ≤1 daily |
-| decent | ≥70% combined |
-| half | ≥50% |
-| poor | ≥25% |
-| fail | <25% |
+### Day tiers (9-tier system)
+| Tier | Condition | XP |
+|------|-----------|-----|
+| perfect | pts ≥ target AND all dailies done | +125 |
+| p90 | ≥90% combined | +88 |
+| p80 | ≥80% | +68 |
+| p70 | ≥70% | +42 |
+| p60 | ≥60% | +12 |
+| p50 | ≥50% | -8 |
+| p40 | ≥40% | -22 |
+| p30 | ≥30% | -40 |
+| fail | <30% | -70 |
 
-### XP awards per close
-perfect=100, good=78, decent=32, half=-5, poor=-18, fail=-30. Perfect streak multiplier up to 1.5× at 10+ days.
++8 XP bonus each for workout and successful fast (applied in `closeDay()` after tier scoring). Perfect streak multiplier up to 1.5× at 10+ days.
 
 ### Level formula
 `expForLevel(n) = Math.round(19 * (n + 24) ** 1.15)` — XP to reach level n from n-1.

@@ -22,12 +22,15 @@ export default function ProjPanel({
   focusedTaskId,
   getTimerDisplay,
   onContextMenu,
+  onFocusTask,
+  onStartTask,
 }) {
   const [inputVal, setInputVal] = useState('');
   const [assignPopup, setAssignPopup] = useState(null);
   const [sortPts, setSortPts] = useState('desc');
   const [sortDur, setSortDur] = useState('desc');
   const [sortGrp, setSortGrp] = useState('desc');
+  const [sortProj, setSortProj] = useState('desc');
   const [filterProj, setFilterProj] = useState(null);
   const inputRef = useRef(null);
   const dragOverCardRef = useRef(null);
@@ -76,9 +79,10 @@ export default function ProjPanel({
   function handleAdd() {
     const raw = inputVal.trim();
     if (!raw) return;
-    const p = parseInput(raw);
+    const p = parseInput(raw, getProjects());
     const stars = p.stars ?? 1;
-    const project = resolveProjOnSubmit();
+    // #syntax project overrides combobox selection
+    const project = p.project || resolveProjOnSubmit();
     if (!project) return; // Require a project in the Proj tab
     const newId = uid();
     saveTask({
@@ -173,6 +177,12 @@ export default function ProjPanel({
     if (!id) { clearCardIndicator(); return; }
     const draggedTask = tasks.find(t => t.id === id);
     if (!draggedTask || draggedTask.priority === 'idea') { clearCardIndicator(); return; }
+    // Reject non-project tasks — they belong in Tasks tab
+    if (!draggedTask.project) { clearCardIndicator(); return; }
+    if (draggedTask.scheduledDate) {
+      if (focusedTaskId === id && onFocusTask) onFocusTask(id);
+      if (activeTaskId === id && onStartTask) onStartTask(id);
+    }
     const hoveredCard = dragOverCardRef.current;
     clearCardIndicator();
     const directCard = e.target.closest('[data-taskid]');
@@ -311,9 +321,11 @@ export default function ProjPanel({
 
   function chipStyle(color) {
     return {
-      color: `var(--${color})`,
-      background: `color-mix(in srgb, var(--${color}) 10%, transparent)`,
-      borderColor: `color-mix(in srgb, var(--${color}) 22%, transparent)`,
+      color: '#fff',
+      background: `color-mix(in srgb, var(--${color}) 72%, #000)`,
+      borderColor: `color-mix(in srgb, var(--${color}) 40%, #000)`,
+      fontWeight: 600,
+      letterSpacing: '.3px',
     };
   }
 
@@ -402,6 +414,7 @@ export default function ProjPanel({
             <button className={dStyles.sortBtn} title="Sort by points" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'pts', sortPts, 'proj'); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
             <button className={dStyles.sortBtn} title="Sort by duration" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'dur', sortDur, 'proj'); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
             <button className={dStyles.sortBtn} title="Sort by star group" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'mgrp', sortGrp, 'proj'); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
+            <button className={dStyles.sortBtn} title="Sort by project" onClick={e => { e.stopPropagation(); sortTasksForView(null, 'proj', sortProj, 'proj'); setSortProj(sortProj === 'desc' ? 'asc' : 'desc'); }}>{sortProj === 'desc' ? 'J↓' : 'J↑'}</button>
           </div>
         </div>
 
@@ -409,9 +422,10 @@ export default function ProjPanel({
         {usedProjNames.length > 0 && (
           <div className={pStyles.filterRow}>
             <span
-              className={`${pStyles.filterChip} ${!filterProj ? pStyles.filterChipActive : ''}`}
+              className={`${pStyles.filterChip} ${pStyles.filterChipAll} ${!filterProj ? pStyles.filterChipActive : ''}`}
+              style={!filterProj ? { background: 'var(--s3)', color: 'var(--text)', borderColor: 'var(--b2)' } : {}}
               onClick={() => setFilterProj(null)}
-            >All</span>
+            >ALL</span>
             {usedProjNames.map(name => {
               const c = projColor(name);
               const active = filterProj && filterProj.toLowerCase() === name.toLowerCase();

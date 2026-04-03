@@ -16,7 +16,7 @@ import {
   getDayRecord, saveTask, updateTask, deleteTask, moveTask,
   sortTasksForView, closeDay, reopenDay,
   setFrogsComplete, deleteDaily, saveDaily, toggleWorkout, carryForwardTasks,
-  toggleFastBroken, getFastingSettings, isFastWindowPassed, getState,
+  toggleFastBroken, getFastingSettings, isFastWindowPassed, getState, getProjects,
 } from '../../store/store.js';
 
 
@@ -42,6 +42,7 @@ export default function DayView({
   const [sortPts, setSortPts] = useState('desc');
   const [sortDur, setSortDur] = useState('desc');
   const [sortGrp, setSortGrp] = useState('desc');
+  const [sortProj, setSortProj] = useState('desc');
   const [deEditName, setDeEditName] = useState('');
   const [deEditType, setDeEditType] = useState('general');
   const [spotlightDropActive, setSpotlightDropActive] = useState(false);
@@ -143,11 +144,12 @@ export default function DayView({
   function handleAdd() {
     const raw = inputVal.trim();
     if (!raw) return;
-    const p = parseInput(raw);
+    const p = parseInput(raw, getProjects());
     const newId = uid();
     saveTask({
       id: newId, name: p.name, pts: p.pts, timeEstimate: p.time || null,
       isFrog: p.isFrog, priority: null, mayaPts: p.stars ?? 1, scheduledDate: focusDate, createdAt: new Date().toISOString(),
+      ...(p.project ? { project: p.project } : {}),
     });
     // Reposition to top of its priority group (active is pre-save state, excludes new task)
     if (!p.isFrog) doMove(newId, insertTopOfStarGroup(p.stars ?? 1, activeSorted), activeSorted);
@@ -435,6 +437,38 @@ export default function DayView({
     },
   } : null;
 
+  const projRowItem = taskCtx.task && taskCtx.task.priority !== 'idea' ? {
+    render: (closeFn) => {
+      const allProjs = getProjects();
+      const curProj = taskCtx.task.project;
+      return (
+        <div style={{ padding: '2px 0' }}>
+          <div style={{ fontSize: 10, color: 'var(--t3)', marginBottom: 3, letterSpacing: '.5px' }}>Project</div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+            <span
+              style={{ fontSize: 10, padding: '2px 6px', borderRadius: 2, cursor: 'pointer', background: !curProj ? 'var(--s3)' : 'var(--s2)', color: !curProj ? 'var(--text)' : 'var(--t3)', border: '1px solid var(--b1)' }}
+              onClick={() => { updateTask(taskCtx.task.id, { project: null }); closeFn(); }}
+            >None</span>
+            {allProjs.map(p => (
+              <span
+                key={p.name}
+                style={{
+                  fontSize: 10, padding: '2px 6px', borderRadius: 2, cursor: 'pointer',
+                  background: `color-mix(in srgb, var(--${p.color || 'slv'}) 72%, #000)`,
+                  color: '#fff', fontWeight: 600, letterSpacing: '.3px',
+                  outline: curProj && curProj.toLowerCase() === p.name.toLowerCase() ? '2px solid var(--gold)' : 'none',
+                  outlineOffset: 1,
+                }}
+                onClick={() => { updateTask(taskCtx.task.id, { project: p.name }); closeFn(); }}
+              >{p.name}</span>
+            ))}
+          </div>
+        </div>
+      );
+    },
+    noClose: true,
+  } : null;
+
   const taskCtxItems = taskCtx.task ? (
     taskCtx.task.priority === 'idea' ? [
       starRowItem,
@@ -445,6 +479,8 @@ export default function DayView({
       { label: taskCtx.task.id === focusedTaskId ? '☁️ Unfocus' : '⚡ Focus', action: () => onFocusTask(taskCtx.task.id) },
       { label: taskCtx.task.isFrog ? '🐸 Unfrog' : '🐸 Frog', active: taskCtx.task.isFrog, action: () => updateTask(taskCtx.task.id, { isFrog: !taskCtx.task.isFrog }) },
       { label: '✏️ Edit', action: () => setEditTask(taskCtx.task) },
+      { separator: true },
+      projRowItem,
       { separator: true },
       starRowItem,
       { separator: true },
@@ -576,6 +612,7 @@ export default function DayView({
                   <button className={styles.sortBtn} title="Sort by points" onClick={() => { sortTasksForView(focusDate, 'pts', sortPts); setSortPts(sortPts === 'desc' ? 'asc' : 'desc'); }}>{sortPts === 'desc' ? 'P↓' : 'P↑'}</button>
                   <button className={styles.sortBtn} title="Sort by duration" onClick={() => { sortTasksForView(focusDate, 'dur', sortDur); setSortDur(sortDur === 'desc' ? 'asc' : 'desc'); }}>{sortDur === 'desc' ? 'T↓' : 'T↑'}</button>
                   <button className={styles.sortBtn} title="Sort by star group" onClick={() => { sortTasksForView(focusDate, 'mgrp', sortGrp); setSortGrp(sortGrp === 'desc' ? 'asc' : 'desc'); }}>{sortGrp === 'desc' ? 'G↓' : 'G↑'}</button>
+                  <button className={styles.sortBtn} title="Sort by project" onClick={() => { sortTasksForView(focusDate, 'proj', sortProj); setSortProj(sortProj === 'desc' ? 'asc' : 'desc'); }}>{sortProj === 'desc' ? 'J↓' : 'J↑'}</button>
                 </div>
               </div>
               <div className={styles.qaRow} style={{ marginBottom:7 }}>
@@ -609,6 +646,7 @@ export default function DayView({
         tasks={tasks} activeTaskId={activeTaskId} focusedTaskId={focusedTaskId}
         getTimerDisplay={getTimerDisplay} onEditDaily={openDailyEdit}
         onDailyContextMenu={handleDailyContextMenu} onTaskContextMenu={handleTaskContextMenu}
+        onFocusTask={onFocusTask} onStartTask={onStartTask}
         theme={theme}
       />
 

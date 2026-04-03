@@ -3,8 +3,8 @@ export function applyEmDash(str) {
   return str.replace(/--([^-])/g, '\u2014$1');
 }
 
-export function parseInput(raw) {
-  let t = raw.trim(), pts = null, time = '', stars = null;
+export function parseInput(raw, projects) {
+  let t = raw.trim(), pts = null, time = '', stars = null, project = null;
 
   // Frog flag
   const isFrog = /\bfrog\b/i.test(t);
@@ -29,7 +29,19 @@ export function parseInput(raw) {
   const dm = t.match(/@(0\.5|[0-3])\b/);
   if (dm) { pts = +dm[1]; t = t.replace(dm[0], '').trim(); }
 
-  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, stars };
+  // Project: #ProjectName (case-insensitive match against existing projects)
+  if (projects && projects.length) {
+    const pm = t.match(/#(\S+)/);
+    if (pm) {
+      const match = projects.find(p => p.name.toLowerCase() === pm[1].toLowerCase());
+      if (match) {
+        project = match.name;
+        t = t.replace(pm[0], '').trim();
+      }
+    }
+  }
+
+  return { name: t.replace(/\s+/g, ' ').trim() || 'Untitled', pts: pts ?? 0.5, time, isFrog, stars, project };
 }
 
 // Idea-only parser: extracts star rating and name only (no pts/duration/frog)
